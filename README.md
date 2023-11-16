@@ -8,7 +8,7 @@
 [Change Data Capture (CDC)](https://medium.com/event-driven-utopia/a-gentle-introduction-to-event-driven-change-data-capture-683297625f9b) tool from any source(s) to any target.
 
 > [!CAUTION]
-> :warning: **This project is still under developpement and is not ready for production use yet** :warning: 
+> :warning: **This project is still under developpement and is not ready for production use yet** :warning:
 
 ## Features
 
