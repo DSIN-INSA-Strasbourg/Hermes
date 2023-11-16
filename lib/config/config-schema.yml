@@ -1,0 +1,192 @@
+# Hermes : Change Data Capture (CDC) tool from any source(s) to any target
+# Copyright (C) 2023 INSA Strasbourg
+#
+# This file is part of Hermes.
+#
+# Hermes is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Hermes is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Hermes. If not, see <https://www.gnu.org/licenses/>.
+
+# https://docs.python-cerberus.org/validation-rules.html
+
+hermes:
+  type: dict
+  required: true
+  empty: false
+  schema:
+    cache:
+      type: dict
+      required: true
+      empty: false
+      schema:
+        dirpath:
+          type: string
+          required: true
+          empty: false
+        enable_compression:
+          type: boolean
+          required: false
+          empty: false
+          default: true
+        backup_count:
+          type: integer
+          required: true
+          empty: false
+          min: 0
+          max: 999999
+          default: 1
+    cli_socket:
+      type: dict
+      required: false
+      nullable: false
+      default: {}
+      schema:
+        path:
+          type: string
+          required: false
+          empty: false
+          nullable: true
+          default: null
+        owner:
+          type: string
+          required: false
+          empty: false
+          nullable: true
+          default: null
+        group:
+          type: string
+          required: false
+          empty: false
+          nullable: true
+          default: null
+        mode:
+          type: integer
+          required: false
+          empty: false
+          nullable: false
+          min: 0
+          max: 07777
+          default: 00600
+    logs:
+      type: dict
+      required: true
+      empty: false
+      schema:
+        logfile:
+          type: string
+          required: true
+          empty: false
+          nullable: true
+          default: null
+        backup_count:
+          type: integer
+          required: false
+          empty: false
+          default: 7
+          min: 0
+          max: 999999
+        verbosity:
+          type: string
+          required: false
+          allowed:
+            - critical
+            - error
+            - warning
+            - info
+            - debug
+          default: warning
+    mail:
+      type: dict
+      required: true
+      empty: false
+      schema:
+        server:
+          type: string
+          required: true
+          empty: false
+          nullable: false
+        from:
+          type: string
+          required: true
+          empty: false
+          nullable: false
+        to:
+          type:
+            - string
+            - list
+          required: true
+          empty: false
+          nullable: false
+          minlength: 1
+          schema:
+            type: string
+        compress_attachments:
+          type: boolean
+          required: false
+          empty: false
+          default: true
+        mailtext_maxsize:
+          type: integer
+          required: false
+          empty: false
+          default: 1048576 # 1MB
+          min: 0
+        attachment_maxsize:
+          type: integer
+          required: false
+          empty: false
+          default: 5242880 # 5MB
+          min: 0
+    plugins:
+      type: dict
+      required: true
+      empty: false
+      schema:
+        attributes:
+          type: dict
+          required: false
+          default: {}
+          valuesrules:
+            default: { "settings": {} }
+            schema:
+              settings:
+                type: dict
+                required: true
+                empty: true
+                default: {}
+        datasources:
+          type: dict
+          required: false
+          empty: false
+          valuesrules:
+            schema:
+              type:
+                type: string
+                required: true
+              settings:
+                type: dict
+                required: true
+                empty: true
+        messagebus:
+          type: dict
+          required: true
+          empty: false
+          minlength: 1
+          maxlength: 1
+          valuesrules:
+            default: { "settings": {} }
+            schema:
+              settings:
+                type: dict
+                required: true
+                empty: true
+                default: {}

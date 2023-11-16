@@ -1,0 +1,90 @@
+# Hermes : Change Data Capture (CDC) tool from any source(s) to any target
+# Copyright (C) 2023 INSA Strasbourg
+#
+# This file is part of Hermes.
+#
+# Hermes is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Hermes is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Hermes. If not, see <https://www.gnu.org/licenses/>.
+
+# https://docs.python-cerberus.org/validation-rules.html
+
+hermes-client:
+  type: dict
+  required: true
+  empty: false
+  schema:
+    enableAutoremediation:
+      type: boolean
+      required: false
+      nullable: false
+      empty: false
+      default: false
+    errorQueue_retryInterval:
+      type: integer
+      required: true
+      nullable: false
+      empty: false
+      min: 1
+      max: 65535
+      default: 60
+    trashbin_purgeInterval:
+      type: integer
+      required: true
+      nullable: false
+      empty: false
+      min: 1
+      max: 65535
+      default: 60
+    trashbin_retention:
+      type: integer
+      required: true
+      min: 0
+      max: 3660
+      default: 0
+    updateInterval:
+      type: integer
+      required: true
+      nullable: false
+      empty: false
+      min: 0
+      default: 5
+    useFirstInitsyncSequence:
+      type: boolean
+      required: false
+      nullable: false
+      empty: false
+      default: false
+    datamodel:
+      type: dict
+      required: true
+      empty: false
+      minlength: 1
+      keysrules:
+        type: string
+        regex: "^[a-zA-Z][a-zA-Z0-9].*$"
+      valuesrules:
+        schema:
+          hermesType:
+            type: string
+            required: true
+            empty: false
+          toString:
+            type: string
+            required: false
+            empty: false
+            nullable: true
+            default: null
+          attrsmapping:
+            type: dict
+            required: true
+            empty: false

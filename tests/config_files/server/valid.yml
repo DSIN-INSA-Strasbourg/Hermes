@@ -1,0 +1,323 @@
+# Hermes : Change Data Capture (CDC) tool from any source(s) to any target
+# Copyright (C) 2023 INSA Strasbourg
+#
+# This file is part of Hermes.
+#
+# Hermes is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Hermes is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Hermes. If not, see <https://www.gnu.org/licenses/>.
+
+hermes:
+  cache:
+    dirpath: /dev/null
+    enable_compression: true
+    backup_count: 99
+  logs:
+    backup_count: 31
+    verbosity: debug
+  mail:
+    server: dummy.example.com
+    from: Hermes Server <no-reply@example.com>
+    to:
+      - user@example.com
+  plugins:
+    # Attribute transform plugins (jinja filters)
+    attributes:
+      ldapPasswordHash:
+        settings:
+          default_hash_types:
+            # - MD5
+            # - SHA
+            - SMD5
+            - SSHA
+            - SSHA256
+            - SSHA512
+
+      crypto_RSA_OAEP:
+        settings:
+          keys:
+            decrypt_from_datasource:
+              hash: SHA256
+              # WARNING - THIS KEY IS WEAK AND PUBLIC, NEVER USE IT
+              rsa_key: |-
+                -----BEGIN RSA PRIVATE KEY-----
+                MIGrAgEAAiEAstltWwDzmtSSHi7lfKqtUIO4dI8aX/EAopNdR/cWXH8CAwEAAQIh
+                AKfflFjGNOJQwvJX3Io+/juxO+HFd7SRC++zBD9paZqZAhEA5OtjZQUapRrV/aC5
+                NXFsswIRAMgBtgpz+t0FxyEXdzlcTwUCEHU6WZ8M2xU7xePpH49Ps2MCEQC+78s+
+                /WvfNtXcRI+gJfyVAhAjcIWzHC5q4wzgL7psbPGy
+                -----END RSA PRIVATE KEY-----
+            encrypt_to_messagebus:
+              hash: SHA3_512
+              # WARNING - THIS KEY IS WEAK AND PUBLIC, NEVER USE IT
+              rsa_key: |-
+                -----BEGIN PUBLIC KEY-----
+                MCgCIQCy2W1bAPOa1JIeLuV8qq1Qg7h0jxpf8QCik11H9xZcfwIDAQAB
+                -----END PUBLIC KEY-----
+
+    # SERVER ONLY - Sources used to fetch data. At lease one must be defined
+    datasources:
+      source1: # Source name of first source. Use whatever you want. Will be used in datamodel
+        type: oracle # Source type. A datasource plugin with this name must exist
+        settings: # Settings of current source
+          login: HERMES_DUMMY
+          password: "DuMmY_p4s5w0rD"
+          port: 1234
+          server: dummy.example.com
+          sid: DUMMY
+
+      source2:
+        type: ldap
+        settings:
+          uri: ldaps://dummy.example.com:636
+          binddn: cn=binddn,dc=example,dc=com
+          bindpassword: DuMmY_p4s5w0rD
+          basedn: dc=example,dc=com
+
+    messagebus:
+      sqlite:
+        settings:
+          uri: /tmp/hermes-test.sqlite
+          retention_in_days: 1
+
+hermes-server:
+  updateInterval: 60 # Interval between two data update, in seconds
+
+  # The declaration order of data types is important :
+  # - add/modify events will be processed in the declaration order
+  # - remove events will be processed in the reversed declaration order
+  datamodel:
+    Groups: # Settings for Groups's data type
+      primarykeyattr: group_id
+      # Facultative template of object's string representation that will be used in logs
+      toString: "<Groups[{{ group_id }}, {{ cn | default('#UNDEF#') }}]>"
+      sources:
+        source1:
+          fetch:
+            type: fetch
+            query: >-
+              SELECT {{ REMOTE_ATTRIBUTES | join(', ') }}
+              FROM GROUPS_HERMES
+          attrsmapping:
+            cn: CN
+            description: DESCRIPTION
+            group_id: GROUP_ID
+
+    Users: # Settings for Users's data type
+      primarykeyattr: user_id # Attribute's name that will be used as User primary key
+      # Facultative template of object's string representation that will be used in logs
+      toString: "<Users[{{ user_id }}, {{ login | default('#UNDEF#') }}]>"
+      # Behavior if a same attribute has different value on 2 sources
+      # - use_cached_entry : ignore data fetched and keep using cached entry until conflict
+      #   is solved (default)
+      # - keep_first_value : use the first value met in source order
+      on_merge_conflict: use_cached_entry
+      sources:
+        source1:
+          fetch:
+            type: fetch
+            query: >-
+              SELECT {{ REMOTE_ATTRIBUTES | join(', ') }}
+              FROM USERS_HERMES
+
+          attrsmapping:
+            cn: CN
+            displayname: DISPLAYNAME
+            edupersonaffiliation: "{{ EDUPERSONAFFILIATION if EDUPERSONAFFILIATION is none else EDUPERSONAFFILIATION.split(';') }}"
+            edupersonaffiliationSplitted:
+              - EDUPERSONPRIMARYAFFILIATION
+              - EDUPERSONAFFILIATION1
+              - EDUPERSONAFFILIATION2
+              - EDUPERSONAFFILIATION3
+            givenname: GIVENNAME
+            labeleduri: LABELEDURI
+            login: LOGIN
+            mail: MAIL
+            sn: SN
+            user_id: USER_ID
+          # Advanced merge constraints with Jinja rules.
+          # WARNING : Very slow, avoid using them as possible
+          # Jinja vars available are :
+          # - '_SELF' : the data type's item in current datasource being currently merged
+          # - For each datasource declared in current data type :
+          #   - datasource-name_pkeys : A set with every primary keys of data type's item in
+          #     current datasource
+          #   - datasource-name : The fetched entries of current polling. A list of
+          #     dictionnaries, each dictionnary is an entry with attrname as key, and
+          #     corresponding value as value
+          # merge_constraints:
+          #   - "{{ _SELF.user_id in source2_pkeys }}"
+          #   - "{{ _SELF.user_id in (source2 | map(attribute='user_id')) }}"
+          #
+          # Constraints on pkey during merge : will be applied during merge. As merging will
+          # be processed in the datamodel's source declaration order in config file, the
+          # first source constraint will be ignored (because it will be created and not merged).
+          # Then the first source's data will be merged with second source's according to
+          # second's pkey_merge_constraint. Then the resulting data will be merged with third
+          # source's data according to third's pkey_merge_constraint, etc.
+          # Valid values are : noConstraint, mustNotExist, mustAlreadyExist, mustExistInBoth
+          # The little difference between mustAlreadyExist and mustExistInBoth is that
+          # entries existing in previous source(s) will be removed if not present in current
+          # pkey_merge_constraint: mustNotExist
+
+        source2:
+          fetch:
+            type: fetch
+            vars:
+              base: ou=people,dc=example,dc=com
+              scope: subtree
+              filter: "(objectClass=eduPerson)"
+              attrlist: "{{ REMOTE_ATTRIBUTES }}"
+          attrsmapping:
+            user_id: uid
+            cn: CN
+            displayname: DISPLAYNAME
+            modifyTimestamp: modifyTimestamp
+          local_attrs:
+            - modifyTimestamp
+          pkey_merge_constraint: mustExistInBoth
+
+    UserPasswords: # Settings for UserPasswords's data type
+      primarykeyattr: user_id # Attribute's name that will be used as User primary key
+      # Integrity constraints between datamodel's type, in Jinja.
+      # WARNING : could be very slow, keep it as simple as possible, and focused upon
+      # primary keys
+      # Jinja vars available are '_SELF' : the current object, and every types declared
+      # For each "typename" declared, two vars are available :
+      # - typename_pkeys : a set with every primary keys
+      # - typename : a list of dict containing each entries
+      integrity_constraints:
+        - "{{ _SELF.user_id in Users_pkeys }}"
+      sources: # datasource to use to fetch Users. Usually one, but several could be used
+        source1: # The source name set in hermes.plugins.datasources
+          # The query to fetch data.
+          # 'type' is mandatory and indicate to plugin which flavour of query to proceed
+          #   Possible 'type' values are 'add', 'delete', 'fetch' and 'modify'
+          # 'query' is the query to send
+          # 'vars' is a dict with vars to use (and sanitize !) in query
+          #
+          # According to source type, 'query' and 'vars' may be facultative.
+          # A Jinja template can be inserted in 'query' and 'vars' values to avoid wilcards
+          # and manually typing the attribute's list, or to filter the query using a cached value.
+          #
+          # Jinja vars available are [REMOTE_ATTRIBUTES, CACHED_VALUES].
+          # See documentation for details :
+          # https://hermes.insa-strasbourg.fr/en/configuration/hermes-server/#hermes-server.datamodel.data-type-name.sources.datasource-name.fetch
+          fetch:
+            type: fetch
+            query: >-
+              SELECT p.{{ REMOTE_ATTRIBUTES | join(', p.') }}
+              FROM PASSWD_HERMES p
+              ORDER BY LAST_CHANGE DESC
+
+          # Facultative. The query to run each time an item of current data have been processed
+          # without errors.
+          # 'type' is mandatory and indicate to plugin which flavour of query to proceed
+          #   Possible 'type' values are 'add', 'delete', 'fetch' and 'modify'
+          # 'query' is the query to send
+          # 'vars' is a dict with vars to use (and sanitize !) in query
+          #
+          # According to source type, 'query' and 'vars' may be facultative.
+          # A Jinja template can be inserted in 'query' and 'vars' values to avoid wilcards
+          # and manually typing the attribute's list, or to filter the query using a cached value.
+          #
+          # Jinja vars available are [REMOTE_ATTRIBUTES, ITEM_CACHED_VALUES, ITEM_FETCHED_VALUES].
+          # See documentation for details :
+          # https://hermes.insa-strasbourg.fr/en/configuration/hermes-server/#hermes-server.datamodel.data-type-name.sources.datasource-name.commit_one
+          commit_one:
+            type: modify
+            query: >-
+              UPDATE PASSWD_HERMES
+              SET
+                password_encrypted = NULL,
+                ldap_hashes = :ldap_hashes
+              WHERE user_id = :user_id
+
+            vars:
+              user_id: "{{ ITEM_FETCHED_VALUES.user_id }}"
+              ldap_hashes: "{{ ';'.join(ITEM_FETCHED_VALUES.password_ldap) }}"
+
+          # Facultative. The query to run once all data have been processed with no errors.
+          # 'type' is mandatory and indicate to plugin which flavour of query to proceed
+          #   Possible 'type' values are 'add', 'delete', 'fetch' and 'modify'
+          # 'query' is the query to send
+          # 'vars' is a dict with vars to use (and sanitize !) in query
+          #
+          # According to source type, 'query' and 'vars' may be facultative.
+          # A Jinja template can be inserted in 'query' and 'vars' values to avoid wilcards
+          # and manually typing the attribute's list, or to filter the query using a cached value.
+          #
+          # Jinja vars available are [REMOTE_ATTRIBUTES, CACHED_VALUES, FETCHED_VALUES].
+          # See documentation for details :
+          # https://hermes.insa-strasbourg.fr/en/configuration/hermes-server/#hermes-server.datamodel.data-type-name.sources.datasource-name.commit_all
+          # commit_all:
+          #   type: delete
+          #   query: >-
+          #     DELETE FROM PASSWD_HERMES
+          #     WHERE
+          #       seq_number <= :seq_number
+          #   vars:
+          #     seq_number: "{{ FETCHED_VALUES | map(attribute='seq_number') | max }}"
+
+          # Attribute's mapping. HERMES attributes as keys, REMOTE attributes (on datasource)
+          # as values.
+          # A list of several remote attributes can be defined as a convenience, their non-NULL
+          # values will be combined in a list.
+          # The NULL values and empty lists won't be loaded.
+          #
+          # A Jinja template could be set as value. If you do so, the whole value must be a
+          # template. You can't set '''{{ ATTRIBUTE.split('separator') }} SOME_NON_JINJA_ATTR'''
+          # This is required in order to allow the software to collect the REMOTE_ATTRIBUTES
+          #
+          # Jinja vars available are remote attributes for current User, and [ITEM_CACHED_VALUES].
+          # See documentation for details :
+          # https://hermes.insa-strasbourg.fr/en/configuration/hermes-server/#hermes-server.datamodel.data-type-name.sources.datasource-name.attrsmapping
+          attrsmapping:
+            user_id: USER_ID
+            password_encrypted: "{{ (PASSWORD_ENCRYPTED | crypto_RSA_OAEP('decrypt_from_datasource') | crypto_RSA_OAEP('encrypt_to_messagebus')) | default(None) }}"
+            password_cacheonly: "{{ (PASSWORD_ENCRYPTED | crypto_RSA_OAEP('decrypt_from_datasource')) | default(ITEM_CACHED_VALUES.password_cacheonly) | default(None) }}" # VERY BAD IDEA, just here as example
+            password_ldap: "{{ (PASSWORD_ENCRYPTED | crypto_RSA_OAEP('decrypt_from_datasource') | ldapPasswordHash) | default(none if LDAP_HASHES is none else LDAP_HASHES.split(';')) }}"
+            last_change: LAST_CHANGE
+
+          # Facultative. Define attributes that will only be stored in cache.
+          # They won't be sent in events, nor used to diff with cache. The attribute names
+          # set here must exists as keys in attrsmapping
+          cacheonly_attrs:
+            - password_cacheonly
+
+          # Facultative. Define attributes that will contain sensitive data, like passwords.
+          # It will indicates hermes to not cache them. The attribute names set here must
+          # exists as keys in attrsmapping. They'll be sent to clients unless they're
+          # defined in local_attrs too. As they're not cached, they'll be seen as added EACH
+          # TIME in diff
+          secrets_attrs:
+            - password_encrypted
+
+          # Facultative. Define attributes that won't be sent to clients, cached or used to
+          # diff with cache. The attribute names set here must exists as keys in attrsmapping.
+          local_attrs:
+            - user_id
+            - last_change
+
+    GroupsMembers: # Settings for GroupsMembers's data type
+      primarykeyattr: [group_id, user_id]
+      integrity_constraints:
+        - "{{ _SELF.user_id in Users_pkeys and _SELF.group_id in Groups_pkeys }}"
+      sources:
+        source1:
+          fetch:
+            type: fetch
+            query: >-
+              SELECT {{ REMOTE_ATTRIBUTES | join(', ') }}
+              FROM GROUPSMEMBERS_HERMES
+          attrsmapping:
+            user_id: USER_ID
+            group_id: GROUP_ID

@@ -1,0 +1,14 @@
+/.coverage
+/.venv*
+/.vscode/
+__pycache__/
+*.pyc
+
+# hermes.py symlinks and conf files
+/hermes-client-*
+/hermes-server
+/hermes-server-cli
+
+# Exclude config files, excepted examples
+/hermes-*-config.yml
+!/hermes-*-config-example.yml

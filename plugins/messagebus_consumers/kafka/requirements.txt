@@ -1,0 +1,3 @@
+# plugins/messagebus_consumers/kafka
+kafka-python==2.0.2
+

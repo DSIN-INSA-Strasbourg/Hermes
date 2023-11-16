@@ -1,0 +1,177 @@
+#! /bin/bash
+
+# Hermes : Change Data Capture (CDC) tool from any source(s) to any target
+# Copyright (C) 2023 INSA Strasbourg
+#
+# This file is part of Hermes.
+#
+# Hermes is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Hermes is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Hermes. If not, see <https://www.gnu.org/licenses/>.
+
+
+###########################
+# CONFIG
+
+# Validated versions of python, space separated
+# Order from favorite to least favorite version
+validpythonversions="python3.10"
+
+# Virtualenv directory name
+venvdir=".venv"
+
+# /CONFIG
+###########################
+
+function usage {
+    echo "Usage : $0 [-d] [-e] [-p] [-h]" >&2
+    echo "" >&2
+    echo "options:" >&2
+    echo "  -d, --install-devel-requirements" >&2
+    echo "             Install devel requirements from requirements-devel.txt" >&2
+    echo "             Won't do anything if '-p' is set" >&2
+    echo "  -e, --dont-recreate-venv" >&2
+    echo "             Don't delete and recreate current virtualenv." >&2
+    echo "             WARNING : If you specify this option and no virtualenv exists," >&2
+    echo "             python requirements will be installed in your user environment" >&2
+    echo "  -p, --dont-install-python-requirements" >&2
+    echo "             Don't install python requirements from found requirements.txt" >&2
+    echo "" >&2
+    echo "  -h, --help" >&2
+    echo "             Show this help message and exit" >&2
+}
+
+options=$(getopt -o deph --long help,install-devel-requirements,dont-recreate-venv,dont-install-python-requirements -- "$@")
+[ $? -eq 0 ] || { 
+    echo -e "Incorrect options provided\n" >&2
+    usage
+    exit 1
+}
+eval set -- "$options"
+while true; do
+    case "$1" in
+    -d | --install-devel-requirements)
+        INSTALLDEVELREQUIREMENTS=1
+        ;;
+    -e | --dont-recreate-venv)
+        DONTRECREATEVENV=1
+        ;;
+    -p | --dont-install-python-requirements)
+        DONTINSTALLPYTHONREQUIREMENTS=1
+        ;;
+    -h | --help)
+        usage
+        exit 0
+        ;;
+    --)
+        shift
+        break
+        ;;
+    *)
+    esac
+    shift
+done
+
+
+# Checking for a valid version of python
+PYTHONCMD=UNDEF
+for pyver in ${validpythonversions}
+do
+    if command -v "${pyver}" &> /dev/null
+    then
+        PYTHONCMD="${pyver}"
+        break
+    fi
+done
+
+if [ "${PYTHONCMD}" == "UNDEF" ]
+then
+    echo "No validated version of python found - abort" >&2
+    exit 1
+fi
+
+if ! command -v "direnv" &> /dev/null
+then
+    echo "direnv was not found in \$PATH - abort" >&2
+    exit 1
+fi
+
+# Adding the folder to the allowed folders for direnv
+direnv allow
+
+if [ -z ${DIRENV_DIR+x} ]
+then
+    # Direnv does not seem active, we are trying to reload its helpers
+    . "${HOME}/.bashrc"
+fi
+
+if [ -z ${DIRENV_DIR+x} ]
+then
+    # Direnv is still not active
+    echo -e "direnv is not active, please add this to your '${HOME}/.bashrc' and reload your bash session before running this script again :\n"
+    cat << 'EOF'
+#########
+# direnv
+eval "$(direnv hook bash)"
+show_virtual_env() {
+    if [[ -n "$VIRTUAL_ENV" && -n "$DIRENV_DIR" ]]; then
+        echo "($(basename $VIRTUAL_ENV)) "
+    fi
+}
+export -f show_virtual_env
+PS1='$(show_virtual_env)'$PS1
+# /direnv
+#########
+EOF
+
+    echo -e "\ndirenv is not active - abort" >&2
+    exit 1
+fi
+
+
+# Checking that the current directory is indeed the root of the repository
+if [ "${DIRENV_DIR:1}" != "${PWD}" ]
+then
+    echo "[Error] This script must be executed from the folder where it is located - abort" >&2
+    exit 1
+fi
+
+
+# Creating virtualenv
+if [ -z ${DONTRECREATEVENV+x} ]
+then
+    [ -d "${venvdir}" ] && rm -Rf "${venvdir}"
+    if [ -e "${venvdir}" ]
+    then
+        echo "[Error] Virtualenv folder target '${venvdir}' exists, but is not a folder - abort" >&2
+        exit 1
+    fi
+    ${PYTHONCMD} -m venv "${venvdir}"
+fi
+
+if [ -z ${DONTINSTALLPYTHONREQUIREMENTS+x} ]
+then
+    reqfile=$(mktemp --suffix=-requirements.txt)
+
+    cat "requirements.txt" "clients/"*"/requirements.txt" "plugins/"*/*"/requirements.txt" >"${reqfile}" 2>/dev/null
+    if [ ! -z "${INSTALLDEVELREQUIREMENTS}" ]
+    then
+        cat "requirements-devel.txt" >> "${reqfile}"
+    fi
+
+    # Installing Python dependencies
+    echo -e "\n\n*** Installing Python dependencies ***\n"
+    pip3 install -r "${reqfile}"
+
+    rm -f "${reqfile}"
+fi
+

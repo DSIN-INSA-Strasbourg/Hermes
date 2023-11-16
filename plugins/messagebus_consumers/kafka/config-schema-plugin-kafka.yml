@@ -1,0 +1,60 @@
+# Hermes : Change Data Capture (CDC) tool from any source(s) to any target
+# Copyright (C) 2023 INSA Strasbourg
+#
+# This file is part of Hermes.
+#
+# Hermes is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Hermes is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Hermes. If not, see <https://www.gnu.org/licenses/>.
+
+# https://docs.python-cerberus.org/validation-rules.html
+
+topic:
+  type: string
+  required: true
+  empty: false
+  nullable: false
+group_id:
+  type: string
+  required: true
+  empty: false
+  nullable: false
+servers:
+  type:
+    - string
+    - list
+  required: true
+  empty: false
+  nullable: false
+  minlength: 1
+  schema:
+    type: string
+ssl:
+  type: dict
+  required: false
+  dependencies:
+    - ^ssl.certfile
+    - ^ssl.keyfile
+    - ^ssl.cafile
+  schema:
+    certfile:
+      type: string
+      empty: false
+      nullable: false
+    keyfile:
+      type: string
+      empty: false
+      nullable: false
+    cafile:
+      type: string
+      empty: false
+      nullable: false

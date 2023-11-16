@@ -1,0 +1,149 @@
+# Hermes : Change Data Capture (CDC) tool from any source(s) to any target
+# Copyright (C) 2023 INSA Strasbourg
+#
+# This file is part of Hermes.
+#
+# Hermes is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Hermes is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Hermes. If not, see <https://www.gnu.org/licenses/>.
+
+# https://docs.python-cerberus.org/validation-rules.html
+
+hermes-client-usersgroups_ldap:
+  type: dict
+  required: true
+  empty: false
+  schema:
+    uri:
+      type: string
+      required: true
+      empty: false
+    binddn:
+      type: string
+      required: true
+      empty: false
+    bindpassword:
+      type: string
+      required: true
+      empty: false
+    basedn:
+      type: string
+      required: true
+      empty: false
+    users_ou:
+      type: string
+      required: true
+      empty: false
+    groups_ou:
+      type: string
+      required: true
+      empty: false
+    ssl:
+      type: dict
+      required: false
+      default: {}
+      schema:
+        certfile:
+          type: string
+          required: false
+          empty: false
+          nullable: false
+          dependencies: keyfile
+        keyfile:
+          type: string
+          required: false
+          empty: false
+          nullable: false
+          dependencies: certfile
+        cafile:
+          type: string
+          required: false
+          empty: false
+          nullable: false
+    dnAttributes:
+      type: dict
+      required: true
+      minlength: 3
+      maxlength: 3
+      keysrules:
+        type: string
+        allowed:
+          - Users
+          - UserPasswords
+          - Groups
+      valuesrules:
+        type: string
+        empty: false
+        nullable: false
+    groupMemberAttribute:
+      type: string
+      required: true
+      empty: false
+      nullable: false
+      default: member
+    propagateUserDNChangeOnGroupMember:
+      type: boolean
+      required: true
+      empty: false
+      nullable: false
+      default: true
+      oneof:
+        - allowed:
+            - false
+        - dependencies: groupsObjectclass
+          allowed:
+            - true
+    groupsObjectclass:
+      type: string
+      required: false
+      empty: false
+      nullable: false
+    defaultValues:
+      type: dict
+      required: false
+      default: {}
+      keysrules:
+        type: string
+        allowed:
+          - Users
+          - UserPasswords
+          - Groups
+      valuesrules:
+        type: dict
+        required: true
+        empty: false
+        minlength: 1
+        keysrules:
+          type: string
+        valuesrules:
+          type:
+            - string
+            - list
+          schema:
+            type: string
+    attributesToIgnore:
+      type: dict
+      required: false
+      default: {}
+      keysrules:
+        type: string
+        allowed:
+          - Users
+          - UserPasswords
+          - Groups
+      valuesrules:
+        type: list
+        required: true
+        empty: false
+        minlength: 1
+        schema:
+          type: string

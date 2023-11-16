@@ -1,0 +1,202 @@
+# Hermes : Change Data Capture (CDC) tool from any source(s) to any target
+# Copyright (C) 2023 INSA Strasbourg
+#
+# This file is part of Hermes.
+#
+# Hermes is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Hermes is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Hermes. If not, see <https://www.gnu.org/licenses/>.
+
+# https://docs.python-cerberus.org/validation-rules.html
+
+hermes-server:
+  type: dict
+  required: true
+  empty: false
+  dependencies: "^hermes.plugins.datasources"
+  schema:
+    updateInterval:
+      type: integer
+      required: true
+      nullable: false
+      empty: false
+      min: 0
+    datamodel:
+      type: dict
+      required: true
+      empty: false
+      minlength: 1
+      keysrules:
+        type: string
+        regex: "^[a-zA-Z][a-zA-Z0-9].*$"
+      valuesrules:
+        schema:
+          primarykeyattr:
+            type:
+              - string
+              - list
+            required: true
+            empty: false
+          toString:
+            type: string
+            required: false
+            empty: false
+            nullable: true
+            default: null
+          on_merge_conflict:
+            type: string
+            required: false
+            default: use_cached_entry
+            allowed:
+              - keep_first_value
+              - use_cached_entry
+          integrity_constraints:
+            type: list
+            required: false
+            default: []
+            schema:
+              type: string
+          sources:
+            type: dict
+            required: true
+            empty: false
+            valuesrules:
+              schema:
+                fetch:
+                  type: dict
+                  required: true
+                  empty: false
+                  schema:
+                    type:
+                      type: string
+                      required: true
+                      empty: false
+                      allowed:
+                        - add
+                        - delete
+                        - fetch
+                        - modify
+                    query:
+                      type: string
+                      required: false
+                      empty: false
+                      nullable: true
+                      default: null
+                    vars:
+                      type: dict
+                      keysrules:
+                        type: string
+                      valuesrules:
+                        type: string
+                      required: false
+                      empty: true
+                      default: {}
+                commit_one:
+                  type: dict
+                  required: false
+                  empty: false
+                  excludes: commit_all
+                  schema:
+                    type:
+                      type: string
+                      required: true
+                      empty: false
+                      allowed:
+                        - add
+                        - delete
+                        - fetch
+                        - modify
+                    query:
+                      type: string
+                      required: false
+                      empty: false
+                      nullable: true
+                      default: null
+                    vars:
+                      type: dict
+                      keysrules:
+                        type: string
+                      valuesrules:
+                        type: string
+                      required: false
+                      empty: true
+                      default: {}
+                commit_all:
+                  type: dict
+                  required: false
+                  empty: false
+                  excludes: commit_one
+                  schema:
+                    type:
+                      type: string
+                      required: true
+                      empty: false
+                      allowed:
+                        - add
+                        - delete
+                        - fetch
+                        - modify
+                    query:
+                      type: string
+                      required: false
+                      empty: false
+                      nullable: true
+                      default: null
+                    vars:
+                      type: dict
+                      keysrules:
+                        type: string
+                      valuesrules:
+                        type: string
+                      required: false
+                      empty: true
+                      default: {}
+                attrsmapping:
+                  type: dict
+                  required: true
+                  empty: false
+                  keysrules:
+                    type: string
+                secrets_attrs:
+                  type: list
+                  required: false
+                  default: []
+                  schema:
+                    type: string
+                cacheonly_attrs:
+                  type: list
+                  required: false
+                  default: []
+                  schema:
+                    type: string
+                local_attrs:
+                  type: list
+                  required: false
+                  default: []
+                  schema:
+                    type: string
+                pkey_merge_constraint:
+                  type: string
+                  required: false
+                  empty: false
+                  allowed:
+                    - noConstraint
+                    - mustNotExist
+                    - mustAlreadyExist
+                    - mustExistInBoth
+                  default: noConstraint
+                merge_constraints:
+                  type: list
+                  required: false
+                  default: []
+                  schema:
+                    type: string

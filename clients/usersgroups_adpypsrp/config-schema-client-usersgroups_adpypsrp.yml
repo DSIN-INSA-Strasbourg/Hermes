@@ -1,0 +1,163 @@
+# Hermes : Change Data Capture (CDC) tool from any source(s) to any target
+# Copyright (C) 2023 INSA Strasbourg
+#
+# This file is part of Hermes.
+#
+# Hermes is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Hermes is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Hermes. If not, see <https://www.gnu.org/licenses/>.
+
+# https://docs.python-cerberus.org/validation-rules.html
+
+hermes-client-usersgroups_adpypsrp:
+  type: dict
+  required: true
+  empty: false
+  schema:
+    WinRM:
+      type: dict
+      required: true
+      empty: false
+      schema:
+        host:
+          type: string
+          required: true
+          empty: false
+        port:
+          type: integer
+          required: true
+          empty: false
+          min: 1
+          max: 65535
+        login:
+          type: string
+          required: true
+          empty: false
+        password:
+          type: string
+          required: true
+          empty: false
+        ssl:
+          type: boolean
+          required: true
+          empty: false
+          nullable: false
+          default: true
+        ssl_cert_validation:
+          type: boolean
+          required: true
+          empty: false
+          nullable: false
+          default: true
+        credssp_disable_tlsv1_2:
+          type: boolean
+          required: true
+          empty: false
+          nullable: false
+          default: true
+        encryption:
+          type: string
+          required: true
+          empty: false
+          nullable: false
+          default: auto
+          allowed:
+            - auto
+            - always
+            - never
+        path:
+          type: string
+          required: true
+          empty: false
+          nullable: false
+          default: wsman
+        auth:
+          type: string
+          required: true
+          empty: false
+          nullable: false
+          default: negotiate
+          allowed:
+            - basic
+            - certificate
+            - negotiate
+            - ntlm
+            - kerberos
+            - credssp
+
+    AD_domain:
+      type: dict
+      required: true
+      empty: false
+      schema:
+        dn:
+          type: string
+          required: true
+          empty: false
+        groups_ou:
+          type: string
+          required: true
+          empty: false
+        name:
+          type: string
+          required: true
+          empty: false
+        users_ou:
+          type: string
+          required: true
+          empty: false
+    standardAttributes:
+      type: dict
+      required: true
+      empty: false
+      nullable: false
+      schema:
+        Users:
+          type: dict
+          empty: false
+          nullable: false
+          default: {}
+          keysrules:
+            type: string
+          valuesrules:
+            type: string
+        Groups:
+          type: dict
+          empty: false
+          nullable: false
+          default: {}
+          keysrules:
+            type: string
+          valuesrules:
+            type: string
+    otherAttributes:
+      type: dict
+      required: true
+      empty: false
+      nullable: false
+      schema:
+        Users:
+          type: dict
+          nullable: false
+          default: {}
+          keysrules:
+            type: string
+          valuesrules:
+            type: string
+        Groups:
+          type: dict
+          nullable: false
+          default: {}
+          keysrules:
+            type: string
+          valuesrules:
+            type: string
