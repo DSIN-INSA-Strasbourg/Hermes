@@ -156,6 +156,9 @@ then
         exit 1
     fi
     ${PYTHONCMD} -m venv "${venvdir}"
+
+    # Force venv reload
+    eval "$(direnv export ${SHELL})"
 fi
 
 if [ -z ${DONTINSTALLPYTHONREQUIREMENTS+x} ]
