@@ -25,7 +25,9 @@ hermes:
     path: /path/to/.hermes/hermes-server.sock # Facultative, required to use cli
     owner: user_login # Facultative
     group: group_name # Facultative
-    mode: 0660 # Facultative, '0600' will be used by default. The value MUST be prefixed by a 0 to indicate that it's an octal value
+    # Facultative, '0600' will be used by default.
+    # The value MUST be prefixed by a 0 to indicate that it's an octal integer
+    mode: 0660
   logs:
     logfile: /path/to/.hermes/hermes-server/logs/hermes-server.log
     backup_count: 31
@@ -133,7 +135,7 @@ hermes-server:
             group_id: GROUP_ID
 
     Users: # Settings for Users's data type
-      primarykeyattr: user_id # Attribute's name that will be used as User primary key
+      primarykeyattr: user_id # Attribute's name that will be used as primary key
       # Facultative template of object's string representation that will be used in logs
       toString: "<Users[{{ user_id }}, {{ login | default('#UNDEF#') }}]>"
       # Behavior if a same attribute has different value on 2 sources
@@ -153,7 +155,9 @@ hermes-server:
           attrsmapping:
             cn: CN
             displayname: DISPLAYNAME
-            edupersonaffiliation: "{{ EDUPERSONAFFILIATION if EDUPERSONAFFILIATION is none else EDUPERSONAFFILIATION.split(';') }}"
+            edupersonaffiliation: >-
+              {{ EDUPERSONAFFILIATION if EDUPERSONAFFILIATION is None
+                else EDUPERSONAFFILIATION.split(';') }}
             edupersonaffiliationSplitted:
               - EDUPERSONPRIMARYAFFILIATION
               - EDUPERSONAFFILIATION1
@@ -211,7 +215,7 @@ hermes-server:
           pkey_merge_constraint: mustExistInBoth
 
     UserPasswords: # Settings for UserPasswords's data type
-      primarykeyattr: user_id # Attribute's name that will be used as User primary key
+      primarykeyattr: user_id # Attribute's name that will be used as primary key
       # Integrity constraints between datamodel's type, in Jinja.
       # WARNING : could be very slow, keep it as simple as possible, and focused upon
       # primary keys
@@ -219,9 +223,10 @@ hermes-server:
       # For each "typename" declared, two vars are available :
       # - typename_pkeys : a set with every primary keys
       # - typename : a list of dict containing each entries
+      # https://hermes.insa-strasbourg.fr/en/configuration/hermes-server/#hermes-server.datamodel.data-type-name.integrity_constraints
       integrity_constraints:
         - "{{ _SELF.user_id in Users_pkeys }}"
-      sources: # datasource to use to fetch Users. Usually one, but several could be used
+      sources: # datasource(s) to use to fetch data. Usually one, but several could be used
         source1: # The source name set in hermes.plugins.datasources
           # The query to fetch data.
           # 'type' is mandatory and indicate to plugin which flavour of query to proceed
@@ -306,9 +311,35 @@ hermes-server:
           # https://hermes.insa-strasbourg.fr/en/configuration/hermes-server/#hermes-server.datamodel.data-type-name.sources.datasource-name.attrsmapping
           attrsmapping:
             user_id: USER_ID
-            password_encrypted: "{{ (PASSWORD_ENCRYPTED | crypto_RSA_OAEP('decrypt_from_datasource') | crypto_RSA_OAEP('encrypt_to_messagebus')) | default(None) }}"
-            password_cacheonly: "{{ (PASSWORD_ENCRYPTED | crypto_RSA_OAEP('decrypt_from_datasource')) | default(ITEM_CACHED_VALUES.password_cacheonly) | default(None) }}" # VERY BAD IDEA, just here as example
-            password_ldap: "{{ (PASSWORD_ENCRYPTED | crypto_RSA_OAEP('decrypt_from_datasource') | ldapPasswordHash) | default(none if LDAP_HASHES is none else LDAP_HASHES.split(';')) }}"
+            password_encrypted: >-
+              {{
+                (
+                  PASSWORD_ENCRYPTED
+                  | crypto_RSA_OAEP('decrypt_from_datasource')
+                  | crypto_RSA_OAEP('encrypt_to_messagebus')
+                )
+                | default(None)
+              }}
+
+            # VERY BAD IDEA, just here as example
+            password_cacheonly: >-
+              {{
+                (
+                  PASSWORD_ENCRYPTED
+                  | crypto_RSA_OAEP('decrypt_from_datasource')
+                )
+                | default(ITEM_CACHED_VALUES.password_cacheonly)
+                | default(None)
+              }}
+            password_ldap: >-
+              {{
+                (
+                  PASSWORD_ENCRYPTED
+                  | crypto_RSA_OAEP('decrypt_from_datasource')
+                  | ldapPasswordHash
+                )
+                | default(None if LDAP_HASHES is None else LDAP_HASHES.split(';'))
+              }}
             last_change: LAST_CHANGE
 
           # Facultative. Define attributes that will only be stored in cache.
