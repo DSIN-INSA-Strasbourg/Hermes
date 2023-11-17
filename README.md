@@ -12,7 +12,7 @@
 
 ## Features
 
-- Doesn't require any change to sources data model (ie. no need to add `last_updated` column)
+- Doesn't require any change to sources data model (ie. no need to add a `last_updated` column)
 - Multi-source, with ability to set merge/aggregation constraints
 - Able to handle several data types, with link (*foreign keys*) between them, and to enforce integrity constraints
 - Able to transform data with [Jinja filters](https://jinja.palletsprojects.com/en/3.1.x/templates/#filters)
