@@ -22,7 +22,7 @@ along with Hermes. If not, see <https://www.gnu.org/licenses/>.
 
 ## Description
 
-This client will handle Users, Groups and UserPasswords events, and store data into an Active Directory through Powershell commands across pywinrm.
+This client will handle Users, Groups and UserPasswords events, and store data into an Active Directory through Powershell commands across pypsrp.
 
 The settings list `standardAttributes` contains available cmdlet parameters used for Users ([`New-ADUser`](https://learn.microsoft.com/en-us/powershell/module/activedirectory/new-aduser) / [`Set-ADUser`](https://learn.microsoft.com/en-us/powershell/module/activedirectory/set-aduser)) and Groups ([`New-ADGroup`](https://learn.microsoft.com/en-us/powershell/module/activedirectory/new-adgroup) / [`Set-ADGroup`](https://learn.microsoft.com/en-us/powershell/module/activedirectory/set-adgroup)).
 The settings list `otherAttributes` may contains available LDAP display name (`ldapDisplayName`) attributes to manage those that are not represented by cmdlet parameters for Users and Groups.
