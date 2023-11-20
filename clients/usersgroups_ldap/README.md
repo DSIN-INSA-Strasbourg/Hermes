@@ -51,7 +51,7 @@ hermes-client-usersgroups_ldap:
     basedn: dc=example,dc=com
     users_ou: ou=users,dc=example,dc=com
     groups_ou: ou=groups,dc=example,dc=com
-    
+
     ssl: # Facultative
       # Path to PEM file with CA certs
       cafile: /path/to/INTERNAL-CA-chain.crt # Facultative

@@ -41,7 +41,7 @@ Nothing to configure for the plugin.
 
 ```yaml
 hermes-client-usersgroups_adpypsrp:
-  WinRM:  # For options details, you may look at https://pypi.org/project/pypsrp/ - "Connection" 
+  WinRM:  # For options details, you may look at https://pypi.org/project/pypsrp/ - "Connection"
     # MANDATORY : AD server URI and port
     host: radon1.in.insa-strasbourg.fr
     port: 5986
@@ -137,7 +137,7 @@ hermes-client-usersgroups_adpypsrp:
       SamAccountName: "<String>"
       # Server: "<String>" # Useless : Specifies the Active Directory Domain Services instance to connect to
 
-  # Defines LDAP display name (ldapDisplayName) to handle, that are not handled with standardAttributes. 
+  # Defines LDAP display name (ldapDisplayName) to handle, that are not handled with standardAttributes.
   # You can set your desired values. The values below are just here for example.
   otherAttributes:
     Users:
