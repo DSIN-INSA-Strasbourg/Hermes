@@ -101,9 +101,9 @@ hermes:
           servers:
             - dummy.example.com:9093
           ssl:
-            cafile: /path/to/.hermes/INTERNAL-CA-chain.crt
             certfile: /path/to/.hermes/dummy.crt
             keyfile: /path/to/.hermes/dummy.pem
+            cafile: /path/to/.hermes/INTERNAL-CA-chain.crt
           topic: hermes
       # sqlite:
       #   settings:

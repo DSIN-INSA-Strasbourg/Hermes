@@ -18,11 +18,6 @@
 
 # https://docs.python-cerberus.org/validation-rules.html
 
-topic:
-  type: string
-  required: true
-  empty: false
-  nullable: false
 servers:
   type:
     - string
@@ -53,3 +48,8 @@ ssl:
       type: string
       empty: false
       nullable: false
+topic:
+  type: string
+  required: true
+  empty: false
+  nullable: false
