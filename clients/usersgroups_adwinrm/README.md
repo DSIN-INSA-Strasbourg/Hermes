@@ -20,6 +20,12 @@ along with Hermes. If not, see <https://www.gnu.org/licenses/>.
 
 # `usersgroups_adwinrm` client plugin
 
+{{% notice style="warning" title="pywinrm is very slow" %}}
+As pywinrm spawn a new terminal and a new Powershell instance each time you run a command, it is really slow.  
+This plugin is kept just in case, but you **really** should consider using `usersgroups_adpypsrp` client plugin instead when possible : it is more than 20 times faster (!).  
+The configuration is similar on both plugin (excepted `hermes-client-usersgroups_adwinrm.WinRM`).
+{{% /notice %}}
+
 ## Description
 
 This client will handle Users, Groups and UserPasswords events, and store data into an Active Directory through Powershell commands across pywinrm.
@@ -34,11 +40,6 @@ The `GroupMembers` will only associate a `User` with a `Group`, and can't handle
 To avoid security issues and corner cases with trashbin, a complex random password is set when user is created. This unknown password will be overwritten by next `UserPassword` event of the `User`. This avoids having an enabled account with no password.
 
 The trashbin will only disable the account.
-
-!!! warning pywinrm is very slow
-    As pywinrm spawn a new terminal and a new Powershell instance each time you run a command, it is really slow.
-    This plugin is kept just in case, but you **really** should consider using `usersgroups_adpypsrp` client plugin instead when possible : it is more than 20 times faster (!).
-    The configuration is similar on both plugin (excepted `hermes-client-usersgroups_adwinrm.WinRM`).
 
 ## Configuration
 
