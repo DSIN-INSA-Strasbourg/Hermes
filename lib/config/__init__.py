@@ -281,7 +281,7 @@ class HermesConfig(LocalCache):
                 # Global client config
                 "hermes-client": f"{appdir}/clients/config-schema-client.yml",
                 # Client plugin config
-                f"hermes-client-{clientname}": f"{appdir}/clients/{clientname}/config-schema-client-{clientname}.yml",
+                f"hermes-client-{clientname}": f"{appdir}/plugins/clients/{clientname}/config-schema-client-{clientname}.yml",
             }
 
         return schemas

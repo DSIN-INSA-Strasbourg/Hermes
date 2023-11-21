@@ -165,7 +165,7 @@ if [ -z ${DONTINSTALLPYTHONREQUIREMENTS+x} ]
 then
     reqfile=$(mktemp --suffix=-requirements.txt)
 
-    cat "requirements.txt" "clients/"*"/requirements.txt" "plugins/"*/*"/requirements.txt" >"${reqfile}" 2>/dev/null
+    cat "requirements.txt" "plugins/"*/*"/requirements.txt" >"${reqfile}" 2>/dev/null
     if [ ! -z "${INSTALLDEVELREQUIREMENTS}" ]
     then
         cat "requirements-devel.txt" >> "${reqfile}"

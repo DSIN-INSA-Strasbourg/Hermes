@@ -108,9 +108,9 @@ if __name__ == "__main__":
         ##########
         elif appname.startswith("hermes-client-"):
             clientname = appname[len("hermes-client-") :]
-            if isfile(f"clients/{clientname}/{clientname}.py"):
+            if isfile(f"plugins/clients/{clientname}/{clientname}.py"):
                 config = HermesConfig()
-                module = importlib.import_module(f"clients.{clientname}.{clientname}")
+                module = importlib.import_module(f"plugins.clients.{clientname}.{clientname}")
                 client = getattr(module, module.HERMES_PLUGIN_CLASSNAME)(config)
                 client.mainLoop()
             else:
