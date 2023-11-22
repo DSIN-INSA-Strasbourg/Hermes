@@ -80,7 +80,7 @@ if __name__ == "__main__":
                 reply = SockClient.send(config["hermes"]["cli_socket"]["path"], msg)
             except SocketNotFoundError:
                 print(
-                    f"""Socket '{config["hermes"]["cli_socket"]["path"]}' not found. Maybe {config['appname']} isn't running or socket's permissions are too restrictive""",
+                    f"""Socket '{config["hermes"]["cli_socket"]["path"]}' not found. Maybe {config['appname']} isn't running or socket permissions are too restrictive""",
                     file=sys.stderr,
                 )
                 sys.exit(1)

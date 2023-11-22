@@ -32,7 +32,7 @@ class DiffObject:
         - added
         - modified
         - removed
-    The sets should contain object's properties names when objnew and objold are specified
+    The sets should contain object properties names when objnew and objold are specified
     in constructor (ie. when comparing two DataObject), or some objects otherwise (ie. when
     comparing two DataObjectList). Objects added MUST not be tuple, list, set or frozenset.
 

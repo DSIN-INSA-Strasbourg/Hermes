@@ -256,7 +256,7 @@ class EventQueue(LocalCache):
                         del self._index[evType]
 
     def __iter__(self) -> Iterable:
-        """Returns an iterator of current instance's events to process
+        """Returns an iterator of current instance events to process
         It will ignore events about an object that still have older event in queue
 
         Each entry will contains 4 values :
@@ -287,7 +287,7 @@ class EventQueue(LocalCache):
             yield (eventNumber, eventType, event, errorMsg)
 
     def allEvents(self) -> Iterable:
-        """Returns an iterator of all current instance's events
+        """Returns an iterator of all current instance events
 
         Each entry will contains 4 values :
             1. eventNumber: int

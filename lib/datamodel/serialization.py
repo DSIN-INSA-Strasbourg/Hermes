@@ -85,9 +85,9 @@ class JSONSerializable:
     - offer a constructor that must be callable with the named parameter
         'from_json_dict' only
     - specify the jsondatattr, with a different behavior function of its type :
-        - str : name of their instance's attribute (dict) containing the data to
+        - str : name of their instance attribute (dict) containing the data to
                 serialize
-        - list | tuple | set : name of the instance's attributes to serialize. The json
+        - list | tuple | set : name of the instance attributes to serialize. The json
                 will have each attr name as key, and their content as values
     """
 
@@ -98,11 +98,11 @@ class JSONSerializable:
                 " It must be one of the following types : [str, list, tuple, set]"
             )
         self._jsondataattr: str | list[str] | tuple[str] | set[str] = jsondataattr
-        """Name of instance's attribute containing the data to serialize, with a
+        """Name of instance attribute containing the data to serialize, with a
         different behavior function of its type :
-            - str : name of their instance's attribute (dict) containing the data to
+            - str : name of their instance attribute (dict) containing the data to
                     serialize
-            - list | tuple | set : name of the instance's attributes to serialize. The
+            - list | tuple | set : name of the instance attributes to serialize. The
                     json will have each attr name as key, and their content as values
         """
 

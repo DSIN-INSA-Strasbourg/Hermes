@@ -38,7 +38,7 @@ class HermesInvalidDataschemaError(Exception):
 
 
 class Dataschema(LocalCache):
-    """Handle the Dataschema computed from server's config, or received from server on
+    """Handle the Dataschema computed from server config, or received from server on
     clients side
     This class will offer the main datamodel types names and their corresponding DataObject
     and DataObjectList subclasses in 'objectTypes' and 'objectlistTypes' attributes.
@@ -54,13 +54,13 @@ class Dataschema(LocalCache):
         """Setup a new DataSchema"""
 
         self.objectTypes: dict[str, type[DataObject]] = {}
-        """Contains the datamodel object types specified in server's datamodel or in client's
-        schema with object's name as key, and dynamically created DataObject's subclass as value
+        """Contains the datamodel object types specified in server datamodel or in client
+        schema with object name as key, and dynamically created DataObject subclass as value
         """
 
         self.objectlistTypes: dict[str, type[DataObjectList]] = {}
-        """Contains the datamodel objectlist types specified in server's datamodel or in client's
-        schema with object's name as key, and dynamically created DataObjectList's subclass as value
+        """Contains the datamodel objectlist types specified in server datamodel or in client
+        schema with object name as key, and dynamically created DataObjectList subclass as value
         """
 
         # Args validity check
@@ -160,7 +160,7 @@ class Dataschema(LocalCache):
 
             objlistcls = Dataschema.createSubclass(
                 # The trailing underscore is here to avoid name conflicts between
-                # DataObjectLists and server's DatamodelFragment's DataObjects
+                # DataObjectLists and server DatamodelFragment DataObjects
                 objname + "List_",
                 DataObjectList,
             )

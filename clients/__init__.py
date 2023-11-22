@@ -555,7 +555,7 @@ class GenericClient:
 
         objtype: str
         objs: DataObjectList
-        # As we'll remove objects, process data in the datamodel's reversed declaration
+        # As we'll remove objects, process data in the datamodel reversed declaration
         # order
         for objtype, objs in reversed(self.__datamodel.remotedata.items()):
             if not objtype.startswith("trashbin_"):
@@ -763,8 +763,8 @@ class GenericClient:
 
         # In case of modification, try to compose full object in order to provide all
         # attributes values, in order to render Jinja Template with several vars.
-        # In this specific case, one of the template's var may have been modified,
-        # but not the other, so the event's attrs are not enough to process the
+        # In this specific case, one of the template var may have been modified,
+        # but not the other, so the event attrs are not enough to process the
         # template rendering
         r_obj_complete: DataObject | None = None
         if remote_event.eventtype == "modified":
@@ -871,7 +871,7 @@ class GenericClient:
                     if not simulateOnly and local_event.objpkey in trashbin:
                         # Object is in trashbin, and cannot be modified until it is restored
                         if enqueueEventWithError:
-                            # As the object's changes will be processed at restore, ignore the change
+                            # As the object changes will be processed at restore, ignore the change
                             self.__processLocalEvent(
                                 local_event,
                                 enqueueEventWithError=False,
@@ -1036,7 +1036,7 @@ class GenericClient:
             trashbin_complete.remove(l_obj_trash_complete)
             maincache_complete.append(l_obj_trash_complete)
 
-        diff = l_obj.diffFrom(l_obj_trash)  # Handle local object's changes if any
+        diff = l_obj.diffFrom(l_obj_trash)  # Handle local object changes if any
         if diff and not simulateOnly:
             (event, obj) = Event.fromDiffItem(
                 diffitem=diff,
@@ -1442,7 +1442,7 @@ class GenericClient:
                             )
 
                             if prefix == "trashbin_":
-                                # Preserve object's _trashbin_timestamp
+                                # Preserve object _trashbin_timestamp
                                 obj._trashbin_timestamp = completeLocalData[l_objtype][
                                     obj.getPKey()
                                 ]._trashbin_timestamp
@@ -1463,7 +1463,7 @@ class GenericClient:
         objattrs dict from Event"""
         newobj = deepcopy(obj)
 
-        # Update newobj's attributes
+        # Update newobj attributes
         for attrname, value in objattrs["added"].items():
             setattr(newobj, attrname, value)  # Add new attributes
         for attrname, value in objattrs["modified"].items():
@@ -1477,7 +1477,7 @@ class GenericClient:
     def __status(
         self, verbose=False, level="information", ignoreUnhandledExceptions=False
     ) -> dict[str, dict[str, dict[str, Any]]]:
-        """Returns a dict containing status for current client's Datamodel and error queue'.
+        """Returns a dict containing status for current client Datamodel and error queue'.
 
         Each status contains 3 categories/levels : "information", "warning" and "error"
         """
@@ -1553,7 +1553,7 @@ class GenericClient:
                     continue
 
                 # Always try to get object from local cache in order to use configured
-                # toString template for obj's repr()
+                # toString template for obj repr()
                 if eventType == "remote":
                     objtype = self.__datamodel.typesmapping[event.objtype]
                 else:

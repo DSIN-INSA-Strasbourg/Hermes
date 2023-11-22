@@ -26,7 +26,7 @@ This plugin allow to encrypt/decrypt strings with asymetric RSA keys, using PKCS
 
 ## Configuration
 
-You can set up as many keys as you want in plugin's settings. A key can be used to either encrypt or decrypt, but not both. The plugin will determine if it's an encryption or a decryption operation upon the key type : decryption for private keys, and encryption for public keys.
+You can set up as many keys as you want in plugin settings. A key can be used to either encrypt or decrypt, but not both. The plugin will determine if it's an encryption or a decryption operation upon the key type : decryption for private keys, and encryption for public keys.
 
 ```yaml
 hermes:

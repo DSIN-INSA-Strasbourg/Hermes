@@ -33,7 +33,7 @@ This client will handle Users, Groups and UserPasswords events, and store data i
 The settings list `standardAttributes` contains available cmdlet parameters used for Users ([`New-ADUser`](https://learn.microsoft.com/en-us/powershell/module/activedirectory/new-aduser) / [`Set-ADUser`](https://learn.microsoft.com/en-us/powershell/module/activedirectory/set-aduser)) and Groups ([`New-ADGroup`](https://learn.microsoft.com/en-us/powershell/module/activedirectory/new-adgroup) / [`Set-ADGroup`](https://learn.microsoft.com/en-us/powershell/module/activedirectory/set-adgroup)).
 The settings list `otherAttributes` may contains available LDAP display name (`ldapDisplayName`) attributes to manage those that are not represented by cmdlet parameters for Users and Groups.
 
-The local Datamodel's keys MUST exist in `standardAttributes` or `otherAttributes`, and will be used as cmdlet parameters with associated values, allowing to handle every AD attributes.
+The local Datamodel keys MUST exist in `standardAttributes` or `otherAttributes`, and will be used as cmdlet parameters with associated values, allowing to handle every AD attributes.
 
 The `GroupMembers` will only associate a `User` with a `Group`, and can't handle nested groups.
 

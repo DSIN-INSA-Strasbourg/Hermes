@@ -54,8 +54,8 @@ class Datasource:
         """Copy of Dataschema used to build current datasource"""
 
         self._data: dict[str, DataObjectList] = {}
-        """Dictionnary containing the datamodel object types specified in server's datamodel
-        or in client's schema with object's name as key, and their corresponding
+        """Dictionnary containing the datamodel object types specified in server datamodel
+        or in client schema with object name as key, and their corresponding
         DataObjectList as value"""
 
         for objtype, objlistcls in self.schema.objectlistTypes.items():

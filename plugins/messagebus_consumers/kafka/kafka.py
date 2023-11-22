@@ -86,7 +86,7 @@ class KafkaConsumerPlugin(AbstractMessageBusConsumerPlugin):
         self._kafka.seek_to_beginning()
 
     def seek(self, offset: Any):
-        """Seek to specified offset's event in message bus queue"""
+        """Seek to specified offset event in message bus queue"""
         self._kafka.seek(self.__kafkapartition, offset)
 
     def setTimeout(self, timeout_ms: int | None):

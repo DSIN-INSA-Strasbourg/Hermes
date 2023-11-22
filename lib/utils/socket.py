@@ -66,7 +66,7 @@ class InvalidGroupError(Exception):
 
 class SocketArgumentParser(argparse.ArgumentParser):  # pragma: no cover
     """Subclass of argument parser to avoid exiting on error. Will parse arguments received
-    on server's socket"""
+    on server socket"""
 
     def format_error(self, message: str) -> str:
         """Format error message"""

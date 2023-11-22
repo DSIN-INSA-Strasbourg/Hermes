@@ -95,9 +95,9 @@ hermes-server:
   # - add/modify events will be processed in the declaration order
   # - remove events will be processed in the reversed declaration order
   datamodel:
-    Groups: # Settings for Groups's data type
+    Groups: # Settings for Groups data type
       primarykeyattr: group_id
-      # Facultative template of object's string representation that will be used in logs
+      # Facultative template of object string representation that will be used in logs
       toString: "<Groups[{{ group_id }}, {{ cn | default('#UNDEF#') }}]>"
       sources:
         source1:
@@ -111,9 +111,9 @@ hermes-server:
             description: DESCRIPTION
             group_id: GROUP_ID
 
-    Users: # Settings for Users's data type
-      primarykeyattr: user_id # Attribute's name that will be used as primary key
-      # Facultative template of object's string representation that will be used in logs
+    Users: # Settings for Users data type
+      primarykeyattr: user_id # Attribute name that will be used as primary key
+      # Facultative template of object string representation that will be used in logs
       toString: "<Users[{{ user_id }}, {{ login | default('#UNDEF#') }}]>"
       # Behavior if a same attribute has different value on 2 sources
       # - use_cached_entry : ignore data fetched and keep using cached entry until conflict
@@ -148,9 +148,9 @@ hermes-server:
           # Advanced merge constraints with Jinja rules.
           # WARNING : Very slow, avoid using them as possible
           # Jinja vars available are :
-          # - '_SELF' : the data type's item in current datasource being currently merged
+          # - '_SELF' : the data type item in current datasource being currently merged
           # - For each datasource declared in current data type :
-          #   - datasource-name_pkeys : A set with every primary keys of data type's item in
+          #   - datasource-name_pkeys : A set with every primary keys of data type item in
           #     current datasource
           #   - datasource-name : The fetched entries of current polling. A list of
           #     dictionnaries, each dictionnary is an entry with attrname as key, and
@@ -160,11 +160,11 @@ hermes-server:
           #   - "{{ _SELF.user_id in (source2 | map(attribute='user_id')) }}"
           #
           # Constraints on pkey during merge : will be applied during merge. As merging will
-          # be processed in the datamodel's source declaration order in config file, the
+          # be processed in the datamodel source declaration order in config file, the
           # first source constraint will be ignored (because it will be created and not merged).
-          # Then the first source's data will be merged with second source's according to
-          # second's pkey_merge_constraint. Then the resulting data will be merged with third
-          # source's data according to third's pkey_merge_constraint, etc.
+          # Then the first source data will be merged with second source according to
+          # second pkey_merge_constraint. Then the resulting data will be merged with third
+          # source data according to third pkey_merge_constraint, etc.
           # Valid values are : noConstraint, mustNotExist, mustAlreadyExist, mustExistInBoth
           # The little difference between mustAlreadyExist and mustExistInBoth is that
           # entries existing in previous source(s) will be removed if not present in current
@@ -187,9 +187,9 @@ hermes-server:
             - modifyTimestamp
           pkey_merge_constraint: mustExistInBoth
 
-    UserPasswords: # Settings for UserPasswords's data type
-      primarykeyattr: user_id # Attribute's name that will be used as primary key
-      # Integrity constraints between datamodel's type, in Jinja.
+    UserPasswords: # Settings for UserPasswords data type
+      primarykeyattr: user_id # Attribute name that will be used as primary key
+      # Integrity constraints between datamodel type, in Jinja.
       # WARNING : could be very slow, keep it as simple as possible, and focused upon
       # primary keys
       # Jinja vars available are '_SELF' : the current object, and every types declared
@@ -209,7 +209,7 @@ hermes-server:
           #
           # According to source type, 'query' and 'vars' may be facultative.
           # A Jinja template can be inserted in 'query' and 'vars' values to avoid wilcards
-          # and manually typing the attribute's list, or to filter the query using a cached value.
+          # and manually typing the attribute list, or to filter the query using a cached value.
           #
           # Jinja vars available are [REMOTE_ATTRIBUTES, CACHED_VALUES].
           # See documentation for details :
@@ -230,7 +230,7 @@ hermes-server:
           #
           # According to source type, 'query' and 'vars' may be facultative.
           # A Jinja template can be inserted in 'query' and 'vars' values to avoid wilcards
-          # and manually typing the attribute's list, or to filter the query using a cached value.
+          # and manually typing the attribute list, or to filter the query using a cached value.
           #
           # Jinja vars available are [REMOTE_ATTRIBUTES, ITEM_CACHED_VALUES, ITEM_FETCHED_VALUES].
           # See documentation for details :
@@ -256,7 +256,7 @@ hermes-server:
           #
           # According to source type, 'query' and 'vars' may be facultative.
           # A Jinja template can be inserted in 'query' and 'vars' values to avoid wilcards
-          # and manually typing the attribute's list, or to filter the query using a cached value.
+          # and manually typing the attribute list, or to filter the query using a cached value.
           #
           # Jinja vars available are [REMOTE_ATTRIBUTES, CACHED_VALUES, FETCHED_VALUES].
           # See documentation for details :
@@ -270,7 +270,7 @@ hermes-server:
           #   vars:
           #     seq_number: "{{ FETCHED_VALUES | map(attribute='seq_number') | max }}"
 
-          # Attribute's mapping. HERMES attributes as keys, REMOTE attributes (on datasource)
+          # Attribute mapping. HERMES attributes as keys, REMOTE attributes (on datasource)
           # as values.
           # A list of several remote attributes can be defined as a convenience, their non-NULL
           # values will be combined in a list.
@@ -336,7 +336,7 @@ hermes-server:
             - user_id
             - last_change
 
-    GroupsMembers: # Settings for GroupsMembers's data type
+    GroupsMembers: # Settings for GroupsMembers data type
       primarykeyattr: [group_id, user_id]
       integrity_constraints:
         - "{{ _SELF.user_id in Users_pkeys and _SELF.group_id in Groups_pkeys }}"

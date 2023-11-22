@@ -83,7 +83,7 @@ class Event(JSONSerializable):
                     setattr(self, attr, from_json_dict[attr])
                     if attr == "objpkey" and type(self.objpkey) == list:
                         self.objpkey = tuple(self.objpkey)
-            # As obj's instance isn't available, use pkey as default repr
+            # As obj instance isn't available, use pkey as default repr
             self.objrepr = str(self.objpkey)
         else:
             self.evcategory: str | None = evcategory

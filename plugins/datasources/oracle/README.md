@@ -26,7 +26,7 @@ This plugin allow using an Oracle database as datasource.
 
 ## Configuration
 
-Connection's settings are required in plugin's configuration.
+Connection settings are required in plugin configuration.
 
 ```yaml
 hermes:
@@ -36,13 +36,13 @@ hermes:
       your_source_name:
         type: oracle
         settings:
-          # MANDATORY : the database's server DNS name or IP address
+          # MANDATORY : the database server DNS name or IP address
           server: dummy.example.com
-          # MANDATORY : the database's connection port
+          # MANDATORY : the database connection port
           port: 1234
-          # MANDATORY : the database's SID
+          # MANDATORY : the database SID
           sid: DUMMY
-          # MANDATORY : the database's credentials to use
+          # MANDATORY : the database credentials to use
           login: HERMES_DUMMY
           password: "DuMmY_p4s5w0rD"
 ```
@@ -51,14 +51,14 @@ hermes:
 
 Specify a query. If you'd like to provide values from cache, you should provide them in a `vars` dict, and refer to them by specifying the column-prefixed `:` var key name in the query : this will automatically sanitize the query.
 
-The example's `vars` names are prefixed with `sanitized_` only for clarity, it's not a requirement.
+The example `vars` names are prefixed with `sanitized_` only for clarity, it's not a requirement.
 
 ```yaml
 hermes-server:
   datamodel:
     oneDataType:
       sources:
-        your_source_name: # 'your_source_name' was set in plugin's settings
+        your_source_name: # 'your_source_name' was set in plugin settings
           fetch:
             type: fetch
             query: >-

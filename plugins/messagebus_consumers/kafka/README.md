@@ -41,10 +41,10 @@ hermes:
           # Facultative : enables SSL authentication. If set, the 3 options below
           # must be defined
           ssl:
-            # MANDATORY : hermes-client's cert file that will be used for
+            # MANDATORY : hermes-client cert file that will be used for
             # authentication
             certfile: /path/to/.hermes/dummy.crt
-            # MANDATORY : hermes-client's cert file's private key
+            # MANDATORY : hermes-client cert file private key
             keyfile: /path/to/.hermes/dummy.pem
             # MANDATORY : The PKI CA cert
             cafile: /path/to/.hermes/INTERNAL-CA-chain.crt

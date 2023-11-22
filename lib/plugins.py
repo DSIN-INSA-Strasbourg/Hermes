@@ -236,7 +236,7 @@ class AbstractMessageBusConsumerPlugin:
         raise NotImplementedError
 
     def seek(self, offset: Any):
-        """Seek to specified offset's event in message bus queue"""
+        """Seek to specified offset event in message bus queue"""
         raise NotImplementedError
 
     def setTimeout(self, timeout_ms: int | None):

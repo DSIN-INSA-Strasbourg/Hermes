@@ -37,7 +37,7 @@
   - [ ] contributing to core
 - [ ] Extend tests
 - [ ] Implement data consistency check when initsync sequence is met on an already initialized client (clients)
-- [ ] (Maybe) Force remote primary keys in client's datamodel. Requires a lot of troubleshooting to safely update "internal" attrnames and values on Dataschema primary key change : in Datasources and Eventqueue
+- [ ] (Maybe) Force remote primary keys in client datamodel. Requires a lot of troubleshooting to safely update "internal" attrnames and values on Dataschema primary key change : in Datasources and Eventqueue
 - [ ] (Maybe) Implement a check to ensure clients subclasses required types and attributes are set in datamodel
 
 ## Contributing

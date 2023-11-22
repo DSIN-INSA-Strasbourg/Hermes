@@ -159,14 +159,14 @@ class DataObject(JSONSerializable):
         self._data = from_json_dict.copy()
 
     def __getattribute__(self, attr: str) -> Any:
-        """Return instance's attribute from "data" dict or from instance"""
+        """Return attribute from "data" dict or from instance"""
         try:
             return super().__getattribute__("_data")[attr]
         except (KeyError, AttributeError, TypeError):
             return super().__getattribute__(attr)
 
     def __setattr__(self, attr: str, value: Any):
-        """Set attribute in "data" dict (and reset instance's hash cache) if attrname exists
+        """Set attribute in "data" dict (and reset instance hash cache) if attrname exists
         in HERMES_ATTRIBUTES or INTERNALATTRIBUTES. Otherwise set it in "standard" python
         way"""
         if attr not in (self.HERMES_ATTRIBUTES | self.INTERNALATTRIBUTES):
@@ -176,7 +176,7 @@ class DataObject(JSONSerializable):
             self._data[attr] = value
 
     def __delattr__(self, attr: str):
-        """Remove attribute from "data" dict (and reset instance's hash cache) if attrname
+        """Remove attribute from "data" dict (and reset instance hash cache) if attrname
         exists in it. Otherwise remove it in "standard" python way"""
         if attr not in self._data:
             super().__delattr__(attr)

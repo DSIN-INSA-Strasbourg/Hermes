@@ -44,14 +44,14 @@ hermes-client-usersgroups_flatfiles_emails_of_groups:
 The following data types have to be set up :
 
 - `Users`, requires the following attribute names :
-  - `user_pkey` : the user's primary key
-  - `mail` : the user's email address
+  - `user_pkey` : the user primary key
+  - `mail` : the user email address
 - `Groups`, requires the following attribute names :
-  - `group_pkey` : the group's primary key
-  - `name` : the group's name, that will be compared to those in `onlyTheseGroups`, and used to name the destination file "*groupName*.txt"
+  - `group_pkey` : the group primary key
+  - `name` : the group name, that will be compared to those in `onlyTheseGroups`, and used to name the destination file "*groupName*.txt"
 - `GroupsMembers`, requires the following attribute names :
-  - `user_pkey` : the user's primary key
-  - `group_pkey` : the group's primary key
+  - `user_pkey` : the user primary key
+  - `group_pkey` : the group primary key
 
 ```yaml
   datamodel:

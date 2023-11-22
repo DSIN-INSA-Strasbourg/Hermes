@@ -26,7 +26,7 @@ This plugin allow using a LDAP server as datasource.
 
 ## Configuration
 
-Connection's settings are required in plugin's configuration.
+Connection settings are required in plugin configuration.
 
 ```yaml
 hermes:
@@ -57,7 +57,7 @@ hermes:
 
 ## Usage
 
-Usage differs according to specified operation's type
+Usage differs according to specified operation type
 
 ### fetch
 
@@ -68,14 +68,14 @@ hermes-server:
   datamodel:
     oneDataType:
       sources:
-        your_source_name: # 'your_source_name' was set in plugin's settings
+        your_source_name: # 'your_source_name' was set in plugin settings
           fetch:
             type: fetch
             vars:
               # Facultative : the basedn to use for 'fetch' operation.
-              # If unset, setting's basedn will be used
+              # If unset, setting basedn will be used
               base: "ou=exampleOU,dc=example,dc=com"
-              # Facultative : the operation's scope for 'fetch' operation
+              # Facultative : the operation scope for 'fetch' operation
               # Valid values are :
               # - base : to search the "base" object itself
               # - one, onelevel : to search the "base" object’s immediate children
@@ -99,17 +99,17 @@ hermes-server:
   datamodel:
     oneDataType:
       sources:
-        your_source_name: # 'your_source_name' was set in plugin's settings
+        your_source_name: # 'your_source_name' was set in plugin settings
           fetch:
             type: add
             vars:
               # Facultative : a list of entries to add.
               # If unset, an empty list will be used (and nothing will be added)
               addlist:
-                  # MANDATORY : the entry's DN. If not specified, the entry will
+                  # MANDATORY : the DN of the entry. If not specified, the entry will
                   # be silently ignored
                 - dn: uid=newentry1,ou=exampleOU,dc=example,dc=com
-                  # Facultative : the entry's attributes to add
+                  # Facultative : the attributes to add to the entry
                   add:
                     # Create attribute if it doesn't exist, and add "value" to it
                     "attrnameToAdd": "value",
@@ -129,14 +129,14 @@ hermes-server:
   datamodel:
     oneDataType:
       sources:
-        your_source_name: # 'your_source_name' was set in plugin's settings
+        your_source_name: # 'your_source_name' was set in plugin settings
           fetch:
             type: delete
             vars:
               # Facultative : a list of entries to delete.
               # If unset, an empty list will be used (and nothing will be deleted)
               dellist:
-                  # MANDATORY : the entry's DN. If not specified, the entry will
+                  # MANDATORY : the DN of the entry. If not specified, the entry will
                   # be silently ignored
                 - dn: uid=entryToDelete1,ou=exampleOU,dc=example,dc=com
                 - dn: uid=entryToDelete2,ou=exampleOU,dc=example,dc=com
@@ -152,18 +152,18 @@ hermes-server:
   datamodel:
     oneDataType:
       sources:
-        your_source_name: # 'your_source_name' was set in plugin's settings
+        your_source_name: # 'your_source_name' was set in plugin settings
           fetch:
             type: modify
             vars:
               # Facultative : a list of entries to modify.
               # If unset, an empty list will be used (and nothing will be modified)
               modlist:
-                  # MANDATORY : the entry's DN. If not specified, the entry will
+                  # MANDATORY : the DN of the entry. If not specified, the entry will
                   # be silently ignored
                 - dn: uid=entryToModify1,ou=exampleOU,dc=example,dc=com
 
-                  # Facultative : entry's attributes to add
+                  # Facultative : the attributes to add to the entry
                   add:
                     # Create attribute if it doesn't exist, and add "value" to it
                     attrnameToAdd: value
@@ -171,7 +171,7 @@ hermes-server:
                     # "value2" to it
                     attrnameToAddList: [value1, value2]
 
-                  # Facultative : entry's attributes to modify
+                  # Facultative : the attributes to modify in the entry
                   modify:
                     # Create attribute if it doesn't exist, and replace all its
                     # value by "value"
@@ -180,7 +180,7 @@ hermes-server:
                     # value by "newvalue1" and "newvalue2"
                     attrnameToModifyList: [newvalue1, newvalue2]
 
-                  # Facultative : entry's attributes to delete
+                  # Facultative : the attributes to delete from the entry
                   delete:
                     # Delete specified attribute and all of its values
                     attrnameToDelete: null

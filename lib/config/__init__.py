@@ -263,7 +263,7 @@ class HermesConfig(LocalCache):
         """
         main = self._config["appname"]
 
-        # Retrieve absolute path of main script's directory
+        # Retrieve absolute path of main script directory
         appdir = os.path.realpath(os.path.dirname(__main__.__file__))
 
         schemas = {
@@ -315,7 +315,7 @@ class HermesConfig(LocalCache):
         pluginSettingsDotPath: str,
     ):
         """Generic plugin loader"""
-        # Retrieve absolute path of main script's directory
+        # Retrieve absolute path of main script directory
         appdir = os.path.realpath(os.path.dirname(__main__.__file__))
 
         modulepath = f"plugins.{pluginFamilyDir}.{pluginName}.{pluginName}"

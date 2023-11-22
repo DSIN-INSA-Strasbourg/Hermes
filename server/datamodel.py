@@ -145,7 +145,7 @@ class DatamodelFragment:
         return self._dataobjclass
 
     def fetch(self, cache: DataObjectList):
-        """Fetch data from current fragment's source"""
+        """Fetch data from current fragment source"""
         cached_values: list[dict[str, Any]] = cache.toNative()
         objcls = self.getDataobjClass()
 
@@ -366,7 +366,7 @@ class Datamodel:
                         f"The primary key '{pkey}' must be fetched from each datasource"
                     )
 
-            # Compile toString's jinja template
+            # Compile toString jinja template
             jinjavars = set()
             tostringTpl = Jinja.compileIfJinjaTemplate(
                 self._config["hermes-server"]["datamodel"][objtype]["toString"],
@@ -439,7 +439,7 @@ class Datamodel:
             # Fetch data
             starttime = time.time()
             for fragment in self._fragments[objtype]:
-                fragment.fetch(cache)  # Fetch fragment's data from remote source
+                fragment.fetch(cache)  # Fetch fragment data from remote source
             elapsedms = int(round(1000 * (time.time() - starttime)))
             logger.debug(
                 f"Fetched and converted all <{objtype}> data in {elapsedms} ms"

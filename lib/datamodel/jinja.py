@@ -99,10 +99,10 @@ class Jinja:
             for item in ast.body[0].nodes:
                 if allowOnlyOneTemplate and type(item) == TemplateData:
                     raise HermesDataModelAttrsmappingError(
-                        f"{errorcontext}: A mix between jinja templates and raw data was found in '''{tpl}''', with this configuration it's impossible to determine source's attribute name"
+                        f"{errorcontext}: A mix between jinja templates and raw data was found in '''{tpl}''', with this configuration it's impossible to determine source attribute name"
                     )
 
-        # tpl is a Jinja template, return each var's name it contains
+        # tpl is a Jinja template, return each var name it contains
         if allowOnlyOneVar and len(vars) > 1:
             raise HermesTooManyJinjaVarsError(
                 f"{len(vars)} variables found in Jinja template '''{tpl}'''. Only one Jinja var is allowed to ensure data consistency"
@@ -122,7 +122,7 @@ class Jinja:
         excludeFlatVars: set[str] = set(),
     ) -> Any:
         """Recursive copy of specified var to replace all jinja templates strings by
-        their compiled template's instance.
+        their compiled template instance.
 
         If flatvars_set is specified, every vars met (raw string, or Jinja vars) will be
         added to it, excepted those specified in excludeFlatVars

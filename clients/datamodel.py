@@ -51,7 +51,7 @@ class Datamodel:
 
     In charge of :
         - handling updates of Datamodel (hermes-client.datamodel changes in config file)
-        - handling updates of remote Dataschema (hermes-server.datamodel in server's config file)
+        - handling updates of remote Dataschema (hermes-server.datamodel in server config file)
         - converting a remote Event to a local one
         - handling remote and local data caches (remotedata and localdata attributes, each of Datasource type)
     """
@@ -63,9 +63,9 @@ class Datamodel:
         """Build the datamodel from config"""
 
         self.unknownRemoteTypes: set[str] = set()
-        """List remote types set in client's Datamodel, but missing in remote Dataschema"""
+        """List remote types set in client Datamodel, but missing in remote Dataschema"""
         self.unknownRemoteAttributes: dict[str, set[str]] = set()
-        """List remote attributes set in client's Datamodel, but missing in remote
+        """List remote attributes set in client Datamodel, but missing in remote
         Dataschema. The dict key contains the remote type, the set contains the missing
         attributes"""
 
@@ -238,7 +238,7 @@ class Datamodel:
                         f"'{r_objtype}' type primary key '{pkey}' value MUST not be"
                         " transformed locally with Jinja to prevent data inconsistencies"
                         " between declared types. You can declare a new attribute on server"
-                        " containg the pkey's value and transform it locally if you really"
+                        " containg the pkey value and transform it locally if you really"
                         " need to"
                     )
                     logger.critical(err)
@@ -402,7 +402,7 @@ class Datamodel:
                             if new_obj is None:
                                 val = remoteattr.render(src)
                             else:
-                                # We must provide all new object's vars values to
+                                # We must provide all new object vars values to
                                 # render a Jinja Template computed from several vars,
                                 # in case of "modified" event changing the value of
                                 # only one var value used by the template.

@@ -612,7 +612,7 @@ class HermesServer:
                     )
                 )
 
-            # Loop over each datamodel's type to compute diffs
+            # Loop over each datamodel type to compute diffs
             diffs: dict[str, DiffObject] = {}
             for objtype in data.keys():
                 # Generate diff between fresh data and cache
@@ -628,10 +628,10 @@ class HermesServer:
             # Process events
             for changeType in ["added", "modified", "removed"]:
                 if changeType == "removed":
-                    # Process removed events in the datamodel's reversed declaration order
+                    # Process removed events in the datamodel reversed declaration order
                     objTypes = reversed(data.keys())
                 else:
-                    # Process other events in the datamodel's declaration order
+                    # Process other events in the datamodel declaration order
                     objTypes = data.keys()
 
                 for objtype in objTypes:

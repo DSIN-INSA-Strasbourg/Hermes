@@ -24,9 +24,9 @@ along with Hermes. If not, see <https://www.gnu.org/licenses/>.
 
 This client will handle Users, Groups and UserPasswords events, and store data in a LDAP directory.
 
-The local Datamodel's keys will be used as LDAP attributes names, without any constraints, and it is possible to specify some Datamodel's keys to ignore (typically the primary keys) that won't be stored in LDAP directory with the `attributesToIgnore` setting.
+The local Datamodel keys will be used as LDAP attributes names, without any constraints, and it is possible to specify some Datamodel keys to ignore (typically the primary keys) that won't be stored in LDAP directory with the `attributesToIgnore` setting.
 
-The `GroupMembers` will only store data (typically LDAP `member` attribute) in LDAP group's entries as it is possible to use LDAP overlays (`dynlist` or the deprecated `memberOf`) to dynamically generate the corresponding data in user entries. You should consider reading the `propagateUserDNChangeOnGroupMember` setting documentation.
+The `GroupMembers` will only store data (typically LDAP `member` attribute) in LDAP group entries as it is possible to use LDAP overlays (`dynlist` or the deprecated `memberOf`) to dynamically generate the corresponding data in user entries. You should consider reading the `propagateUserDNChangeOnGroupMember` setting documentation.
 
 !!! warning Error recovery isn't fully garanteed
     In some case (ie. LDAP server shutdown), `python-ldap` reports a failure for an operation (ie. entry added), but has still done it.
@@ -68,12 +68,12 @@ hermes-client-usersgroups_ldap:
       Groups: cn
 
     # Depending on group and group membership settings in LDAP, you may use another
-    # attribute than the default 'member' attribute to store the group member's DN
+    # attribute than the default 'member' attribute to store the group member DN
     # Facultative. Default value : "member"
     groupMemberAttribute: member
 
     # Depending on group and group membership settings in LDAP, you usually may want
-    # to propagate a user's DN change on group's member attributes. But sometimes, it
+    # to propagate a user DN change on group member attributes. But sometimes, it
     # may be handled by an overlay, ie. with memberOf overlay and the
     # memberof-refint/olcMemberOfRefint setting to TRUE
     # If set to true, it requires 'groupsObjectclass' to be defined
@@ -81,7 +81,7 @@ hermes-client-usersgroups_ldap:
     propagateUserDNChangeOnGroupMember: true
 
     # If you've set 'propagateUserDNChangeOnGroupMember' to true,
-    # you MUST indicate your group's objectClass that will be used to search
+    # you MUST indicate your group objectClass that will be used to search
     # your groups entries
     # Mandatory only if 'propagateUserDNChangeOnGroupMember' is true
     groupsObjectclass: groupOfNames

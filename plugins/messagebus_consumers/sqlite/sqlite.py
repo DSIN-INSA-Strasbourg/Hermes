@@ -85,7 +85,7 @@ class SqliteConsumerPlugin(AbstractMessageBusConsumerPlugin):
         self.__curoffset = entry["msgid"]
 
     def seek(self, offset: Any):
-        """Seek to specified offset's event in message bus queue"""
+        """Seek to specified offset event in message bus queue"""
         if not self._db:
             self.open()
             if not self._db:

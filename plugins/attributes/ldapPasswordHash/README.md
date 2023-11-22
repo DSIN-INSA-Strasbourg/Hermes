@@ -26,7 +26,7 @@ This plugin allow to generate LDAP hashes of specified formats from a clear text
 
 ## Configuration
 
-You can set up a facultative list of default hash types in plugin's settings. This list will be used if hashtypes are not specified in filter arguments, otherwise the specified hashtypes will be used.
+You can set up a facultative list of default hash types in plugin settings. This list will be used if hashtypes are not specified in filter arguments, otherwise the specified hashtypes will be used.
 
 ```yaml
 hermes:

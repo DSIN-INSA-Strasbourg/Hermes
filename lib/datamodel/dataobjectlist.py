@@ -115,11 +115,11 @@ class DataObjectList(LocalCache):
 
     @property
     def _data(self) -> list[DataObject]:
-        """Returns a list of current instance's DataObject values"""
+        """Returns a list of current DataObject values"""
         return [self._datadict[k] for k in sorted(self._datadict.keys())]
 
     def __iter__(self) -> Iterable:
-        """Returns an iterator of current instance's DataObject values"""
+        """Returns an iterator of current DataObject values"""
         return iter(self._datadict.values())
 
     def __getitem__(self, pkey: Any) -> DataObject:
@@ -138,7 +138,7 @@ class DataObjectList(LocalCache):
         return self._datadict.get(pkey, __default)
 
     def getPKeys(self) -> set[Any]:
-        """Returns a set of each primary key of current instance's DataObject values"""
+        """Returns a set of each primary key of current DataObject values"""
         return set(self._datadict.keys())
 
     def append(self, obj: DataObject):
@@ -188,7 +188,7 @@ class DataObjectList(LocalCache):
         self.removeByPkey(obj.getPKey())
 
     def toNative(self) -> list[dict[str, Any]]:
-        """Return a list of complete data dict of current instance's DataObject values"""
+        """Return a list of complete data dict of current DataObject values"""
         return [item.toNative() for item in self._datadict.values()]
 
     def mergeWith(
@@ -197,7 +197,7 @@ class DataObjectList(LocalCache):
         pkeyMergeConstraint: str,
         dontMergeOnConflict=False,
     ) -> set[Any]:
-        """Merge specified objlist's data in current
+        """Merge specified objlist data in current
         If dontMergeOnConflict is True, pkeys of items with conflict will be put in
         mergeConflicts and items will be removed of current list. Otherwise conflicting data
         of item in current instance will be kept

@@ -186,7 +186,7 @@ class TestDatamodelClass(HermesServerTestCase):
                 "hermes-server.datamodel.Users.source1.attrsmapping: A mix between"
                 " jinja templates and raw data was found in '''{{ CN | lower() }} is"
                 " the CN''', with this configuration it's impossible to determine"
-                " source's attribute name"
+                " source attribute name"
             ),
             Datamodel,
             config,
