@@ -263,13 +263,13 @@ class Datamodel:
             )
 
             logger.info(
-                f"Updating changed remote primary keys in cache {new_remote_pkeys=}"
+                f"Updating changed remote primary keys in remote cache {new_remote_pkeys=}"
             )
             self.remotedata.updatePrimaryKeys(new_remote_pkeys)
             self.remotedata_complete.updatePrimaryKeys(new_remote_pkeys)
 
             logger.info(
-                f"Updating changed local primary keys in cache {new_local_pkeys=}"
+                f"Updating changed local primary keys in local cache {new_local_pkeys=}"
             )
             self.localdata.updatePrimaryKeys(new_local_pkeys)
             self.localdata_complete.updatePrimaryKeys(new_local_pkeys)
@@ -353,6 +353,9 @@ class Datamodel:
                     opkey = o["PRIMARYKEY_ATTRIBUTE"]
                     if DataObject.isDifferent(npkey, opkey):
                         newpkeys[objtype] = npkey
+                        logger.info(
+                            f"New primary key attribute in dataschema type '{objtype}' : {npkey}"
+                        )
 
         newschema.savecachefile()
         return newpkeys
