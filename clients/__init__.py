@@ -712,7 +712,7 @@ class GenericClient:
                     logger.critical(msg)
                     return
 
-            # Traiter message "standard"
+            # Process "standard" message
             match remote_event.eventtype:
                 case "added" | "modified" | "removed":
                     self.__processRemoteEvent(remote_event, enqueueEventWithError=True)
