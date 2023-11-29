@@ -115,8 +115,11 @@ class HermesClientCache(LocalCache):
         """String containg latest exception trace"""
 
         self.initstartoffset: Any | None = from_json_dict.get("initstartoffset")
+        """Contains the offset of start message of initSync sequence on message bus"""
         self.initstopoffset: Any | None = from_json_dict.get("initstopoffset")
+        """Contains the offset of last message of initSync sequence on message bus"""
         self.nextoffset: Any | None = from_json_dict.get("nextoffset")
+        """Contains the offset of the next message to process on message bus"""
 
     def savecachefile(self, cacheFilename: str | None = None):
         """Override method only to disable backup files in cache"""
