@@ -22,7 +22,7 @@ along with Hermes. If not, see <https://www.gnu.org/licenses/>.
 
 ## Description
 
-This plugin allow to encrypt/decrypt strings with asymetric RSA keys, using PKCS#1 OAEP, an asymmetric cipher based on RSA and the OAEP padding.
+This plugin allow to encrypt/decrypt strings with asymmetric RSA keys, using PKCS#1 OAEP, an asymmetric cipher based on RSA and the OAEP padding.
 
 ## Configuration
 
@@ -85,7 +85,7 @@ password_encrypted: "{{ PASSWORD_CLEAR | crypto_RSA_OAEP('encrypt_to_messagebus'
 password_decrypted: "{{ PASSWORD_ENCRYPTED | crypto_RSA_OAEP('decrypt_from_messagebus') }}"
 ```
 
-You can even decrypt and immediatly re-encypt data with another key like this :
+You can even decrypt and immediately re-encrypt data with another key like this :
 
 ```yaml
 password_reencrypted: "{{ PASSWORD_ENCRYPTED | crypto_RSA_OAEP('decrypt_from_datasource') | crypto_RSA_OAEP('encrypt_to_messagebus') }}"

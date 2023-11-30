@@ -47,7 +47,7 @@ class AbstractAttributePlugin:
     """
 
     def __init__(self, settings: dict[str, Any]):
-        """Instanciate new plugin and store a copy of its settings dict in self._settings"""
+        """Instantiate new plugin and store a copy of its settings dict in self._settings"""
         self._settings = settings.copy()
 
     def filter(self, value: Any | None | Undefined, *args: Any, **kwds: Any) -> Any:
@@ -69,7 +69,7 @@ class AbstractDataSourcePlugin:
     """
 
     def __init__(self, settings: dict[str, Any]):
-        """Instanciate new plugin and store a copy of its settings dict in self._settings"""
+        """Instantiate new plugin and store a copy of its settings dict in self._settings"""
         self._settings = settings.copy()
 
     def __enter__(self) -> "AbstractDataSourcePlugin":
@@ -106,21 +106,21 @@ class AbstractDataSourcePlugin:
         query: str | None,
         vars: dict[str, Any],
     ) -> list[dict[str, Any]]:
-        """Fetch data from datasource with specified query and optionnal queryvars.
-        Returns a list of dict containg each entry fetched, with REMOTE_ATTRIBUTES
+        """Fetch data from datasource with specified query and optional queryvars.
+        Returns a list of dict containing each entry fetched, with REMOTE_ATTRIBUTES
         as keys, and corresponding fetched values as values"""
         raise NotImplementedError
 
     def add(self, query: str | None, vars: dict[str, Any]):
-        """Add data to datasource with specified query and optionnal queryvars"""
+        """Add data to datasource with specified query and optional queryvars"""
         raise NotImplementedError
 
     def delete(self, query: str | None, vars: dict[str, Any]):
-        """Delete data from datasource with specified query and optionnal queryvars"""
+        """Delete data from datasource with specified query and optional queryvars"""
         raise NotImplementedError
 
     def modify(self, query: str | None, vars: dict[str, Any]):
-        """Modify data on datasource with specified query and optionnal queryvars"""
+        """Modify data on datasource with specified query and optional queryvars"""
         raise NotImplementedError
 
 
@@ -140,7 +140,7 @@ class AbstractMessageBusProducerPlugin:
     """
 
     def __init__(self, settings: dict[str, Any]):
-        """Instanciate new plugin and store a copy of its settings dict in self._settings"""
+        """Instantiate new plugin and store a copy of its settings dict in self._settings"""
         self._settings = settings.copy()
 
     def __enter__(self) -> "AbstractMessageBusProducerPlugin":
@@ -199,7 +199,7 @@ class AbstractMessageBusConsumerPlugin:
     """
 
     def __init__(self, settings: dict[str, Any]):
-        """Instanciate new plugin and store a copy of its settings dict in self._settings"""
+        """Instantiate new plugin and store a copy of its settings dict in self._settings"""
         self._settings = settings.copy()
 
     def __enter__(self) -> "AbstractMessageBusConsumerPlugin":

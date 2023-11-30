@@ -62,7 +62,7 @@ class DataObjectList(LocalCache):
         """Create a new instance, with data coming from json (for deserialization),
         or from specified list of DataObject.
 
-        If data is from json, every objects will be instanciated by deserialization.
+        If data is from json, every objects will be instantiated by deserialization.
         If data is from objlist, every object of another type that self.OBJTYPE will be
         casted to OBJTYPE
         """
@@ -82,15 +82,15 @@ class DataObjectList(LocalCache):
         """Set containing primary keys of each entry filtered by integrity constraints"""
 
         self._datadict: dict[Any, DataObject] = {}
-        """Dictionnary containing the data, with primary keys as keys, and DataObject as values"""
+        """Dictionary containing the data, with primary keys as keys, and DataObject as values"""
 
         if objlist is None and from_json_dict is None:
-            err = f"Cannot instanciate object from nothing : you must specify one data source"
+            err = f"Cannot instantiate object from nothing : you must specify one data source"
             logger.critical(err)
             raise AttributeError(err)
 
         if objlist is not None and from_json_dict is not None:
-            err = f"Cannot instanciate object from multiple data sources at once"
+            err = f"Cannot instantiate object from multiple data sources at once"
             logger.critical(err)
             raise AttributeError(err)
 
@@ -101,7 +101,7 @@ class DataObjectList(LocalCache):
 
     def __init_from_json_dict__(self, from_json_dict: list[dict[str, Any]]):
         """Create a new instance, with data coming from json.
-        Every objects in list will be instanciated by deserialization."""
+        Every objects in list will be instantiated by deserialization."""
         self.__init_from_objlist__(
             [self.OBJTYPE(from_json_dict=item) for item in from_json_dict]
         )

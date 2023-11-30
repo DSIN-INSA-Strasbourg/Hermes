@@ -51,7 +51,7 @@ HERMES_PLUGIN_CLASSNAME: str | None = "Attribute_Crypto_RSA_OAEP_Plugin"
 
 
 class Attribute_Crypto_RSA_OAEP_Plugin(AbstractAttributePlugin):
-    """Plugin to encrypt/decrypt strings with asymetric RSA keys, using PKCS#1
+    """Plugin to encrypt/decrypt strings with asymmetric RSA keys, using PKCS#1
     OAEP,an asymmetric cipher based on RSA and the OAEP padding"""
 
     __hashclasses: dict[str, Type[Any]] = {
@@ -66,7 +66,7 @@ class Attribute_Crypto_RSA_OAEP_Plugin(AbstractAttributePlugin):
     }
 
     def __init__(self, settings: dict[str, any]) -> None:
-        """Instanciate new plugin and store a copy of its settings dict in self._settings"""
+        """Instantiate new plugin and store a copy of its settings dict in self._settings"""
         super().__init__(settings)
 
         self.__keys: dict[str, tuple[str, PKCS1OAEP_Cipher]] = {}

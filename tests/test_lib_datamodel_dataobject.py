@@ -203,14 +203,14 @@ class TestDataobjectClass(HermesServerTestCase):
     def test_init_fails_if_no_args(self):
         self.assertRaisesRegex(
             AttributeError,
-            "Cannot instanciate object from nothing : you must specify one data source",
+            "Cannot instantiate object from nothing : you must specify one data source",
             self.TestUsers,
         )
 
     def test_init_fails_if_two_args(self):
         self.assertRaisesRegex(
             AttributeError,
-            "Cannot instanciate object from multiple data sources at once",
+            "Cannot instantiate object from multiple data sources at once",
             self.TestUsers,
             from_remote={},
             from_json_dict={},
@@ -219,7 +219,7 @@ class TestDataobjectClass(HermesServerTestCase):
     def test_init_fromRemote_fails_if_REMOTE_ATTRIBUTES_is_none(self):
         self.assertRaisesRegex(
             AttributeError,
-            "Current class TestUsers can't be instanciated with 'from_remote' args as TestUsers.REMOTE_ATTRIBUTES is not defined",
+            "Current class TestUsers can't be instantiated with 'from_remote' args as TestUsers.REMOTE_ATTRIBUTES is not defined",
             self.TestUsers,
             from_remote=dict(),
         )

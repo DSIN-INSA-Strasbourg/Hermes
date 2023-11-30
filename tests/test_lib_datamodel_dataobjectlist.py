@@ -106,14 +106,14 @@ class TestDataobjectlistClass(HermesServerTestCase):
     def test_init_fails_if_no_args(self):
         self.assertRaisesRegex(
             AttributeError,
-            "Cannot instanciate object from nothing : you must specify one data source",
+            "Cannot instantiate object from nothing : you must specify one data source",
             self.TestUsersList,
         )
 
     def test_init_fails_if_two_args(self):
         self.assertRaisesRegex(
             AttributeError,
-            "Cannot instanciate object from multiple data sources at once",
+            "Cannot instantiate object from multiple data sources at once",
             self.TestUsersList,
             objlist={},
             from_json_dict={},

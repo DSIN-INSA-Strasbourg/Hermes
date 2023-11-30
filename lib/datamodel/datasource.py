@@ -54,7 +54,7 @@ class Datasource:
         """Copy of Dataschema used to build current datasource"""
 
         self._data: dict[str, DataObjectList] = {}
-        """Dictionnary containing the datamodel object types specified in server datamodel
+        """Dictionary containing the datamodel object types specified in server datamodel
         or in client schema with object name as key, and their corresponding
         DataObjectList as value"""
 
@@ -111,7 +111,7 @@ class Datasource:
         and the new primary key attribute name as value.
         Data update will be processed for each objtype specified, and then, if no error
         was met, the cache files will be saved.
-        The Datasource MUST be re-instanciated by caller to reflect Dataschema changes,
+        The Datasource MUST be re-instantiated by caller to reflect Dataschema changes,
         and update data in memory.
         """
         for objtype, newpkey in newpkeys.items():

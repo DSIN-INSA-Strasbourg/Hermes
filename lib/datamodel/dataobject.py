@@ -56,7 +56,7 @@ class DataObject(JSONSerializable):
     """
 
     HERMES_TO_REMOTE_MAPPING: dict[str, Any] = {}
-    """Mapping dictionnary containing datamodel attributes as key, and datasources fields
+    """Mapping dictionary containing datamodel attributes as key, and datasources fields
     as values, eventually stored in a list. Used by DataObject only on server side"""
     REMOTE_ATTRIBUTES: set[str] = None
     """Set containing datamodel fields. Used by DataObject and Datamodel only on server
@@ -99,12 +99,12 @@ class DataObject(JSONSerializable):
         self._hash = None
 
         if from_remote is None and from_json_dict is None:
-            err = f"Cannot instanciate object from nothing : you must specify one data source"
+            err = f"Cannot instantiate object from nothing : you must specify one data source"
             logger.critical(err)
             raise AttributeError(err)
 
         if from_remote is not None and from_json_dict is not None:
-            err = f"Cannot instanciate object from multiple data sources at once"
+            err = f"Cannot instantiate object from multiple data sources at once"
             logger.critical(err)
             raise AttributeError(err)
 
@@ -122,7 +122,7 @@ class DataObject(JSONSerializable):
         and jinjaContextVars"""
         if self.REMOTE_ATTRIBUTES is None:
             raise AttributeError(
-                f"Current class {self.__class__.__name__} can't be instanciated with 'from_remote' args as {self.__class__.__name__}.REMOTE_ATTRIBUTES is not defined"
+                f"Current class {self.__class__.__name__} can't be instantiated with 'from_remote' args as {self.__class__.__name__}.REMOTE_ATTRIBUTES is not defined"
             )
         missingattrs = self.REMOTE_ATTRIBUTES.difference(from_remote.keys())
         if len(missingattrs) > 0:

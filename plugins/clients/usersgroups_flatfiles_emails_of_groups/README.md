@@ -22,7 +22,7 @@ along with Hermes. If not, see <https://www.gnu.org/licenses/>.
 
 ## Description
 
-This client will generate a flat txt file by `Groups`, containing the e-mail adresses of its members (one by line).
+This client will generate a flat txt file by `Groups`, containing the e-mail addresses of its members (one by line).
 
 ## Configuration
 

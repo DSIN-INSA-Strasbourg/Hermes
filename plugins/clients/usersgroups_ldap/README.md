@@ -28,7 +28,7 @@ The local Datamodel keys will be used as LDAP attributes names, without any cons
 
 The `GroupMembers` will only store data (typically LDAP `member` attribute) in LDAP group entries as it is possible to use LDAP overlays (`dynlist` or the deprecated `memberOf`) to dynamically generate the corresponding data in user entries. You should consider reading the `propagateUserDNChangeOnGroupMember` setting documentation.
 
-!!! warning Error recovery isn't fully garanteed
+!!! warning Error recovery isn't fully guaranteed
     In some case (ie. LDAP server shutdown), `python-ldap` reports a failure for an operation (ie. entry added), but has still done it.
     `Hermes` is unable to automatically recover consistent status as it will try to recreate the entry and fail because it already exists.
     You will have to manage manually those cases when they'll occur.

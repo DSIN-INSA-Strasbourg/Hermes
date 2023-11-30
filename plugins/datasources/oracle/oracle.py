@@ -37,7 +37,7 @@ class DatasourceOracle(AbstractDataSourcePlugin):
     """Remote Data Source for Oracle database"""
 
     def __init__(self, settings: dict[str, Any]):
-        """Instanciate new plugin and store a copy of its settings dict in self._settings"""
+        """Instantiate new plugin and store a copy of its settings dict in self._settings"""
         super().__init__(settings)
         self._dbcon: oracledb.connection.Connection | None = None
 
@@ -62,8 +62,8 @@ class DatasourceOracle(AbstractDataSourcePlugin):
         query: str | None,
         vars: dict[str, Any],
     ) -> list[dict[str, Any]]:
-        """Fetch data from datasource with specified query and optionnal queryvars.
-        Returns a list of dict containg each entry fetched, with REMOTE_ATTRIBUTES
+        """Fetch data from datasource with specified query and optional queryvars.
+        Returns a list of dict containing each entry fetched, with REMOTE_ATTRIBUTES
         as keys, and corresponding fetched values as values"""
         fetcheddata = []
         with self._dbcon.cursor() as cur:
@@ -75,19 +75,19 @@ class DatasourceOracle(AbstractDataSourcePlugin):
         return fetcheddata
 
     def add(self, query: str | None, vars: dict[str, Any]):
-        """Add data to datasource with specified query and optionnal queryvars"""
+        """Add data to datasource with specified query and optional queryvars"""
         with self._dbcon.cursor() as cur:
             cur.execute(query, vars)
         self._dbcon.commit()
 
     def delete(self, query: str | None, vars: dict[str, Any]):
-        """Delete data from datasource with specified query and optionnal queryvars"""
+        """Delete data from datasource with specified query and optional queryvars"""
         with self._dbcon.cursor() as cur:
             cur.execute(query, vars)
         self._dbcon.commit()
 
     def modify(self, query: str | None, vars: dict[str, Any]):
-        """Modify data on datasource with specified query and optionnal queryvars"""
+        """Modify data on datasource with specified query and optional queryvars"""
         with self._dbcon.cursor() as cur:
             cur.execute(query, vars)
         self._dbcon.commit()

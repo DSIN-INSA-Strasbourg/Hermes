@@ -53,7 +53,7 @@ class EventQueue(LocalCache):
 
         self._queue: dict[int, tuple[str, Event, str]] = {}
         """The event queue, key is a unique integer, value is a tuple with the event
-        type, the event, and a string containing an optionnal error message"""
+        type, the event, and a string containing an optional error message"""
 
         self._index: dict[str, dict[str, dict[Any, set[int]]]] = {}
         """Index table of events.
@@ -362,7 +362,7 @@ class EventQueue(LocalCache):
         with local objtype as key, and the new local primary key attribute name as value.
         The specified datasources must not have their primary keys updated yet, to allow conversion.
 
-        The EventQueue MUST immediatly be saved and re-instanciated from cache by caller to reflect
+        The EventQueue MUST immediately be saved and re-instantiated from cache by caller to reflect
         data changes Dataschema changes.
         """
         newqueue = {}

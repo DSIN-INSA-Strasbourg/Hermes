@@ -43,7 +43,7 @@ class SqliteConsumerPlugin(AbstractMessageBusConsumerPlugin):
     """
 
     def __init__(self, settings: dict[str, Any]):
-        """Instanciate new plugin and store a copy of its settings dict in self._settings"""
+        """Instantiate new plugin and store a copy of its settings dict in self._settings"""
         super().__init__(settings)
         self._db: sqlite3.Connection | None = None
         self.__curoffset = None

@@ -156,7 +156,7 @@ The following data types may be set up :
     Users:
       hermesType: your_server_Users_type_name
       attrsmapping:
-        user_pkey:  user_primary_key_on_server
+        user_pkey: user_primary_key_on_server
         SamAccountName: login_on_server
         UserPrincipalName: "{{ login_on_server ~ '@YOU.AD.DOMAIN.TLD' }}"
         # Not mandatory, only for example :
@@ -167,21 +167,21 @@ The following data types may be set up :
     UserPasswords:
       hermesType: your_server_UserPasswords_type_name
       attrsmapping:
-        user_pkey:  user_primary_key_on_server
-        password:  cleartext_password_on_server
+        user_pkey: user_primary_key_on_server
+        password: cleartext_password_on_server
         # ...
 
     Groups:
       hermesType: your_server_Groups_type_name
       attrsmapping:
-        group_pkey:  group_primary_key_on_server
-        SamAccountName:  group_name_on_server
+        group_pkey: group_primary_key_on_server
+        SamAccountName: group_name_on_server
         # ...
 
     GroupsMembers:
       hermesType: your_server_GroupsMembers_type_name
       attrsmapping:
-        user_pkey:  user_primary_key_on_server
-        group_pkey:  group_primary_key_on_server
+        user_pkey: user_primary_key_on_server
+        group_pkey: group_primary_key_on_server
         # ...
 ```

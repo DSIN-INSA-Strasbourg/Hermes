@@ -249,7 +249,7 @@ class DatamodelFragment:
         querytype must be one of fetch, add, delete, modify.
 
         Returns None when querytype isn't "fetch",
-        otherwise returns a list of dict containg each entry fetched, with
+        otherwise returns a list of dict containing each entry fetched, with
         REMOTE_ATTRIBUTES as keys, and corresponding fetched values as values
         """
         logger.debug(
@@ -301,7 +301,7 @@ class Datamodel:
         self._config: "HermesConfig" = config
         self._jinjaenv: NativeEnvironment = NativeEnvironment(undefined=StrictUndefined)
 
-        # Fill the _fragments dictionnary
+        # Fill the _fragments dictionary
         datamodel: dict[str, Any] = config["hermes-server"]["datamodel"]
         for objtype, fragmentslist in self._fragments.items():
             for sourcename, sourcesettings in datamodel[objtype]["sources"].items():

@@ -72,10 +72,10 @@ class Datamodel:
         self._config: HermesConfig = config
 
         self._rawdatamodel: dict[str, Any] = self._config["hermes-client"]["datamodel"]
-        """Local datamodel dictionnary, as found in config"""
+        """Local datamodel dictionary, as found in config"""
 
         self._datamodel: dict[str, Any]
-        """Local datamodel dictionnary, with compiled Jinja templates"""
+        """Local datamodel dictionary, with compiled Jinja templates"""
 
         self._jinjaenv: NativeEnvironment = NativeEnvironment(undefined=StrictUndefined)
         if "hermes" in self._config:
@@ -238,7 +238,7 @@ class Datamodel:
                         f"'{r_objtype}' type primary key '{pkey}' value MUST not be"
                         " transformed locally with Jinja to prevent data inconsistencies"
                         " between declared types. You can declare a new attribute on server"
-                        " containg the pkey value and transform it locally if you really"
+                        " containing the pkey value and transform it locally if you really"
                         " need to"
                     )
                     logger.critical(err)

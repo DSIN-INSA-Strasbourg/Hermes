@@ -94,14 +94,14 @@ class TestDataschemaClass(HermesServerTestCase):
     def test_init_fails_if_no_args(self):
         self.assertRaisesRegex(
             AttributeError,
-            "Cannot instanciate schema from nothing : you must specify one data source",
+            "Cannot instantiate schema from nothing : you must specify one data source",
             Dataschema,
         )
 
     def test_init_fails_if_two_args(self):
         self.assertRaisesRegex(
             AttributeError,
-            "Cannot instanciate schema from multiple data sources at once",
+            "Cannot instantiate schema from multiple data sources at once",
             Dataschema,
             from_raw_dict={},
             from_json_dict={},

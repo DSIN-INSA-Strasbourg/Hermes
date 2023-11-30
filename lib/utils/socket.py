@@ -100,12 +100,12 @@ class SocketMessageToServer(JSONSerializable):
         super().__init__(jsondataattr=["argv"])
 
         if argv is None and from_json_dict is None:
-            err = f"Cannot instanciante object from nothing : you must specify one data source"
+            err = f"Cannot instantiante object from nothing : you must specify one data source"
             logger.critical(err)
             raise AttributeError(err)
 
         if argv is not None and from_json_dict is not None:
-            err = f"Cannot instanciante object from multiple data sources at once"
+            err = f"Cannot instantiante object from multiple data sources at once"
             logger.critical(err)
             raise AttributeError(err)
 
@@ -141,12 +141,12 @@ class SocketMessageToClient(JSONSerializable):
         super().__init__(jsondataattr=["retcode", "retmsg"])
 
         if (retcode is None or retmsg is None) and from_json_dict is None:
-            err = f"Cannot instanciante object from nothing : you must specify one data source"
+            err = f"Cannot instantiante object from nothing : you must specify one data source"
             logger.critical(err)
             raise AttributeError(err)
 
         if (retcode is not None or retmsg is not None) and from_json_dict is not None:
-            err = f"Cannot instanciante object from multiple data sources at once"
+            err = f"Cannot instantiante object from multiple data sources at once"
             logger.critical(err)
             raise AttributeError(err)
 

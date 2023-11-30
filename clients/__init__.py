@@ -104,15 +104,15 @@ class HermesClientCache(LocalCache):
         self.queueErrors: dict[str, dict[str, dict[str, Any]]] = from_json_dict.get(
             "queueErrors", {}
         )
-        """Dictionnary containing current objects in error queue, for notifications"""
+        """Dictionary containing current objects in error queue, for notifications"""
 
         self.datamodelWarnings: dict[
             str, dict[str, dict[str, Any]]
         ] = from_json_dict.get("datamodelWarnings", {})
-        """Dictionnary containing current datamodel warnings, for notifications"""
+        """Dictionary containing current datamodel warnings, for notifications"""
 
         self.exception: str | None = from_json_dict.get("exception")
-        """String containg latest exception trace"""
+        """String containing latest exception trace"""
 
         self.initstartoffset: Any | None = from_json_dict.get("initstartoffset")
         """Contains the offset of start message of initSync sequence on message bus"""
@@ -132,7 +132,7 @@ class GenericClient:
     converting messages from message bus into events handlers calls"""
 
     def __init__(self, config: HermesConfig):
-        """Instanciate a new client"""
+        """Instantiate a new client"""
 
         # Setup the signals handler
         config.setSignalsHandler(self.__signalHandler)

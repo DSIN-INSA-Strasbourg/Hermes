@@ -68,10 +68,10 @@ class HermesServerCache(LocalCache):
         self.errors: dict[str, dict[str, dict[str, Any]]] = from_json_dict.get(
             "errors", {}
         )
-        """Dictionnary containing current errors, for notifications"""
+        """Dictionary containing current errors, for notifications"""
 
         self.exception: str | None = from_json_dict.get("exception")
-        """String containg latest exception trace"""
+        """String containing latest exception trace"""
 
     def savecachefile(self, cacheFilename: str | None = None):
         """Override method only to disable backup files in cache"""

@@ -42,7 +42,7 @@ class DatasourceLdap(AbstractDataSourcePlugin):
     """Remote Data Source for LDAP server"""
 
     def __init__(self, settings: dict[str, Any]):
-        """Instanciate new plugin and store a copy of its settings dict in self._settings"""
+        """Instantiate new plugin and store a copy of its settings dict in self._settings"""
         super().__init__(settings)
         self._ldap: LDAPObject | None = None
 
@@ -96,8 +96,8 @@ class DatasourceLdap(AbstractDataSourcePlugin):
         query: str | None,
         vars: dict[str, Any],
     ) -> list[dict[str, Any]]:
-        """Fetch data from datasource with specified query and optionnal queryvars.
-        Returns a list of dict containg each entry fetched, with REMOTE_ATTRIBUTES
+        """Fetch data from datasource with specified query and optional queryvars.
+        Returns a list of dict containing each entry fetched, with REMOTE_ATTRIBUTES
         as keys, and corresponding fetched values as values"""
         scopes = {
             "base": ldap.SCOPE_BASE,

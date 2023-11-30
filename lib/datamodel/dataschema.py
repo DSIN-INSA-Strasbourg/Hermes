@@ -43,7 +43,7 @@ class Dataschema(LocalCache):
     This class will offer the main datamodel types names and their corresponding DataObject
     and DataObjectList subclasses in 'objectTypes' and 'objectlistTypes' attributes.
     These attributes will be set only once the class method 'fillObjectTypes' have been
-    called on server, or at Dataschema instanciation on clients
+    called on server, or at Dataschema instantiation on clients
     """
 
     def __init__(
@@ -65,12 +65,12 @@ class Dataschema(LocalCache):
 
         # Args validity check
         if from_raw_dict is None and from_json_dict is None:
-            err = f"Cannot instanciate schema from nothing : you must specify one data source"
+            err = f"Cannot instantiate schema from nothing : you must specify one data source"
             logger.critical(err)
             raise AttributeError(err)
 
         if from_raw_dict is not None and from_json_dict is not None:
-            err = f"Cannot instanciate schema from multiple data sources at once"
+            err = f"Cannot instantiate schema from multiple data sources at once"
             logger.critical(err)
             raise AttributeError(err)
 

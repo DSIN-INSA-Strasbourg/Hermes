@@ -63,7 +63,7 @@ Once everything is set up, you can generate your hash list  `ldapPasswordHash` k
 # default_hash_types settings : SMD5, SSHA, SSHA256, SSHA512
 ldap_password_hashes: "{{ PASSWORD_CLEAR | ldapPasswordHash }}"
 
-# Will contain a list with only the SSHA512 hashe of PASSWORD_CLEAR
+# Will contain a list with only the SSHA512 hashes of PASSWORD_CLEAR
 ldap_password_hashes: "{{ PASSWORD_CLEAR | ldapPasswordHash('SSHA512') }}"
 
 # Will contain a list with only the SSHA256 and SSHA512 hashes of PASSWORD_CLEAR

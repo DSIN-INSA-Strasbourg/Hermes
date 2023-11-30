@@ -56,12 +56,12 @@ class Event(JSONSerializable):
         """
 
         if objattrs is None and from_json_dict is None:
-            err = f"Cannot instanciate object from nothing : you must specify one data source"
+            err = f"Cannot instantiate object from nothing : you must specify one data source"
             logger.critical(err)
             raise AttributeError(err)
 
         if objattrs is not None and from_json_dict is not None:
-            err = f"Cannot instanciate object from multiple data sources at once"
+            err = f"Cannot instantiate object from multiple data sources at once"
             logger.critical(err)
             raise AttributeError(err)
 
