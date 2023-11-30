@@ -222,7 +222,7 @@ hermes-server:
       # For each "typename" declared, two vars are available :
       # - typename_pkeys : a set with every primary keys
       # - typename : a list of dict containing each entries
-      # https://hermes.insa-strasbourg.fr/en/configuration/hermes-server/#hermes-server.datamodel.data-type-name.integrity_constraints
+      # https://hermes.insa-strasbourg.fr/en/setup/configuration/hermes-server/#hermes-server.datamodel.data-type-name.integrity_constraints
       integrity_constraints:
         - "{{ _SELF.user_id in Users_pkeys }}"
       sources: # datasource(s) to use to fetch data. Usually one, but several could be used
@@ -239,7 +239,7 @@ hermes-server:
           #
           # Jinja vars available are [REMOTE_ATTRIBUTES, CACHED_VALUES].
           # See documentation for details :
-          # https://hermes.insa-strasbourg.fr/en/configuration/hermes-server/#hermes-server.datamodel.data-type-name.sources.datasource-name.fetch
+          # https://hermes.insa-strasbourg.fr/en/setup/configuration/hermes-server/#hermes-server.datamodel.data-type-name.sources.datasource-name.fetch
           fetch:
             type: fetch
             query: >-
@@ -260,7 +260,7 @@ hermes-server:
           #
           # Jinja vars available are [REMOTE_ATTRIBUTES, ITEM_CACHED_VALUES, ITEM_FETCHED_VALUES].
           # See documentation for details :
-          # https://hermes.insa-strasbourg.fr/en/configuration/hermes-server/#hermes-server.datamodel.data-type-name.sources.datasource-name.commit_one
+          # https://hermes.insa-strasbourg.fr/en/setup/configuration/hermes-server/#hermes-server.datamodel.data-type-name.sources.datasource-name.commit_one
           commit_one:
             type: modify
             query: >-
@@ -286,7 +286,7 @@ hermes-server:
           #
           # Jinja vars available are [REMOTE_ATTRIBUTES, CACHED_VALUES, FETCHED_VALUES].
           # See documentation for details :
-          # https://hermes.insa-strasbourg.fr/en/configuration/hermes-server/#hermes-server.datamodel.data-type-name.sources.datasource-name.commit_all
+          # https://hermes.insa-strasbourg.fr/en/setup/configuration/hermes-server/#hermes-server.datamodel.data-type-name.sources.datasource-name.commit_all
           # commit_all:
           #   type: delete
           #   query: >-
@@ -307,7 +307,7 @@ hermes-server:
           # This is required in order to allow the software to collect the REMOTE_ATTRIBUTES
           #
           # See documentation for details :
-          # https://hermes.insa-strasbourg.fr/en/configuration/hermes-server/#hermes-server.datamodel.data-type-name.sources.datasource-name.attrsmapping
+          # https://hermes.insa-strasbourg.fr/en/setup/configuration/hermes-server/#hermes-server.datamodel.data-type-name.sources.datasource-name.attrsmapping
           attrsmapping:
             user_id: USER_ID
             password_encrypted: >-
