@@ -257,6 +257,7 @@ class GenericClient:
     def __setupSocketParser(self):
         """Set up the argparse context for unix socket commands"""
         self.__parser = SocketArgumentParser(
+            prog=f"{self.__config['appname']}-cli",
             description=f"Hermes client {self.__config['appname']} CLI",
             exit_on_error=False,
         )

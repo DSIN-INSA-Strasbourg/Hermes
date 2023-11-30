@@ -141,6 +141,7 @@ class HermesServer:
     def __setupSocketParser(self):
         """Set up the argparse context for unix socket commands"""
         self._parser = SocketArgumentParser(
+            prog=f"{self.config['appname']}-cli",
             description="Hermes Server CLI",
             exit_on_error=False,
         )
