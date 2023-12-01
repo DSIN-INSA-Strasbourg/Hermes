@@ -53,6 +53,14 @@ hermes:
             # Path to file with PEM encoded key for client cert authentication,
             # requires certfile
             keyfile: /path/to/client.pem # Facultative
+
+          # Facultative. Default: false.
+          # Since the client is not aware of the LDAP schema, it cannot know whether
+          # an attribute is single-valued or multi-valued. By default, it will
+          # return a single value in its base type, as if it were a single-valued
+          # attribute, and multiple values in a list.
+          # If this setting is enabled, all values will always be returned in a list.
+          always_return_values_in_list: true
 ```
 
 ## Usage

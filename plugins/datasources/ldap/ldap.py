@@ -120,7 +120,7 @@ class DatasourceLdap(AbstractDataSourcePlugin):
             flatentry = dict()
             for k in vars.get("attrlist", entry.keys()):
                 v = entry.get(k, [])
-                if len(v) > 1:
+                if self._settings["always_return_values_in_list"] or len(v) > 1:
                     flatentry[k] = self._convert_from_ldap(v)
                 elif len(v) == 1:
                     flatentry[k] = self._convert_from_ldap(v[0])

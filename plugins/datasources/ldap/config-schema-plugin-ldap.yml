@@ -54,3 +54,9 @@ ssl:
       required: false
       empty: false
       nullable: false
+always_return_values_in_list:
+  type: boolean
+  required: false
+  nullable: false
+  empty: false
+  default: false
