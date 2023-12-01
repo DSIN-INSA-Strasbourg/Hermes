@@ -226,7 +226,7 @@ class HermesServer:
             except Exception as e:
                 lines = traceback.format_exception(type(e), e, e.__traceback__)
                 trace = "".join(lines).strip()
-                logger.critical(f"Unhandled exception : {trace}")
+                logger.critical(f"Unhandled exception: {trace}")
                 retmsg = trace
 
         if reply is None:  # Error was met
@@ -254,12 +254,12 @@ class HermesServer:
         """Handler called when pause subcommand is requested on unix socket"""
         if self._isStopped:
             return SocketMessageToClient(
-                retcode=1, retmsg="Error : server is currently being stopped"
+                retcode=1, retmsg="Error: server is currently being stopped"
             )
 
         if self._isPaused:
             return SocketMessageToClient(
-                retcode=1, retmsg="Error : server is already paused"
+                retcode=1, retmsg="Error: server is already paused"
             )
 
         logger.info("hermes-server has been requested to pause")
@@ -270,12 +270,12 @@ class HermesServer:
         """Handler called when resume subcommand is requested on unix socket"""
         if self._isStopped:
             return SocketMessageToClient(
-                retcode=1, retmsg="Error : server is currently being stopped"
+                retcode=1, retmsg="Error: server is currently being stopped"
             )
 
         if not self._isPaused:
             return SocketMessageToClient(
-                retcode=1, retmsg="Error : server is not paused"
+                retcode=1, retmsg="Error: server is not paused"
             )
 
         logger.info("hermes-server has been requested to resume")
@@ -298,18 +298,18 @@ class HermesServer:
             msg = ""
             for objname in ["hermes-server"] + list(status.keys() - ("hermes-server",)):
                 infos = status[objname]
-                msg += f"{objname} :{nl}"
+                msg += f"{objname}:{nl}"
                 for category in ("information", "warning", "error"):
                     if category not in infos:
                         continue
                     if not infos[category]:
-                        msg += f"  * {category.capitalize()} : []{nl}"
+                        msg += f"  * {category.capitalize()}: []{nl}"
                         continue
 
                     msg += f"  * {category.capitalize()}{nl}"
                     for infoname, infodata in infos[category].items():
                         indentedinfodata = str(infodata).replace("\n", "\n      ")
-                        msg += f"    - {info2printable.get(infoname, infoname)} : {indentedinfodata}{nl}"
+                        msg += f"    - {info2printable.get(infoname, infoname)}: {indentedinfodata}{nl}"
             msg = msg.rstrip()
 
         return SocketMessageToClient(retcode=0, retmsg=msg)
@@ -328,11 +328,11 @@ class HermesServer:
                 logger.info("Loading first dataschema")
 
             if diff.added:
-                logger.info(f"Types added in Dataschema : {diff.added}")
+                logger.info(f"Types added in Dataschema: {diff.added}")
 
             if diff.removed:
                 logger.info(
-                    f"Types removed from Dataschema : {diff.removed}, generate events to mark data as deleted"
+                    f"Types removed from Dataschema: {diff.removed}, generate events to mark data as deleted"
                 )
 
                 # Create a datasource with same content as cache, minus the types to remove
@@ -360,7 +360,7 @@ class HermesServer:
                 )
 
                 logger.info(
-                    f"Types removed from Dataschema : {diff.removed}, purging cache files"
+                    f"Types removed from Dataschema: {diff.removed}, purging cache files"
                 )
                 for objtype in diff.removed:
                     LocalCache.deleteAllCacheFiles(objtype)
@@ -375,11 +375,11 @@ class HermesServer:
                     removed = o["HERMES_ATTRIBUTES"] - n["HERMES_ATTRIBUTES"]
                     if added:
                         logger.info(
-                            f"New attributes in dataschema type '{objtype}' : {added}"
+                            f"New attributes in dataschema type '{objtype}': {added}"
                         )
                     if removed:
                         logger.info(
-                            f"Removed attributes from dataschema type '{objtype}' : {removed}"
+                            f"Removed attributes from dataschema type '{objtype}': {removed}"
                         )
 
                     # SECRETS_ATTRIBUTES
@@ -387,9 +387,9 @@ class HermesServer:
                     removed = o["SECRETS_ATTRIBUTES"] - n["SECRETS_ATTRIBUTES"]
                     if added:
                         logger.info(
-                            f"New secrets attributes in dataschema type '{objtype}' : {added}"
+                            f"New secrets attributes in dataschema type '{objtype}': {added}"
                         )
-                        # We need to purge attribute from cache : as cache is loaded with
+                        # We need to purge attribute from cache: as cache is loaded with
                         # attribute set up as SECRET, we just have to save the cache (attr
                         # won't be saved anymore, as it's SECRET) and reload cache to
                         # "forget" values loaded from previous cache
@@ -397,7 +397,7 @@ class HermesServer:
                         self.dm.data.cache.loadFromCache()
                     if removed:
                         logger.info(
-                            f"Removed secrets attributes from dataschema type '{objtype}' : {removed}"
+                            f"Removed secrets attributes from dataschema type '{objtype}': {removed}"
                         )
 
                     # PRIMARYKEY_ATTRIBUTE
@@ -492,7 +492,7 @@ class HermesServer:
         """Returns a dict containing status for hermes-server and each defined type in
         datamodel.
 
-        Each status contains 3 categories/levels : ""information", "warning" and "error"
+        Each status contains 3 categories/levels: ""information", "warning" and "error"
         """
         if level not in ("information", "warning", "error"):
             raise AttributeError(
@@ -621,7 +621,7 @@ class HermesServer:
                 diffs[objtype] = diff
                 if diff:
                     logger.info(
-                        f"{objtype} have changed : {len(diff.added)} added,"
+                        f"{objtype} have changed: {len(diff.added)} added,"
                         f" {len(diff.modified)} modified,"
                         f" {len(diff.removed)} removed"
                     )
@@ -656,7 +656,7 @@ class HermesServer:
                                 if save:
                                     cache.save()
                                 logger.critical(
-                                    f"Failed to send event. Execution aborted : {str(e)}"
+                                    f"Failed to send event. Execution aborted: {str(e)}"
                                 )
                                 raise
 
@@ -706,7 +706,7 @@ class HermesServer:
         nl = "\n"
 
         if new_errors:
-            logger.error(f"Data errors met : {nl}{new_errstr}")
+            logger.error(f"Data errors met: {nl}{new_errstr}")
 
         if new_errstr != old_errstr:
             if new_errors:
@@ -726,7 +726,7 @@ class HermesServer:
     def notifyException(self, trace: str | None):
         """Notify of any unhandled exception met/solved"""
         if trace:
-            logger.critical(f"Unhandled exception : {trace}")
+            logger.critical(f"Unhandled exception: {trace}")
 
         if self._cache.exception != trace:
             if trace:

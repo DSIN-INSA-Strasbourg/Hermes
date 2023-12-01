@@ -65,7 +65,7 @@ class Dataschema(LocalCache):
 
         # Args validity check
         if from_raw_dict is None and from_json_dict is None:
-            err = f"Cannot instantiate schema from nothing : you must specify one data source"
+            err = f"Cannot instantiate schema from nothing: you must specify one data source"
             logger.critical(err)
             raise AttributeError(err)
 
@@ -139,7 +139,7 @@ class Dataschema(LocalCache):
             # template can't be copied with deepcopy
             del self._schema[objname]["TOSTRING"]
             logger.debug(
-                f"<{objname} has been set up from schema> :"
+                f"<{objname} has been set up from schema>:"
                 f" PRIMARYKEY_ATTRIBUTE='{objcls.PRIMARYKEY_ATTRIBUTE}'"
                 f" - HERMES_ATTRIBUTES={objcls.HERMES_ATTRIBUTES}"
                 f" - SECRETS_ATTRIBUTES={objcls.SECRETS_ATTRIBUTES}"

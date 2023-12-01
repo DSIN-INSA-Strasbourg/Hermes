@@ -33,7 +33,7 @@ venvdir=".venv"
 ###########################
 
 function usage {
-    echo "Usage : $0 [-d] [-e] [-p] [-h]" >&2
+    echo "Usage: $0 [-d] [-e] [-p] [-h]" >&2
     echo "" >&2
     echo "options:" >&2
     echo "  -d, --install-devel-requirements" >&2
@@ -41,7 +41,7 @@ function usage {
     echo "             Won't do anything if '-p' is set" >&2
     echo "  -e, --dont-recreate-venv" >&2
     echo "             Don't delete and recreate current virtualenv." >&2
-    echo "             WARNING : If you specify this option and no virtualenv exists," >&2
+    echo "             WARNING: If you specify this option and no virtualenv exists," >&2
     echo "             python requirements will be installed in your user environment" >&2
     echo "  -p, --dont-install-python-requirements" >&2
     echo "             Don't install python requirements from found requirements.txt" >&2
@@ -117,7 +117,7 @@ fi
 if [ -z ${DIRENV_DIR+x} ]
 then
     # Direnv is still not active
-    echo -e "direnv is not active, please add this to your '${HOME}/.bashrc' and reload your bash session before running this script again :\n"
+    echo -e "direnv is not active, please add this to your '${HOME}/.bashrc' and reload your bash session before running this script again:\n"
     cat << 'EOF'
 #########
 # direnv

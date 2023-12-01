@@ -28,12 +28,12 @@ logger = logging.getLogger("hermes")
 
 class DiffObject:
     """Contain differences between two DataObject or two DataObjectList.
-    Differences will be stored as keys in 3 properties sets :
+    Differences will be stored as keys in 3 properties sets:
         - added
         - modified
         - removed
     The sets should contain object properties names when objnew and objold are specified
-    in constructor (ie. when comparing two DataObject), or some objects otherwise (ie. when
+    in constructor (e.g. when comparing two DataObject), or some objects otherwise (e.g. when
     comparing two DataObjectList). Objects added MUST not be tuple, list, set or frozenset.
 
     When tested with 'if instance', DiffObject instance returns False if no
@@ -77,10 +77,10 @@ class DiffObject:
 
     @property
     def dict(self) -> dict[str, Any]:
-        """Returns a diff dict always containing three keys : 'added', 'modified' and
+        """Returns a diff dict always containing three keys: 'added', 'modified' and
         'removed'.
         The values differs depending on whether objnew has been set on constructor or not.
-        - If objnew has been set :
+        - If objnew has been set:
             - 'added' and 'modified' will be a dict with attrname as key, and objnew's value
                of 'attrname'
             - 'removed' will be a dict with attrname as key, and None as value

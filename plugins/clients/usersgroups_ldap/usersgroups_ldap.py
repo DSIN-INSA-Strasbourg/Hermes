@@ -85,7 +85,7 @@ class LdapClient(GenericClient):
     def connect(self):
         # Not well documented in python-ldap,
         # Found this in doc/drafts/draft-ietf-ldapext-ldap-c-api-xx.txt
-        # in openldap-master :
+        # in openldap-master:
         #     LDAP_OPT_RESTART (0x09)
         #     Type for invalue parameter: void * (LDAP_OPT_ON or LDAP_OPT_OFF)
         #

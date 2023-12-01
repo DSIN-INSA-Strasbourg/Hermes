@@ -115,9 +115,9 @@ class HermesClientCache(LocalCache):
         """String containing latest exception trace"""
 
         self.initstartoffset: Any | None = from_json_dict.get("initstartoffset")
-        """Contains the offset of start message of initSync sequence on message bus"""
+        """Contains the offset of the first message of initSync sequence on message bus"""
         self.initstopoffset: Any | None = from_json_dict.get("initstopoffset")
-        """Contains the offset of last message of initSync sequence on message bus"""
+        """Contains the offset of the last message of initSync sequence on message bus"""
         self.nextoffset: Any | None = from_json_dict.get("nextoffset")
         """Contains the offset of the next message to process on message bus"""
 
@@ -128,7 +128,7 @@ class HermesClientCache(LocalCache):
 
 class GenericClient:
     """Superclass of all hermes-client implementations.
-    Manage all the internals of hermes for a client : datamodel updates, caching, error management, trashbin and
+    Manage all the internals of hermes for a client: datamodel updates, caching, error management, trashbin and
     converting messages from message bus into events handlers calls"""
 
     def __init__(self, config: HermesConfig):
@@ -242,7 +242,7 @@ class GenericClient:
 
     def getDataobjectlistFromCache(self, objtype: str) -> DataObjectList:
         """Returns cache of specified objtype, by reference.
-        WARNING : Any modification of the cache content will mess up your client !!!
+        WARNING: Any modification of the cache content will mess up your client !!!
         Raise IndexError if objtype is invalid
         """
         return self.__datamodel.localdata[objtype]
@@ -323,7 +323,7 @@ class GenericClient:
             except Exception as e:
                 lines = traceback.format_exception(type(e), e, e.__traceback__)
                 trace = "".join(lines).strip()
-                logger.critical(f"Unhandled exception : {trace}")
+                logger.critical(f"Unhandled exception: {trace}")
                 retmsg = trace
 
         if reply is None:  # Error was met
@@ -342,13 +342,13 @@ class GenericClient:
         if self.__isStopped:
             return SocketMessageToClient(
                 retcode=1,
-                retmsg=f"Error : {self.__config['appname']} is currently being stopped",
+                retmsg=f"Error: {self.__config['appname']} is currently being stopped",
             )
 
         if self.__isPaused:
             return SocketMessageToClient(
                 retcode=1,
-                retmsg=f"Error : {self.__config['appname']} is already paused",
+                retmsg=f"Error: {self.__config['appname']} is already paused",
             )
 
         logger.info(f"{self.__config['appname']} has been requested to pause")
@@ -360,12 +360,12 @@ class GenericClient:
         if self.__isStopped:
             return SocketMessageToClient(
                 retcode=1,
-                retmsg=f"Error : {self.__config['appname']} is currently being stopped",
+                retmsg=f"Error: {self.__config['appname']} is currently being stopped",
             )
 
         if not self.__isPaused:
             return SocketMessageToClient(
-                retcode=1, retmsg=f"Error : {self.__config['appname']} is not paused"
+                retcode=1, retmsg=f"Error: {self.__config['appname']} is not paused"
             )
 
         logger.info(f"{self.__config['appname']} has been requested to resume")
@@ -385,18 +385,18 @@ class GenericClient:
                 status.keys() - (self.__config["appname"],)
             ):
                 infos = status[objname]
-                msg += f"{objname} :{nl}"
+                msg += f"{objname}:{nl}"
                 for category in ("information", "warning", "error"):
                     if category not in infos:
                         continue
                     if not infos[category]:
-                        msg += f"  * {category.capitalize()} : []{nl}"
+                        msg += f"  * {category.capitalize()}: []{nl}"
                         continue
 
                     msg += f"  * {category.capitalize()}{nl}"
                     for infoname, infodata in infos[category].items():
                         indentedinfodata = str(infodata).replace("\n", "\n      ")
-                        msg += f"    - {info2printable.get(infoname, infoname)} : {indentedinfodata}{nl}"
+                        msg += f"    - {info2printable.get(infoname, infoname)}: {indentedinfodata}{nl}"
             msg = msg.rstrip()
 
         return SocketMessageToClient(retcode=0, retmsg=msg)
@@ -424,12 +424,12 @@ class GenericClient:
         self.__startTime = datetime.now()
 
         self.__checkDatamodelWarnings()
-        # TODO : implement a check to ensure subclasses required data types and
+        # TODO: implement a check to ensure subclasses required data types and
         # attributes exist in datamodel
 
         if self.__datamodel.hasRemoteSchema():
             logger.debug(
-                f"Remote Dataschema in cache : {self.__datamodel.remote_schema.to_json()=}"
+                f"Remote Dataschema in cache: {self.__datamodel.remote_schema.to_json()=}"
             )
             self.__datamodel.loadErrorQueue()
         else:
@@ -516,7 +516,7 @@ class GenericClient:
                     try:
                         self.__processRemoteEvent(event, enqueueEventWithError=False)
                     except HermesClientHandlerError as e:
-                        logger.info(f"... failed on step {self.currentStep} : {str(e)}")
+                        logger.info(f"... failed on step {self.currentStep}: {str(e)}")
                         event.step = self.currentStep
                         self.__datamodel.errorqueue.updateErrorMsg(eventNumber, e.msg)
                     else:
@@ -532,7 +532,7 @@ class GenericClient:
                     try:
                         self.__processLocalEvent(event, enqueueEventWithError=False)
                     except HermesClientHandlerError as e:
-                        logger.info(f"... failed on step {self.currentStep} : {str(e)}")
+                        logger.info(f"... failed on step {self.currentStep}: {str(e)}")
                         event.step = self.currentStep
                         self.__datamodel.errorqueue.updateErrorMsg(eventNumber, e.msg)
                     else:
@@ -671,12 +671,12 @@ class GenericClient:
     def __checkDatamodelWarnings(self):
         if self.__datamodel.unknownRemoteTypes:
             logger.warning(
-                f"Datamodel errors : remote type '{self.__datamodel.unknownRemoteTypes}' doesn't exist in current Dataschema"
+                f"Datamodel errors: remote types '{self.__datamodel.unknownRemoteTypes}' don't exist in current Dataschema"
             )
 
         if self.__datamodel.unknownRemoteAttributes:
             logger.warning(
-                f"Datamodel errors : remote attributes doesn't exist in current Dataschema : {self.__datamodel.unknownRemoteAttributes}"
+                f"Datamodel errors: remote attributes don't exist in current Dataschema: {self.__datamodel.unknownRemoteAttributes}"
             )
         self.__notifyDatamodelWarnings()
 
@@ -694,7 +694,7 @@ class GenericClient:
                 self.__cache.nextoffset = remote_event.offset + 1
                 break
 
-            # TODO : implement data consistency check if event.evcategory==initsync
+            # TODO: implement data consistency check if event.evcategory==initsync
             # and evcategory==base
 
             if remote_event.evcategory != evcategory:
@@ -725,7 +725,7 @@ class GenericClient:
                     self.__updateSchema(schema)
                 case _:
                     logger.error(
-                        f"Received an event with unknown type '{remote_event.eventtype}' : ignored"
+                        f"Received an event with unknown type '{remote_event.eventtype}': ignored"
                     )
 
             self.__cache.nextoffset = remote_event.offset + 1
@@ -757,7 +757,7 @@ class GenericClient:
             secretAttrs = self.__datamodel.remote_schema.secretsAttributesOf(
                 remote_event.objtype
             )
-            errorMsg = f"Object in remote event {remote_event.toString(secretAttrs)} already had unresolved errors : appending event to error queue"
+            errorMsg = f"Object in remote event {remote_event.toString(secretAttrs)} already had unresolved errors: appending event to error queue"
             logger.warning(errorMsg)
             self.__processRemoteEvent(
                 remote_event, enqueueEventWithError=False, simulateOnly=True
@@ -801,7 +801,7 @@ class GenericClient:
                     self.__remoteModified(remote_event, local_event, simulateOnly)
 
                 case "removed":
-                    # Remove object on any of these conditions :
+                    # Remove object on any of these conditions:
                     #   - trashbin retention is disabled
                     #   - object is already in trashbin
                     if (
@@ -889,7 +889,7 @@ class GenericClient:
                     else:
                         self.__localModified(local_event, simulateOnly)
                 case "removed":
-                    # Remove object on any of these conditions :
+                    # Remove object on any of these conditions:
                     #   - trashbin retention is disabled
                     #   - object is already in trashbin
                     if (
@@ -1047,7 +1047,7 @@ class GenericClient:
                 eventCategory=local_ev.evcategory,
                 changeType="modified",
             )
-            # Hack : we pass this second event (modified) to error queue in order to
+            # Hack: we pass this second event (modified) to error queue in order to
             # postpone its processing once all caches of previous one are up to date.
             # Otherwise, if an error is met on this second event (modified), we'll try
             # to reprocess the first one (recycled)
@@ -1297,7 +1297,7 @@ class GenericClient:
 
         if not callable(hdlr):
             logger.debug(
-                f"Calling '{handlerName}({kwargsstr})' : handler '{handlerName}()' doesn't exists"
+                f"Calling '{handlerName}({kwargsstr})': handler '{handlerName}()' doesn't exists"
             )
             return
 
@@ -1309,7 +1309,7 @@ class GenericClient:
             hdlr(**kwargs)
         except Exception as e:
             logger.error(
-                f"Calling '{handlerName}({kwargsstr})' : error met on step {self.currentStep} '{str(e)}'"
+                f"Calling '{handlerName}({kwargsstr})': error met on step {self.currentStep} '{str(e)}'"
             )
             raise HermesClientHandlerError(e)
 
@@ -1340,7 +1340,7 @@ class GenericClient:
             self.__datamodel.loadErrorQueue()
             return
 
-        logger.info(f"Datamodel has changed : {diff.dict}")
+        logger.info(f"Datamodel has changed: {diff.dict}")
         self.__saveRequired = True
 
         # Start by removed types, as it requires the previous datamodel to process data removal
@@ -1349,7 +1349,7 @@ class GenericClient:
                 logger.info(f"About to purge data from type '{l_objtype}'")
                 if l_objtype not in self.__datamodel.typesmapping.values():
                     logger.warning(
-                        f"Requested to purge data from type '{l_objtype}', but it doesn't exist in previous datamodel : ignoring"
+                        f"Requested to purge data from type '{l_objtype}', but it doesn't exist in previous datamodel: ignoring"
                     )
                     continue
 
@@ -1374,7 +1374,7 @@ class GenericClient:
                             l_objtype
                         )
                         logger.debug(
-                            f"Removing local object of {pkey=} : {l_ev.toString(secretAttrs)=}"
+                            f"Removing local object of {pkey=}: {l_ev.toString(secretAttrs)=}"
                         )
                         self.__localRemoved(l_ev)
                     else:
@@ -1391,7 +1391,7 @@ class GenericClient:
 
             # Purge old remote and local cache files, if any
             logger.info(
-                f"Types removed from Datamodel : {diff.removed}, purging cache files"
+                f"Types removed from Datamodel: {diff.removed}, purging cache files"
             )
             Datamodel.purgeOldCacheFiles(diff.removed, cacheFilePrefix="__")
 
@@ -1483,7 +1483,7 @@ class GenericClient:
     ) -> dict[str, dict[str, dict[str, Any]]]:
         """Returns a dict containing status for current client Datamodel and error queue'.
 
-        Each status contains 3 categories/levels : "information", "warning" and "error"
+        Each status contains 3 categories/levels: "information", "warning" and "error"
         """
         if level not in ("information", "warning", "error"):
             raise AttributeError(
@@ -1609,7 +1609,7 @@ class GenericClient:
         new_errors = {}
         if "errorQueue" in new_error:
             for errNumber, err in new_error["errorQueue"]["error"].items():
-                new_errors[errNumber] = f"{err['objrepr']} : {err['errorMsg']}"
+                new_errors[errNumber] = f"{err['objrepr']}: {err['errorMsg']}"
 
         new_errstr = json.dumps(
             new_errors,
@@ -1652,7 +1652,7 @@ class GenericClient:
         )
 
         if new_errors:
-            logger.error("Datamodel has warnings :\n" + new_errstr)
+            logger.error("Datamodel has warnings:\n" + new_errstr)
 
         if new_errstr != old_errstr:
             if new_errors:
@@ -1672,7 +1672,7 @@ class GenericClient:
     def __notifyException(self, trace: str | None):
         """Notify of any unhandled exception met/solved"""
         if trace:
-            logger.critical(f"Unhandled exception : {trace}")
+            logger.critical(f"Unhandled exception: {trace}")
 
         if self.__cache.exception != trace:
             if trace:
@@ -1698,10 +1698,10 @@ class GenericClient:
         desc = "Unhandled fatal exception, APP WILL TERMINATE IMMEDIATELY"
         NL = "\n"
 
-        logger.critical(f"{desc} : {trace}")
+        logger.critical(f"{desc}: {trace}")
 
         Email.send(
             config=self.__config,
             subject=f"[{self.__config['appname']}] {desc}",
-            content=f"{desc} :{NL}{NL}{trace}",
+            content=f"{desc}:{NL}{NL}{trace}",
         )

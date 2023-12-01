@@ -90,16 +90,16 @@ class YAMLUniqueKeyCSafeLoader(yaml.CSafeLoader):
 class HermesConfig(LocalCache):
     """Load, validate config from config file, and expose config dict via current instance
 
-    config always contains the following keys :
+    config always contains the following keys:
     - appname: the current app name (hermes-server, hermes-client-ldap, ...)
     - hermes: hermes global config, for servers and clients
 
-    For server, it will contains too :
+    For server, it will contains too:
     - hermes-server: config for server
 
-    For clients, it will contains too :
-    - hermes-client: global config for client, for options defined in GenericClient (ie. trashbinRetentionInDays)
-    - hermes-client-CLIENTNAME: specific config for client. ie. LDAP connection settings for hermes-client-ldap
+    For clients, it will contains too:
+    - hermes-client: global config for client, for options defined in GenericClient (e.g. trashbinRetentionInDays)
+    - hermes-client-CLIENTNAME: specific config for client. e.g. LDAP connection settings for hermes-client-ldap
 
     The instance contains the method setSignalsHandler() that can be called to define a
     handler for SIGINT and SIGTERM
@@ -186,9 +186,9 @@ class HermesConfig(LocalCache):
             self._loadAttributesPlugins()
 
     def setSignalsHandler(self, handler: Callable[[int, FrameType | None], None]):
-        """Defines a handler that will intercept thoses signals : SIGINT, SIGTERM
+        """Defines a handler that will intercept thoses signals: SIGINT, SIGTERM
 
-        The handler prototype is :
+        The handler prototype is:
             handler(signalnumber: int, frame: FrameType | None) -> None
         See https://docs.python.org/3/library/signal.html#signal.signal
         """
@@ -222,7 +222,7 @@ class HermesConfig(LocalCache):
     def _setAppname(self):
         """Determine and store appname in config dict on first arg passed to hermes.py
 
-        Apps MUST respect the following naming scheme :
+        Apps MUST respect the following naming scheme:
         - server for server
         - client-CLIENTNAME for clients
 
@@ -323,11 +323,11 @@ class HermesConfig(LocalCache):
             module = importlib.import_module(modulepath)
         except ModuleNotFoundError as e:
             raise HermesPluginNotFoundError(
-                f"Unable to load plugin '{pluginName}' of type '{pluginFamilyDir}' : {str(e)}"
+                f"Unable to load plugin '{pluginName}' of type '{pluginFamilyDir}': {str(e)}"
             )
         except Exception as e:
             raise HermesPluginError(
-                f"Unable to load plugin '{pluginName}' of type '{pluginFamilyDir}', probably due to a syntax error in plugin code : {str(e)}"
+                f"Unable to load plugin '{pluginName}' of type '{pluginFamilyDir}', probably due to a syntax error in plugin code: {str(e)}"
             )
 
         try:
@@ -341,7 +341,7 @@ class HermesConfig(LocalCache):
 
         validator = Validator(schema)
         if not validator.validate(pluginSubDictInConf["settings"]):
-            raise HermesConfigError(f"{pluginSettingsDotPath} : {validator.errors}")
+            raise HermesConfigError(f"{pluginSettingsDotPath}: {validator.errors}")
 
         pluginSubDictInConf["settings"] = validator.normalized(
             pluginSubDictInConf["settings"]

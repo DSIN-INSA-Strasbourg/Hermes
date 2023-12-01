@@ -78,7 +78,7 @@ class LdapPasswordHashPlugin(AbstractAttributePlugin):
 
         if type(password) != str:
             raise TypeError(
-                f"Invalid type for password : {type(password)=}."
+                f"Invalid type for password: {type(password)=}."
                 " Password must be a string"
             )
 
@@ -94,14 +94,14 @@ class LdapPasswordHashPlugin(AbstractAttributePlugin):
                 _hashtypes = set(hashtypes)
             else:
                 raise TypeError(
-                    f"Invalid type for hashtypes : {type(hashtypes)=}."
+                    f"Invalid type for hashtypes: {type(hashtypes)=}."
                     " Hashtype must be a string or a list of string"
                 )
 
         unknownHashTypes = _hashtypes - self.__hashclasses.keys()
         if unknownHashTypes:
             raise InvalidLdapPasswordHashType(
-                f"Invalid LDAP password hash type specified : {unknownHashTypes}"
+                f"Invalid LDAP password hash type specified: {unknownHashTypes}"
             )
 
         return [

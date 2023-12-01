@@ -259,7 +259,7 @@ class EventQueue(LocalCache):
         """Returns an iterator of current instance events to process
         It will ignore events about an object that still have older event in queue
 
-        Each entry will contains 4 values :
+        Each entry will contains 4 values:
             1. eventNumber: int
             2. eventType: str
             3. event: Event
@@ -272,7 +272,7 @@ class EventQueue(LocalCache):
 
         for eventNumber in list(self._queue.keys()):
             # Event may have been removed during iteration
-            # ie. a call to purgeAllEventsOfDataObject() may remove several events
+            # e.g. a call to purgeAllEventsOfDataObject() may remove several events
             if eventNumber not in self._queue:
                 continue
 
@@ -289,7 +289,7 @@ class EventQueue(LocalCache):
     def allEvents(self) -> Iterable:
         """Returns an iterator of all current instance events
 
-        Each entry will contains 4 values :
+        Each entry will contains 4 values:
             1. eventNumber: int
             2. eventType: str
             3. event: Event
@@ -302,7 +302,7 @@ class EventQueue(LocalCache):
 
         for eventNumber in list(self._queue.keys()):
             # Event may have been removed during iteration
-            # ie. a call to purgeAllEventsOfDataObject() may remove several events
+            # e.g. a call to purgeAllEventsOfDataObject() may remove several events
             if eventNumber not in self._queue:
                 continue
 

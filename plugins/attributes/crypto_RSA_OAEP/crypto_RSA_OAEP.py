@@ -84,12 +84,12 @@ class Attribute_Crypto_RSA_OAEP_Plugin(AbstractAttributePlugin):
     def filter(self, value: bytes | str | None | Undefined, keyname: str) -> str:
         """Call the plugin with specified value and keyname, and returns the result.
         The plugin will determine if it's an encryption or a decryption operation upon
-        the key type : decryption for private keys, and encryption for public keys.
+        the key type: decryption for private keys, and encryption for public keys.
 
-        Encryption : value is either a byte-array or a string, and result is a base64
+        Encryption: value is either a byte-array or a string, and result is a base64
         encoded byte-array.
 
-        Decryption : value is either a byte-array or a base64 encoded byte-array, and
+        Decryption: value is either a byte-array or a base64 encoded byte-array, and
         result is a string.
         """
         if keyname not in self.__keys:

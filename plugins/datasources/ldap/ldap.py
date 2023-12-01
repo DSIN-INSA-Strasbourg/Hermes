@@ -48,7 +48,7 @@ class DatasourceLdap(AbstractDataSourcePlugin):
 
         # Not well documented in python-ldap,
         # Found this in doc/drafts/draft-ietf-ldapext-ldap-c-api-xx.txt
-        # in openldap-master :
+        # in openldap-master:
         #     LDAP_OPT_RESTART (0x09)
         #     Type for invalue parameter: void * (LDAP_OPT_ON or LDAP_OPT_OFF)
         #
@@ -131,7 +131,7 @@ class DatasourceLdap(AbstractDataSourcePlugin):
 
     def add(self, query: str | None, vars: dict[str, Any]):
         """Add LDAP entries on datasource with specified vars. Query is ignored
-        Example of vars dict :
+        Example of vars dict:
             vars = {
                 "addlist": [
                     {
@@ -168,7 +168,7 @@ class DatasourceLdap(AbstractDataSourcePlugin):
 
     def delete(self, query: str | None, vars: dict[str, Any]):
         """Delete LDAP entries on datasource with specified vars. Query is ignored
-        Example of vars dict :
+        Example of vars dict:
             vars = {
                 "dellist": [
                     {
@@ -189,7 +189,7 @@ class DatasourceLdap(AbstractDataSourcePlugin):
 
     def modify(self, query: str | None, vars: dict[str, Any]):
         """Modify LDAP entries on datasource with specified vars. Query is ignored
-        Example of vars dict :
+        Example of vars dict:
             vars = {
                 "modlist": [
                     {

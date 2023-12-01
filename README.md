@@ -12,18 +12,19 @@
 
 ## Features
 
-- Doesn't require any change to sources data model (ie. no need to add a `last_updated` column)
+- Does not require any change to sources data model (*e.g.* no need to add a `last_updated` column)
 - Multi-source, with ability to set merge/aggregation constraints
 - Able to handle several data types, with link (*foreign keys*) between them, and to enforce integrity constraints
-- Able to transform data with [Jinja filters](https://jinja.palletsprojects.com/en/3.1.x/templates/#filters)
+- Able to transform data with [Jinja filters](https://jinja.palletsprojects.com/en/3.1.x/templates/#filters) in configuration files: no need to edit some Python code
 - Clean error handling, to avoid synchronization problems, and an optional mechanism of error remediation
 - Offer a trashbin on clients for removed data
 - Insensitive to unavailability and errors on each link (source, message bus, target)
-- Evolutive by design. All following items are implemented as plugins :
+- Easy to extend by design. All following items are implemented as plugins:
   - Datasources
   - Attributes filters (data filters)
   - Clients (targets)
   - Messagebus
+- Changes to the datamodel are easy and safe to integrate and propagate, whether on the server or on the clients
 
 ## Roadmap
 
@@ -33,11 +34,11 @@
   - [x] installing
   - [ ] using
   - [ ] examples
-  - [ ] developping a plugin
+  - [x] developping a plugin
   - [ ] contributing to core
 - [ ] Extend tests
 - [ ] Implement data consistency check when initsync sequence is met on an already initialized client (clients)
-- [ ] (Maybe) Force remote primary keys in client datamodel. Requires a lot of troubleshooting to safely update "internal" attrnames and values on Dataschema primary key change : in Datasources and Eventqueue
+- [ ] (Maybe) Force remote primary keys in client datamodel. Requires a lot of troubleshooting to safely update "internal" attrnames and values on Dataschema primary key change: in Datasources and Eventqueue
 - [ ] (Maybe) Implement a check to ensure clients subclasses required types and attributes are set in datamodel
 
 ## Contributing

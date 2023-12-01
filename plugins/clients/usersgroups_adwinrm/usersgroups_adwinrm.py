@@ -241,7 +241,7 @@ class WinrmADClient(GenericClient):
         newobj: DataObject,
         cachedobj: DataObject,
     ):
-        # Example :
+        # Example:
         # eventattrs={
         #     'added': {},
         #     'modified': {
@@ -369,7 +369,7 @@ class WinrmADClient(GenericClient):
         newobj: DataObject,
         cachedobj: DataObject,
     ):
-        # Example :
+        # Example:
         # eventattrs={
         #     'added': {},
         #     'modified': {

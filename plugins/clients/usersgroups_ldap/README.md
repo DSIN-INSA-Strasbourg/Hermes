@@ -22,14 +22,14 @@ along with Hermes. If not, see <https://www.gnu.org/licenses/>.
 
 ## Description
 
-This client will handle Users, Groups and UserPasswords events, and store data in a LDAP directory.
+This client will handle Users, Groups and UserPasswords events, and store data in an LDAP directory.
 
 The local Datamodel keys will be used as LDAP attributes names, without any constraints, and it is possible to specify some Datamodel keys to ignore (typically the primary keys) that won't be stored in LDAP directory with the `attributesToIgnore` setting.
 
 The `GroupMembers` will only store data (typically LDAP `member` attribute) in LDAP group entries as it is possible to use LDAP overlays (`dynlist` or the deprecated `memberOf`) to dynamically generate the corresponding data in user entries. You should consider reading the `propagateUserDNChangeOnGroupMember` setting documentation.
 
 !!! warning Error recovery isn't fully guaranteed
-    In some case (ie. LDAP server shutdown), `python-ldap` reports a failure for an operation (ie. entry added), but has still done it.
+    In some cases (*e.g.* LDAP server shutdown), `python-ldap` reports a failure for an operation (*e.g.* entry added) but has still done it.
     `Hermes` is unable to automatically recover consistent status as it will try to recreate the entry and fail because it already exists.
     You will have to manage manually those cases when they'll occur.
 
@@ -42,12 +42,12 @@ Nothing to configure for the plugin.
 
 ```yaml
 hermes-client-usersgroups_ldap:
-    # MANDATORY : LDAP server URI
+    # MANDATORY: LDAP server URI
     uri: ldaps://ldap.example.com:636
-    # MANDATORY : LDAP server credentials to use
+    # MANDATORY: LDAP server credentials to use
     binddn: cn=account,dc=example,dc=com
     bindpassword: s3cReT_p4s5w0rD
-    # MANDATORY : LDAP base DN
+    # MANDATORY: LDAP base DN
     basedn: dc=example,dc=com
     users_ou: ou=users,dc=example,dc=com
     groups_ou: ou=groups,dc=example,dc=com
@@ -60,7 +60,7 @@ hermes-client-usersgroups_ldap:
       # Path to file with PEM encoded key for client cert authentication, requires certfile
       keyfile: /path/to/client.pem # Facultative
 
-    # MANDATORY : Name of DN attribute for Users, UserPasswords and Groups
+    # MANDATORY: Name of DN attribute for Users, UserPasswords and Groups
     # You have to set up values for the three, even if you don't use some of the types
     dnAttributes:
       Users: uid
@@ -69,15 +69,15 @@ hermes-client-usersgroups_ldap:
 
     # Depending on group and group membership settings in LDAP, you may use another
     # attribute than the default 'member' attribute to store the group member DN
-    # Facultative. Default value : "member"
+    # Facultative. Default value: "member"
     groupMemberAttribute: member
 
     # Depending on group and group membership settings in LDAP, you usually may want
     # to propagate a user DN change on group member attributes. But sometimes, it
-    # may be handled by an overlay, ie. with memberOf overlay and the
+    # may be handled by an overlay, e.g. with memberOf overlay and the
     # memberof-refint/olcMemberOfRefint setting to TRUE
     # If set to true, it requires 'groupsObjectclass' to be defined
-    # Facultative. Default value : true
+    # Facultative. Default value: true
     propagateUserDNChangeOnGroupMember: true
 
     # If you've set 'propagateUserDNChangeOnGroupMember' to true,
@@ -104,12 +104,12 @@ hermes-client-usersgroups_ldap:
 
 ## Datamodel
 
-The following data types may be set up :
+The following data types may be set up:
 
 - `Users`
-- `UserPasswords` : obviously require `Users`, and requires the following attribute names `user_pkey` corresponding to the primary keys of `Users`
+- `UserPasswords`: obviously require `Users`, and requires the following attribute names `user_pkey` corresponding to the primary keys of `Users`
 - `Groups`
-- `GroupsMembers` : obviously require `Users` and `Groups`, and requires the following attribute names `user_pkey` `group_pkey` corresponding to the primary keys of `Users` and `Groups`
+- `GroupsMembers`: obviously require `Users` and `Groups`, and requires the following attribute names `user_pkey` `group_pkey` corresponding to the primary keys of `Users` and `Groups`
 
 ```yaml
   datamodel:

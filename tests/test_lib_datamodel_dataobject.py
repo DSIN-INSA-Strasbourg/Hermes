@@ -203,7 +203,7 @@ class TestDataobjectClass(HermesServerTestCase):
     def test_init_fails_if_no_args(self):
         self.assertRaisesRegex(
             AttributeError,
-            "Cannot instantiate object from nothing : you must specify one data source",
+            "Cannot instantiate object from nothing: you must specify one data source",
             self.TestUsers,
         )
 
@@ -227,7 +227,7 @@ class TestDataobjectClass(HermesServerTestCase):
     def test_init_fromRemote_fails_if_empty(self):
         self.assertRaisesRegex(
             AttributeError,
-            "^Required attributes are missing from specified from_remote dict : ",
+            "^Required attributes are missing from specified from_remote dict: ",
             self.TestUsersSource1,
             from_remote=dict(),
         )
@@ -235,7 +235,7 @@ class TestDataobjectClass(HermesServerTestCase):
     def test_init_fromRemote_fails_if_empty(self):
         self.assertRaisesRegex(
             AttributeError,
-            "^Required attributes are missing from specified from_remote dict : ",
+            "^Required attributes are missing from specified from_remote dict: ",
             self.TestUsersSource1,
             from_remote=dict(),
         )
@@ -265,7 +265,7 @@ class TestDataobjectClass(HermesServerTestCase):
         self.TestUsersSource1.HERMES_TO_REMOTE_MAPPING["cn"] = 1
         self.assertRaisesRegex(
             AttributeError,
-            "^Invalid type met in HERMES_TO_REMOTE_MAPPING\['cn'\] : <class 'int'>",
+            "^Invalid type met in HERMES_TO_REMOTE_MAPPING\['cn'\]: <class 'int'>",
             self.TestUsersSource1,
             from_remote=data,
         )
@@ -273,7 +273,7 @@ class TestDataobjectClass(HermesServerTestCase):
         self.TestUsersSource1.HERMES_TO_REMOTE_MAPPING["cn"] = {"a": 1}
         self.assertRaisesRegex(
             AttributeError,
-            "^Invalid type met in HERMES_TO_REMOTE_MAPPING\['cn'\] : <class 'dict'>",
+            "^Invalid type met in HERMES_TO_REMOTE_MAPPING\['cn'\]: <class 'dict'>",
             self.TestUsersSource1,
             from_remote=data,
         )
@@ -532,7 +532,7 @@ class TestDataobjectClass(HermesServerTestCase):
         user1.cn = "Other User"
         self.assertRaisesRegex(
             HermesMergingConflictError,
-            "Merging conflict. Attribute 'cn' exist on both objects with differents values \(<TestUsersSource1\[42\]> : 'Other User' / <TestUsersSource2\[42\]> : 'Test User'\)",
+            "Merging conflict. Attribute 'cn' exist on both objects with differents values \(<TestUsersSource1\[42\]>: 'Other User' / <TestUsersSource2\[42\]>: 'Test User'\)",
             user1.mergeWith,
             other=user2,
             raiseExceptionOnConflict=True,
@@ -554,7 +554,7 @@ class TestDataobjectClass(HermesServerTestCase):
         self.assertEqual(
             cm.output,
             [
-                "DEBUG:hermes:Merging conflict. Attribute 'cn' exist on both objects with differents values (<TestUsers[42]> : 'Other User' / <TestUsersSource2[42]> : 'Test User'). The first one is kept"
+                "DEBUG:hermes:Merging conflict. Attribute 'cn' exist on both objects with differents values (<TestUsers[42]>: 'Other User' / <TestUsersSource2[42]>: 'Test User'). The first one is kept"
             ],
         )
 

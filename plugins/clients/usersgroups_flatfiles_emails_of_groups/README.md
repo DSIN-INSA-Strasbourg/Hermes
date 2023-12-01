@@ -33,7 +33,7 @@ hermes-client-usersgroups_flatfiles_emails_of_groups:
   # MANDATORY
   destDir: "/path/where/files/are/stored"
 
-  # Facultative : if set, will generate a file only for the specified group names in list
+  # Facultative: if set, will generate a file only for the specified group names in list
   onlyTheseGroups:
     - group1
     - group2
@@ -41,17 +41,17 @@ hermes-client-usersgroups_flatfiles_emails_of_groups:
 
 ## Datamodel
 
-The following data types have to be set up :
+The following data types must be set up:
 
-- `Users`, requires the following attribute names :
-  - `user_pkey` : the user primary key
-  - `mail` : the user email address
-- `Groups`, requires the following attribute names :
-  - `group_pkey` : the group primary key
-  - `name` : the group name, that will be compared to those in `onlyTheseGroups`, and used to name the destination file "*groupName*.txt"
-- `GroupsMembers`, requires the following attribute names :
-  - `user_pkey` : the user primary key
-  - `group_pkey` : the group primary key
+- `Users`, requires the following attribute names:
+  - `user_pkey`: the user primary key
+  - `mail`: the user email address
+- `Groups`, requires the following attribute names:
+  - `group_pkey`: the group primary key
+  - `name`: the group name, that will be compared to those in `onlyTheseGroups`, and used to name the destination file "*groupName*.txt"
+- `GroupsMembers`, requires the following attribute names:
+  - `user_pkey`: the user primary key
+  - `group_pkey`: the group primary key
 
 ```yaml
   datamodel:

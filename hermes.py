@@ -110,7 +110,9 @@ if __name__ == "__main__":
             clientname = appname[len("hermes-client-") :]
             if isfile(f"plugins/clients/{clientname}/{clientname}.py"):
                 config = HermesConfig()
-                module = importlib.import_module(f"plugins.clients.{clientname}.{clientname}")
+                module = importlib.import_module(
+                    f"plugins.clients.{clientname}.{clientname}"
+                )
                 client = getattr(module, module.HERMES_PLUGIN_CLASSNAME)(config)
                 client.mainLoop()
             else:
@@ -121,7 +123,7 @@ if __name__ == "__main__":
         lines = traceback.format_exception(type(e), e, e.__traceback__)
         trace = "".join(lines).strip()
 
-        logger.critical(f"Unhandled exception : {trace}")
+        logger.critical(f"Unhandled exception: {trace}")
         sys.exit(1)
 
     sys.exit(0)

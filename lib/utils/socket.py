@@ -100,7 +100,7 @@ class SocketMessageToServer(JSONSerializable):
         super().__init__(jsondataattr=["argv"])
 
         if argv is None and from_json_dict is None:
-            err = f"Cannot instantiante object from nothing : you must specify one data source"
+            err = f"Cannot instantiante object from nothing: you must specify one data source"
             logger.critical(err)
             raise AttributeError(err)
 
@@ -115,13 +115,13 @@ class SocketMessageToServer(JSONSerializable):
             self.argv = from_json_dict["argv"]
 
         if type(self.argv) != list:
-            err = f"Invalid type for argv : {type(self.argv)} instead of list"
+            err = f"Invalid type for argv: {type(self.argv)} instead of list"
             logger.warning(err)
             raise InvalidSocketMessageError(err)
 
         for item in self.argv:
             if type(item) != str:
-                err = f"Invalid type in argv : {type(item)} instead of str"
+                err = f"Invalid type in argv: {type(item)} instead of str"
                 logger.warning(err)
                 raise InvalidSocketMessageError(err)
 
@@ -141,7 +141,7 @@ class SocketMessageToClient(JSONSerializable):
         super().__init__(jsondataattr=["retcode", "retmsg"])
 
         if (retcode is None or retmsg is None) and from_json_dict is None:
-            err = f"Cannot instantiante object from nothing : you must specify one data source"
+            err = f"Cannot instantiante object from nothing: you must specify one data source"
             logger.critical(err)
             raise AttributeError(err)
 
@@ -158,12 +158,12 @@ class SocketMessageToClient(JSONSerializable):
             self.retmsg = from_json_dict["retmsg"]
 
         if type(self.retcode) != int:
-            err = f"Invalid type for retcode : {type(self.retcode)} instead of int"
+            err = f"Invalid type for retcode: {type(self.retcode)} instead of int"
             logger.warning(err)
             raise InvalidSocketMessageError(err)
 
         if type(self.retmsg) != str:
-            err = f"Invalid type for retmsg : {type(self.retmsg)} instead of str"
+            err = f"Invalid type for retmsg: {type(self.retmsg)} instead of str"
             logger.warning(err)
             raise InvalidSocketMessageError(err)
 
@@ -271,7 +271,7 @@ class SockServer:
                         break  # EOF
                     msg += data
             except Exception as e:
-                logger.warning(f"Got exception during receive : {str(e)}")
+                logger.warning(f"Got exception during receive: {str(e)}")
             else:
                 # Process message, and generate reply
                 try:
@@ -284,12 +284,12 @@ class SockServer:
                     try:
                         connection.sendall(reply.to_json().encode())  # send reply
                     except Exception as e:
-                        logger.warning(f"Got exception during send : {str(e)}")
+                        logger.warning(f"Got exception during send: {str(e)}")
 
             try:
                 connection.close()
             except Exception as e:
-                logger.warning(f"Got exception during close : {str(e)}")
+                logger.warning(f"Got exception during close: {str(e)}")
 
     def startProcessMessagesDaemon(self):
         """Will call undefinitly processMessagesInQueue() in a separate thread.

@@ -29,9 +29,9 @@ The settings list `otherAttributes` may contains available LDAP display name (`l
 
 The local Datamodel keys MUST exist in `standardAttributes` or `otherAttributes`, and will be used as cmdlet parameters with associated values, allowing to handle every AD attributes.
 
-The `GroupMembers` will only associate a `User` with a `Group`, and can't handle nested groups.
+The `GroupMembers` will only associate a `User` with a `Group` and can't handle nested groups.
 
-To avoid security issues and corner cases with trashbin, a complex random password is set when user is created. This unknown password will be overwritten by next `UserPassword` event of the `User`. This avoids having an enabled account with no password.
+To avoid security issues and corner cases with trashbin, a complex random password is set when user is created. This unknown password will be overwritten by the next `UserPassword` event of the `User`. This avoids having an enabled account with no password.
 
 The trashbin will only disable the account.
 
@@ -42,30 +42,30 @@ Nothing to configure for the plugin.
 ```yaml
 hermes-client-usersgroups_adpypsrp:
   WinRM:  # For options details, you may look at https://pypi.org/project/pypsrp/ - "Connection"
-    # MANDATORY : AD server URI and port
+    # MANDATORY: AD server URI and port
     host: radon1.in.insa-strasbourg.fr
     port: 5986
-    # MANDATORY : AD server credentials
+    # MANDATORY: AD server credentials
     login: administrator
     password: "s3cReT_p4s5w0rD"
-    # Default : true
+    # Default: true
     ssl: true
-    # Default : true
+    # Default: true
     ssl_cert_validation: false
-    # Default : true
+    # Default: true
     credssp_disable_tlsv1_2: true
-    # Default : auto. Valid values are [auto, always, never]
+    # Default: auto. Valid values are [auto, always, never]
     encryption: always
-    # Default : "wsman"
+    # Default: "wsman"
     path: "wsman"
-    # Default : negotiate. Valid values are [basic, certificate, negotiate, ntlm, kerberos, credssp]
+    # Default: negotiate. Valid values are [basic, certificate, negotiate, ntlm, kerberos, credssp]
     auth: credssp
 
   AD_domain:
-    # MANDATORY : AD domain name and DN
+    # MANDATORY: AD domain name and DN
     name: in.insa-strasbourg.fr
     dn: DC=in,DC=insa-strasbourg,DC=fr
-    # MANDATORY : OUs where Users and Groups will be stored
+    # MANDATORY: OUs where Users and Groups will be stored
     users_ou: OU=INSA,OU=People,DC=in,DC=insa-strasbourg,DC=fr
     groups_ou: OU=INSA,OU=Groups,DC=in,DC=insa-strasbourg,DC=fr
 
@@ -85,7 +85,7 @@ hermes-client-usersgroups_adpypsrp:
       Company: "<String>"
       CompoundIdentitySupported: "<Boolean>"
       Country: "<String>"
-      # Credential: "<PSCredential>" # Useless : Specifies the user account credentials to use to perform this task
+      # Credential: "<PSCredential>" # Useless: Specifies the user account credentials to use to perform this task
       Department: "<String>"
       Description: "<String>"
       DisplayName: "<String>"
@@ -116,7 +116,7 @@ hermes-client-usersgroups_adpypsrp:
       ProfilePath: "<String>"
       SamAccountName: "<String>"
       ScriptPath: "<String>"
-      # Server: "<String>" # Useless : Specifies the Active Directory Domain Services instance to connect to
+      # Server: "<String>" # Useless: Specifies the Active Directory Domain Services instance to connect to
       SmartcardLogonRequired: "<Boolean>"
       State: "<String>"
       StreetAddress: "<String>"
@@ -127,7 +127,7 @@ hermes-client-usersgroups_adpypsrp:
 
     Groups:
       AuthType: "<ADAuthType>"
-      # Credential: "<PSCredential>" # Useless : Specifies the user account credentials to use to perform this task
+      # Credential: "<PSCredential>" # Useless: Specifies the user account credentials to use to perform this task
       Description: "<String>"
       DisplayName: "<String>"
       GroupCategory: "<ADGroupCategory>"
@@ -135,7 +135,7 @@ hermes-client-usersgroups_adpypsrp:
       HomePage: "<String>"
       ManagedBy: "<ADPrincipal>"
       SamAccountName: "<String>"
-      # Server: "<String>" # Useless : Specifies the Active Directory Domain Services instance to connect to
+      # Server: "<String>" # Useless: Specifies the Active Directory Domain Services instance to connect to
 
   # Defines LDAP display name (ldapDisplayName) to handle, that are not handled with standardAttributes.
   # You can set your desired values. The values below are just here for example.
@@ -148,12 +148,12 @@ hermes-client-usersgroups_adpypsrp:
 
 ## Datamodel
 
-The following data types may be set up :
+The following data types may be set up:
 
-- `Users` : requires the attribute `SamAccountName` to be set
-- `UserPasswords` : obviously require `Users`, and requires the following attribute names `user_pkey` corresponding to the primary keys of `Users`, and the attribute `password`. All other attributes will be ignored
-- `Groups` : requires the attribute `SamAccountName` to be set
-- `GroupsMembers` : obviously require `Users` and `Groups`, and requires the following attribute names `user_pkey` `group_pkey` corresponding to the primary keys of `Users` and `Groups`. All other attributes will be ignored
+- `Users`: requires the attribute `SamAccountName` to be set
+- `UserPasswords`: obviously require `Users`, and requires the attribute `user_pkey` corresponding to the primary keys of `Users`, and the attribute `password`. All other attributes will be ignored
+- `Groups`: requires the attribute `SamAccountName` to be set
+- `GroupsMembers`: obviously require `Users` and `Groups`, and requires the attributes `user_pkey` and `group_pkey` corresponding to the primary keys of `Users` and `Groups`. All other attributes will be ignored
 
 ```yaml
   datamodel:
@@ -163,7 +163,7 @@ The following data types may be set up :
         user_pkey: user_primary_key_on_server
         SamAccountName: login_on_server
         UserPrincipalName: "{{ login_on_server ~ '@YOU.AD.DOMAIN.TLD' }}"
-        # Not mandatory, only for example :
+        # Not mandatory, only for example:
         MobilePhone: "{{ (mobile | default([None]))[0] }}" # <String>
         otherMobile: "{{ (mobile | default([]))[1:]  }}" # <String[]>
         # ...

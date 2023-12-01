@@ -89,7 +89,7 @@ class Email:
             s.send_message(msg)
             s.quit()
         except Exception as e:
-            logger.warning(f"Fail to send mail {subject=} : {str(e)}")
+            logger.warning(f"Fail to send mail {subject=}: {str(e)}")
 
     @staticmethod
     def sendDiff(
@@ -100,10 +100,10 @@ class Email:
     ):
         """Send a mail with a diff between two strings.
 
-        'contentdesc' : string (first letter should be lowercase) that will be used
+        'contentdesc': string (first letter should be lowercase) that will be used
                         in mail subject, and as prefix of mail content
-        'previous' : previous data used to compute diff
-        'current' : current data used to compute diff
+        'previous': previous data used to compute diff
+        'current': current data used to compute diff
         """
         nl = "\n"
 
@@ -148,11 +148,11 @@ class Email:
 
         if toobig:
             errmsg = (
-                f"Some files were too big to be attached to mail : {toobig}.{nl}{nl}"
+                f"Some files were too big to be attached to mail: {toobig}.{nl}{nl}"
             )
 
         if len(diff.encode()) < config["hermes"]["mail"]["mailtext_maxsize"]:
-            content = f"{errmsg}{contentdesc.capitalize()}. Diff is :{nl}{nl}{diff}"
+            content = f"{errmsg}{contentdesc.capitalize()}. Diff is:{nl}{nl}{diff}"
         else:
             content = (
                 f"{errmsg}{contentdesc.capitalize()}. "

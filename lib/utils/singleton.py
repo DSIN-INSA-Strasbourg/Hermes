@@ -20,7 +20,7 @@
 # along with Hermes. If not, see <https://www.gnu.org/licenses/>.
 
 
-# File mostly based on singleton.py from tendo package under PYTHON SOFTWARE FOUNDATION LICENSE VERSION 2 :
+# File mostly based on singleton.py from tendo package under PYTHON SOFTWARE FOUNDATION LICENSE VERSION 2:
 #  - https://github.com/pycontribs/tendo
 #  - https://raw.githubusercontent.com/pycontribs/tendo/master/tendo/singleton.py
 #  - https://pypi.org/project/tendo/

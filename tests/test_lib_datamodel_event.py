@@ -72,7 +72,7 @@ class TestEventClass(HermesServerTestCase):
     def test_init_fails_if_no_args(self):
         self.assertRaisesRegex(
             AttributeError,
-            "Cannot instantiate object from nothing : you must specify one data source",
+            "Cannot instantiate object from nothing: you must specify one data source",
             Event,
         )
 
@@ -88,7 +88,9 @@ class TestEventClass(HermesServerTestCase):
     def test_init_from_objattrs(self):
         o = self.getObj()
         e = Event(evcategory="base", eventtype="added", obj=o, objattrs=o.toEvent())
-        self.assertRegex(e.toString(set()), "^<Event\(TestUsers_added\[<TestUsers\[1\]>\], .*\)>")
+        self.assertRegex(
+            e.toString(set()), "^<Event\(TestUsers_added\[<TestUsers\[1\]>\], .*\)>"
+        )
 
     def test_init_from_json(self):
         e = Event(from_json_dict=self.getJson())
@@ -103,7 +105,8 @@ class TestEventClass(HermesServerTestCase):
         o = self.getObj()
         e = Event(evcategory="initsync", eventtype="added", obj=o, objattrs=o.toEvent())
         self.assertRegex(
-            e.toString(set()), "^<Event\(initsync_TestUsers_added\[<TestUsers\[1\]>\], .*\)>"
+            e.toString(set()),
+            "^<Event\(initsync_TestUsers_added\[<TestUsers\[1\]>\], .*\)>",
         )
 
     def test_init_from_objattrs_initstart(self):

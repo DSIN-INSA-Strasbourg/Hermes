@@ -36,8 +36,8 @@ logger = logging.getLogger("hermes")
 class DataObjectList(LocalCache):
     """Generic serializable list of DataObject
 
-    Subclasses must define the following class vars :
-    - OBJTYPE : data type contained in list, mandatory for deserialization
+    Subclasses must define the following class vars:
+    - OBJTYPE: data type contained in list, mandatory for deserialization
 
     The class provides
     - data storage
@@ -72,7 +72,7 @@ class DataObjectList(LocalCache):
         """Set containing primary keys of all duplicated entries"""
 
         self._mergeConflicts: set[Any] = set()
-        """Set containing primary keys of each entry with a merge conflict (ie. when the
+        """Set containing primary keys of each entry with a merge conflict (i.e. when the
         same attribute has different values on different sources)"""
 
         self.mergeFiltered: set[Any] = set()
@@ -85,7 +85,7 @@ class DataObjectList(LocalCache):
         """Dictionary containing the data, with primary keys as keys, and DataObject as values"""
 
         if objlist is None and from_json_dict is None:
-            err = f"Cannot instantiate object from nothing : you must specify one data source"
+            err = f"Cannot instantiate object from nothing: you must specify one data source"
             logger.critical(err)
             raise AttributeError(err)
 
@@ -127,7 +127,7 @@ class DataObjectList(LocalCache):
         return self._datadict[pkey]
 
     def __contains__(self, objOrPkey: Any) -> bool:
-        """'in' operator : return True if specified DataObject or pkey exists in current instance"""
+        """'in' operator: return True if specified DataObject or pkey exists in current instance"""
         if isinstance(objOrPkey, DataObject):
             return objOrPkey.getPKey() in self._datadict
         else:
@@ -163,13 +163,13 @@ class DataObjectList(LocalCache):
             self._datadict[pkey] = objconverted
         else:
             logger.warning(
-                f"<{self.__class__.__name__}> Trying to insert an already existing object : {objconverted=}"
+                f"<{self.__class__.__name__}> Trying to insert an already existing object: {objconverted=}"
             )
             self._inconsistencies.add(pkey)
             del self._datadict[pkey]
 
     def replace(self, obj: DataObject):
-        """Replace specified DataObject (ie. with same pkey, but different values) in
+        """Replace specified DataObject (i.e. with same pkey, but different values) in
         current instance"""
         pkey = obj.getPKey()
         if pkey not in self._datadict:
@@ -259,7 +259,7 @@ class DataObjectList(LocalCache):
                 self.removeByPkey(pkey)
 
         logger.debug(
-            f"pkey_merge_constraints : merged {len(pkeysMerged)} objects, ignored {len(pkeysIgnored)} objects, removed {len(pkeysToRemove)} objects from {type(self)}"
+            f"pkey_merge_constraints: merged {len(pkeysMerged)} objects, ignored {len(pkeysIgnored)} objects, removed {len(pkeysToRemove)} objects from {type(self)}"
         )
 
         return pkeysIgnored | pkeysToRemove
@@ -289,7 +289,7 @@ class DataObjectList(LocalCache):
         diffcount = [f"{len(v)} {k}" for k, v in diff.dict.items() if len(v) > 0]
         info = ", ".join(diffcount) if diffcount else "no difference"
         logger.debug(
-            f"{self.__class__.__name__} : Diffed {len(s)}/{len(o)} entries in {elapsed} ms : {info}"
+            f"{self.__class__.__name__}: Diffed {len(s)}/{len(o)} entries in {elapsed} ms: {info}"
         )
         return diff
 
@@ -322,5 +322,5 @@ class DataObjectList(LocalCache):
     @property
     def mergeConflicts(self) -> set[Any]:
         """Returns a set containing primary keys of each entry with a merge conflict
-        (ie. when the same attribute has different values on different sources)"""
+        (i.e. when the same attribute has different values on different sources)"""
         return self._mergeConflicts.copy()

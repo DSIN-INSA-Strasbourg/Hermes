@@ -94,7 +94,7 @@ class TestDataschemaClass(HermesServerTestCase):
     def test_init_fails_if_no_args(self):
         self.assertRaisesRegex(
             AttributeError,
-            "Cannot instantiate schema from nothing : you must specify one data source",
+            "Cannot instantiate schema from nothing: you must specify one data source",
             Dataschema,
         )
 

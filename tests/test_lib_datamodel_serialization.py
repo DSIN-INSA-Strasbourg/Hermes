@@ -231,7 +231,7 @@ class TestJSONEncoderClass(HermesServerTestCase):
 
         self.assertRaisesRegex(
             HermesInvalidJSONDataattrTypeError,
-            "Invalid jsondataattr type '<class 'int'>'. It must be one of the following types : \\[str, list, tuple, set\\]",
+            "Invalid jsondataattr type '<class 'int'>'. It must be one of the following types: \\[str, list, tuple, set\\]",
             InvalidSerializationObj,
         )
 
@@ -241,7 +241,7 @@ class TestJSONEncoderClass(HermesServerTestCase):
 
         self.assertRaisesRegex(
             HermesInvalidJSONDataattrTypeError,
-            "Invalid jsondataattr type '<class 'dict'>'. It must be one of the following types : \\[str, list, tuple, set\\]",
+            "Invalid jsondataattr type '<class 'dict'>'. It must be one of the following types: \\[str, list, tuple, set\\]",
             InvalidSerializationObj2,
         )
 
@@ -254,7 +254,7 @@ class TestJSONEncoderClass(HermesServerTestCase):
 
         self.assertRaisesRegex(
             HermesInvalidJSONDataattrTypeError,
-            "Invalid _jsondataattr type '<class 'int'>'. It must be one of the following types : \\[str, list, tuple, set\\]",
+            "Invalid _jsondataattr type '<class 'int'>'. It must be one of the following types: \\[str, list, tuple, set\\]",
             obj.to_json,
         )
 
@@ -402,7 +402,7 @@ class TestLocalCacheClass(HermesServerTestCase):
 
         self.assertRegex(
             cm.output[0],
-            f"INFO:hermes:Local cache dir '{LocalCache._cachedir}' doesn't exists : create it",
+            f"INFO:hermes:Local cache dir '{LocalCache._cachedir}' doesn't exists: create it",
         )
 
     def test_unabletocreatecachedir(self):

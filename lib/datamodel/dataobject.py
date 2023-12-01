@@ -38,7 +38,7 @@ class HermesMergingConflictError(Exception):
 class DataObject(JSONSerializable):
     """Generic serializable object to create from several external sources
 
-    Subclasses MUST define the following class vars :
+    Subclasses MUST define the following class vars:
     - HERMES_TO_REMOTE_MAPPING
     - HERMES_ATTRIBUTES
     - REMOTE_ATTRIBUTES
@@ -99,7 +99,7 @@ class DataObject(JSONSerializable):
         self._hash = None
 
         if from_remote is None and from_json_dict is None:
-            err = f"Cannot instantiate object from nothing : you must specify one data source"
+            err = f"Cannot instantiate object from nothing: you must specify one data source"
             logger.critical(err)
             raise AttributeError(err)
 
@@ -126,7 +126,7 @@ class DataObject(JSONSerializable):
             )
         missingattrs = self.REMOTE_ATTRIBUTES.difference(from_remote.keys())
         if len(missingattrs) > 0:
-            err = f"Required attributes are missing from specified from_remote dict : {missingattrs}"
+            err = f"Required attributes are missing from specified from_remote dict: {missingattrs}"
             logger.critical(err)
             raise AttributeError(err)
 
@@ -150,7 +150,7 @@ class DataObject(JSONSerializable):
                 if len(self._data[attr]) == 0:
                     del self._data[attr]
             else:
-                err = f"Invalid type met in HERMES_TO_REMOTE_MAPPING['{attr}'] : {type(remoteattr)}"
+                err = f"Invalid type met in HERMES_TO_REMOTE_MAPPING['{attr}']: {type(remoteattr)}"
                 logger.critical(err)
                 raise AttributeError(err)
 
@@ -266,7 +266,7 @@ class DataObject(JSONSerializable):
 
     @staticmethod
     def isDifferent(a: Any, b: Any) -> bool:
-        """Test true difference between two object : recursive compare of type,
+        """Test true difference between two object: recursive compare of type,
         len and values"""
         if type(a) != type(b):
             return True
@@ -314,14 +314,14 @@ class DataObject(JSONSerializable):
                 # Attribute was set, and had another value than other's
                 err = (
                     f"Merging conflict. Attribute '{k}' exist on both objects with"
-                    f" differents values ({repr(self)} :"
-                    f" '{getattr(self, k)}' / {repr(other)} : '{v}')"
+                    f" differents values ({repr(self)}:"
+                    f" '{getattr(self, k)}' / {repr(other)}: '{v}')"
                 )
                 if raiseExceptionOnConflict:
                     raise HermesMergingConflictError(err)
                 else:
                     logger.debug(f"{err}. The first one is kept")
-            # else : attributes have same value
+            # else: attributes have same value
 
     def getPKey(self) -> Any:
         """Return primary key value"""

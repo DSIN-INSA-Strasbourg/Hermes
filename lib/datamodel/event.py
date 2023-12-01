@@ -56,7 +56,7 @@ class Event(JSONSerializable):
         """
 
         if objattrs is None and from_json_dict is None:
-            err = f"Cannot instantiate object from nothing : you must specify one data source"
+            err = f"Cannot instantiate object from nothing: you must specify one data source"
             logger.critical(err)
             raise AttributeError(err)
 
@@ -160,7 +160,7 @@ class Event(JSONSerializable):
                 objattrs = {}
             case "_":
                 raise AttributeError(
-                    f"Invalid {changeType=} specified : valid values are ['added', 'modified', 'removed']"
+                    f"Invalid {changeType=} specified: valid values are ['added', 'modified', 'removed']"
                 )
 
         return (

@@ -58,11 +58,11 @@ class Jinja:
         """Parse specified string to determine if it contains some Jinja or not.
         Return a tuple (jinjaCompiledTemplate, varlist)
 
-        If tpl contains some Jinja :
+        If tpl contains some Jinja:
             - jinjaCompiledTemplate will be a Template instance, to call with
                 .render(contextdict)
             - varlist will be a list of var names required to render templates
-        else :
+        else:
             - jinjaCompiledTemplate will be tpl
             - varlist will be a list containing only tpl
 

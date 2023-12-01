@@ -22,7 +22,7 @@ along with Hermes. If not, see <https://www.gnu.org/licenses/>.
 
 ## Description
 
-This plugin allow using an Oracle database as datasource.
+This plugin allows using an Oracle database as datasource.
 
 ## Configuration
 
@@ -36,20 +36,20 @@ hermes:
       your_source_name:
         type: oracle
         settings:
-          # MANDATORY : the database server DNS name or IP address
+          # MANDATORY: the database server DNS name or IP address
           server: dummy.example.com
-          # MANDATORY : the database connection port
+          # MANDATORY: the database connection port
           port: 1234
-          # MANDATORY : the database SID
+          # MANDATORY: the database SID
           sid: DUMMY
-          # MANDATORY : the database credentials to use
+          # MANDATORY: the database credentials to use
           login: HERMES_DUMMY
           password: "DuMmY_p4s5w0rD"
 ```
 
 ## Usage
 
-Specify a query. If you'd like to provide values from cache, you should provide them in a `vars` dict, and refer to them by specifying the column-prefixed `:` var key name in the query : this will automatically sanitize the query.
+Specify a query. If you'd like to provide values from cache, you should provide them in a `vars` dict, and refer to them by specifying the column-prefixed `:` var key name in the query: this will automatically sanitize the query.
 
 The example `vars` names are prefixed with `sanitized_` only for clarity, it's not a requirement.
 

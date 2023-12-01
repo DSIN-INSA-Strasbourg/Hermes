@@ -113,7 +113,7 @@ hermes:
 hermes-server:
   updateInterval: 60 # Interval between two data update, in seconds
 
-  # The declaration order of data types is important :
+  # The declaration order of data types is important:
   # - add/modify events will be processed in the declaration order
   # - remove events will be processed in the reversed declaration order
   datamodel:
@@ -138,9 +138,9 @@ hermes-server:
       # Facultative template of object string representation that will be used in logs
       toString: "<Users[{{ user_id }}, {{ login | default('#UNDEF#') }}]>"
       # Behavior if a same attribute has different value on 2 sources
-      # - use_cached_entry : ignore data fetched and keep using cached entry until conflict
+      # - use_cached_entry: ignore data fetched and keep using cached entry until conflict
       #   is solved (default)
-      # - keep_first_value : use the first value met in source order
+      # - keep_first_value: use the first value met in source order
       # on_merge_conflict: keep_first_value
       on_merge_conflict: use_cached_entry
       sources:
@@ -169,26 +169,26 @@ hermes-server:
             sn: SN
             user_id: USER_ID
           # Advanced merge constraints with Jinja rules.
-          # WARNING : Very slow, avoid using them as possible
-          # Jinja vars available are :
-          # - '_SELF' : the data type item in current datasource being currently merged
-          # - For each datasource declared in current data type :
-          #   - datasource-name_pkeys : A set with every primary keys of data type item in
+          # WARNING: Very slow, avoid using them as possible
+          # Jinja vars available are:
+          # - '_SELF': the data type item in current datasource being currently merged
+          # - For each datasource declared in current data type:
+          #   - datasource-name_pkeys: A set with every primary keys of data type item in
           #     current datasource
-          #   - datasource-name : The fetched entries of current polling. A list of
+          #   - datasource-name: The fetched entries of current polling. A list of
           #     dictionaries, each dictionary is an entry with attrname as key, and
           #     corresponding value as value
           # merge_constraints:
           #   - "{{ _SELF.user_id in source2_pkeys }}"
           #   - "{{ _SELF.user_id in (source2 | map(attribute='user_id')) }}"
           #
-          # Constraints on pkey during merge : will be applied during merge. As merging will
+          # Constraints on pkey during merge: will be applied during merge. As merging will
           # be processed in the datamodel source declaration order in config file, the
           # first source constraint will be ignored (because it will be created and not merged).
           # Then the first source data will be merged with second source according to
           # second pkey_merge_constraint. Then the resulting data will be merged with third
           # source data according to third pkey_merge_constraint, etc.
-          # Valid values are : noConstraint, mustNotExist, mustAlreadyExist, mustExistInBoth
+          # Valid values are: noConstraint, mustNotExist, mustAlreadyExist, mustExistInBoth
           # The little difference between mustAlreadyExist and mustExistInBoth is that
           # entries existing in previous source(s) will be removed if not present in current
           # pkey_merge_constraint: mustNotExist
@@ -216,19 +216,19 @@ hermes-server:
     UserPasswords: # Settings for UserPasswords data type
       primarykeyattr: user_id # Attribute name that will be used as primary key
       # Integrity constraints between datamodel type, in Jinja.
-      # WARNING : could be very slow, keep it as simple as possible, and focused upon
+      # WARNING: could be very slow, keep it as simple as possible, and focused upon
       # primary keys
-      # Jinja vars available are '_SELF' : the current object, and every types declared
-      # For each "typename" declared, two vars are available :
-      # - typename_pkeys : a set with every primary keys
-      # - typename : a list of dict containing each entries
+      # Jinja vars available are '_SELF': the current object, and every types declared
+      # For each "typename" declared, two vars are available:
+      # - typename_pkeys: a set with every primary keys
+      # - typename: a list of dict containing each entries
       # https://hermes.insa-strasbourg.fr/en/setup/configuration/hermes-server/#hermes-server.datamodel.data-type-name.integrity_constraints
       integrity_constraints:
         - "{{ _SELF.user_id in Users_pkeys }}"
       sources: # datasource(s) to use to fetch data. Usually one, but several could be used
         source1: # The source name set in hermes.plugins.datasources
           # The query to fetch data.
-          # 'type' is mandatory and indicate to plugin which flavour of query to proceed
+          # 'type' is mandatory and indicate to plugin which flavor of query to proceed
           #   Possible 'type' values are 'add', 'delete', 'fetch' and 'modify'
           # 'query' is the query to send
           # 'vars' is a dict with vars to use (and sanitize !) in query
@@ -238,7 +238,7 @@ hermes-server:
           # and manually typing the attribute list, or to filter the query using a cached value.
           #
           # Jinja vars available are [REMOTE_ATTRIBUTES, CACHED_VALUES].
-          # See documentation for details :
+          # See documentation for details:
           # https://hermes.insa-strasbourg.fr/en/setup/configuration/hermes-server/#hermes-server.datamodel.data-type-name.sources.datasource-name.fetch
           fetch:
             type: fetch
@@ -249,7 +249,7 @@ hermes-server:
 
           # Facultative. The query to run each time an item of current data have been processed
           # without errors.
-          # 'type' is mandatory and indicate to plugin which flavour of query to proceed
+          # 'type' is mandatory and indicate to plugin which flavor of query to proceed
           #   Possible 'type' values are 'add', 'delete', 'fetch' and 'modify'
           # 'query' is the query to send
           # 'vars' is a dict with vars to use (and sanitize !) in query
@@ -259,7 +259,7 @@ hermes-server:
           # and manually typing the attribute list, or to filter the query using a cached value.
           #
           # Jinja vars available are [REMOTE_ATTRIBUTES, ITEM_CACHED_VALUES, ITEM_FETCHED_VALUES].
-          # See documentation for details :
+          # See documentation for details:
           # https://hermes.insa-strasbourg.fr/en/setup/configuration/hermes-server/#hermes-server.datamodel.data-type-name.sources.datasource-name.commit_one
           commit_one:
             type: modify
@@ -275,7 +275,7 @@ hermes-server:
               ldap_hashes: "{{ ';'.join(ITEM_FETCHED_VALUES.password_ldap) }}"
 
           # Facultative. The query to run once all data have been processed with no errors.
-          # 'type' is mandatory and indicate to plugin which flavour of query to proceed
+          # 'type' is mandatory and indicate to plugin which flavor of query to proceed
           #   Possible 'type' values are 'add', 'delete', 'fetch' and 'modify'
           # 'query' is the query to send
           # 'vars' is a dict with vars to use (and sanitize !) in query
@@ -285,7 +285,7 @@ hermes-server:
           # and manually typing the attribute list, or to filter the query using a cached value.
           #
           # Jinja vars available are [REMOTE_ATTRIBUTES, CACHED_VALUES, FETCHED_VALUES].
-          # See documentation for details :
+          # See documentation for details:
           # https://hermes.insa-strasbourg.fr/en/setup/configuration/hermes-server/#hermes-server.datamodel.data-type-name.sources.datasource-name.commit_all
           # commit_all:
           #   type: delete
@@ -304,9 +304,9 @@ hermes-server:
           #
           # A Jinja template could be set as value. If you do so, the whole value must be a
           # template. You can't set '''{{ ATTRIBUTE.split('separator') }} SOME_NON_JINJA_ATTR'''
-          # This is required in order to allow the software to collect the REMOTE_ATTRIBUTES
+          # This is required to allow the software to collect the REMOTE_ATTRIBUTES
           #
-          # See documentation for details :
+          # See documentation for details:
           # https://hermes.insa-strasbourg.fr/en/setup/configuration/hermes-server/#hermes-server.datamodel.data-type-name.sources.datasource-name.attrsmapping
           attrsmapping:
             user_id: USER_ID

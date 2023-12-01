@@ -84,7 +84,7 @@ class AbstractDataSourcePlugin:
             self.close()
         except Exception as e:
             logger.error(
-                f"Error when disconnecting from {self.__class__.__name__} : {str(e)}"
+                f"Error when disconnecting from {self.__class__.__name__}: {str(e)}"
             )
             return False
 
@@ -155,7 +155,7 @@ class AbstractMessageBusProducerPlugin:
             self.close()
         except Exception as e:
             logger.error(
-                f"Error when disconnecting from {self.__class__.__name__} : {str(e)}"
+                f"Error when disconnecting from {self.__class__.__name__}: {str(e)}"
             )
             return False
 
@@ -181,7 +181,7 @@ class AbstractMessageBusProducerPlugin:
         try:
             self._send(event)
         except Exception as e:
-            logger.critical(f"Failed to send event : {str(e)}")
+            logger.critical(f"Failed to send event: {str(e)}")
             raise FailedToSendEventError(str(e)) from None
 
 
@@ -214,7 +214,7 @@ class AbstractMessageBusConsumerPlugin:
             self.close()
         except Exception as e:
             logger.error(
-                f"Error when disconnecting from {self.__class__.__name__} : {str(e)}"
+                f"Error when disconnecting from {self.__class__.__name__}: {str(e)}"
             )
             return False
 

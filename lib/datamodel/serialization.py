@@ -81,13 +81,13 @@ class JSONEncoder(json.JSONEncoder):
 class JSONSerializable:
     """Class to extend in order to obtain json serialization/deserialization.
 
-    Children classes have to :
+    Children classes have to:
     - offer a constructor that must be callable with the named parameter
         'from_json_dict' only
-    - specify the jsondatattr, with a different behavior function of its type :
-        - str : name of their instance attribute (dict) containing the data to
+    - specify the jsondatattr, with a different behavior function of its type:
+        - str: name of their instance attribute (dict) containing the data to
                 serialize
-        - list | tuple | set : name of the instance attributes to serialize. The json
+        - list | tuple | set: name of the instance attributes to serialize. The json
                 will have each attr name as key, and their content as values
     """
 
@@ -95,14 +95,14 @@ class JSONSerializable:
         if type(jsondataattr) not in (str, list, tuple, set):
             raise HermesInvalidJSONDataattrTypeError(
                 f"Invalid jsondataattr type '{type(jsondataattr)}'."
-                " It must be one of the following types : [str, list, tuple, set]"
+                " It must be one of the following types: [str, list, tuple, set]"
             )
         self._jsondataattr: str | list[str] | tuple[str] | set[str] = jsondataattr
         """Name of instance attribute containing the data to serialize, with a
-        different behavior function of its type :
-            - str : name of their instance attribute (dict) containing the data to
+        different behavior function of its type:
+            - str: name of their instance attribute (dict) containing the data to
                     serialize
-            - list | tuple | set : name of the instance attributes to serialize. The
+            - list | tuple | set: name of the instance attributes to serialize. The
                     json will have each attr name as key, and their content as values
         """
 
@@ -114,7 +114,7 @@ class JSONSerializable:
         else:
             raise HermesInvalidJSONDataattrTypeError(
                 f"Invalid _jsondataattr type '{type(self._jsondataattr)}'."
-                " It must be one of the following types : [str, list, tuple, set]"
+                " It must be one of the following types: [str, list, tuple, set]"
             )
 
     def to_json(self) -> str:
@@ -163,7 +163,7 @@ class JSONSerializable:
             if not re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z", value):
                 pass
             try:
-                # Ignore trailing "Z" : handle timezone could create a lot of troubles
+                # Ignore trailing "Z": handle timezone could create a lot of troubles
                 value = datetime.fromisoformat(value[:-1])
             except ValueError:
                 pass
@@ -218,13 +218,13 @@ class LocalCache(JSONSerializable):
 
         if not os.path.exists(LocalCache._cachedir):
             logger.info(
-                f"Local cache dir '{LocalCache._cachedir}' doesn't exists : create it"
+                f"Local cache dir '{LocalCache._cachedir}' doesn't exists: create it"
             )
             try:
                 os.makedirs(LocalCache._cachedir, 0o770)
             except Exception as e:
                 logger.fatal(
-                    f"Unable to create local cache dir '{LocalCache._cachedir}' : {str(e)}"
+                    f"Unable to create local cache dir '{LocalCache._cachedir}': {str(e)}"
                 )
                 raise
 
@@ -316,9 +316,9 @@ class LocalCache(JSONSerializable):
 
         Returns a tuple (found, filepath, extension)
             - found: boolean indicating if filepath was found
-            - filepath: if found : str indicating filepath, otherwise filepath with
+            - filepath: if found: str indicating filepath, otherwise filepath with
                 default extension (may be useful for logging)
-            - extension: if found : str containing the extension of the filepath found,
+            - extension: if found: str containing the extension of the filepath found,
                 None otherwise
         """
         for extension in (

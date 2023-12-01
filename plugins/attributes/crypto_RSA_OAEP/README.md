@@ -22,11 +22,11 @@ along with Hermes. If not, see <https://www.gnu.org/licenses/>.
 
 ## Description
 
-This plugin allow to encrypt/decrypt strings with asymmetric RSA keys, using PKCS#1 OAEP, an asymmetric cipher based on RSA and the OAEP padding.
+This plugin allows to encrypt/decrypt strings with asymmetric RSA keys, using PKCS#1 OAEP, an asymmetric cipher based on RSA and the OAEP padding.
 
 ## Configuration
 
-You can set up as many keys as you want in plugin settings. A key can be used to either encrypt or decrypt, but not both. The plugin will determine if it's an encryption or a decryption operation upon the key type : decryption for private keys, and encryption for public keys.
+You can set up as many keys as you want in plugin settings. A key can be used to either encrypt or decrypt, but not both. The plugin will determine if it's an encryption or a decryption operation upon the key type: decryption for private keys, and encryption for public keys.
 
 ```yaml
 hermes:
@@ -61,7 +61,7 @@ hermes:
                   -----END RSA PRIVATE KEY-----
 ```
 
-Valid values for `hash` are :
+Valid values for `hash` are:
 
 - SHA224
 - SHA256
@@ -78,14 +78,14 @@ Valid values for `hash` are :
 crypto_RSA_OAEP(value: bytes | str, keyname: str) → str
 ```
 
-Once everything is set up, you can encrypt data with `encrypt_to_messagebus` key like this  in a Jinja filter :
+Once everything is set up, you can encrypt data with `encrypt_to_messagebus` key like this  in a Jinja filter:
 
 ```yaml
 password_encrypted: "{{ PASSWORD_CLEAR | crypto_RSA_OAEP('encrypt_to_messagebus') }}"
 password_decrypted: "{{ PASSWORD_ENCRYPTED | crypto_RSA_OAEP('decrypt_from_messagebus') }}"
 ```
 
-You can even decrypt and immediately re-encrypt data with another key like this :
+You can even decrypt and immediately re-encrypt data with another key like this:
 
 ```yaml
 password_reencrypted: "{{ PASSWORD_ENCRYPTED | crypto_RSA_OAEP('decrypt_from_datasource') | crypto_RSA_OAEP('encrypt_to_messagebus') }}"

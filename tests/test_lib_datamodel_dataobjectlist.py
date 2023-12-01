@@ -106,7 +106,7 @@ class TestDataobjectlistClass(HermesServerTestCase):
     def test_init_fails_if_no_args(self):
         self.assertRaisesRegex(
             AttributeError,
-            "Cannot instantiate object from nothing : you must specify one data source",
+            "Cannot instantiate object from nothing: you must specify one data source",
             self.TestUsersList,
         )
 

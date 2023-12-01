@@ -283,7 +283,7 @@ class PypsrpADClient(GenericClient):
         newobj: DataObject,
         cachedobj: DataObject,
     ):
-        # Example :
+        # Example:
         # eventattrs={
         #     'added': {},
         #     'modified': {
@@ -411,7 +411,7 @@ class PypsrpADClient(GenericClient):
         newobj: DataObject,
         cachedobj: DataObject,
     ):
-        # Example :
+        # Example:
         # eventattrs={
         #     'added': {},
         #     'modified': {

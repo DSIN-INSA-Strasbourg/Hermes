@@ -49,7 +49,7 @@ class InvalidDatamodelError(Exception):
 class Datamodel:
     """Load and build the Datamodel from config, and validates it according to remote Dataschema.
 
-    In charge of :
+    In charge of:
         - handling updates of Datamodel (hermes-client.datamodel changes in config file)
         - handling updates of remote Dataschema (hermes-server.datamodel in server config file)
         - converting a remote Event to a local one
@@ -102,10 +102,10 @@ class Datamodel:
         """Queue of Events in error"""
 
         self.typesmapping: dict[str, str]
-        """Mapping of datamodel types : hermes-server type as key, hermes-client type as value"""
+        """Mapping of datamodel types: hermes-server type as key, hermes-client type as value"""
         self._remote2local: dict[str, dict[str, list[str]]]
         """Mapping with remote type name as key, and dict containing remote attrname as key
-        and local attrname as value. Example :
+        and local attrname as value. Example:
         {
             remote_type_name: {
                 remote_attrname1: client_attrname1,
@@ -306,11 +306,11 @@ class Datamodel:
             new: dict[str, Any] = newschema.schema
 
             if diff.added:
-                logger.info(f"Types added in Dataschema : {diff.added}")
+                logger.info(f"Types added in Dataschema: {diff.added}")
 
             if diff.removed:
                 logger.info(
-                    f"Types removed from Dataschema : {diff.removed}, purging cache files"
+                    f"Types removed from Dataschema: {diff.removed}, purging cache files"
                 )
                 self.purgeOldCacheFiles(diff.removed)
 
@@ -323,11 +323,11 @@ class Datamodel:
                     removed = o["HERMES_ATTRIBUTES"] - n["HERMES_ATTRIBUTES"]
                     if added:
                         logger.info(
-                            f"New attributes in dataschema type '{objtype}' : {added}"
+                            f"New attributes in dataschema type '{objtype}': {added}"
                         )
                     if removed:
                         logger.info(
-                            f"Removed attributes from dataschema type '{objtype}' : {removed}"
+                            f"Removed attributes from dataschema type '{objtype}': {removed}"
                         )
 
                     # SECRETS_ATTRIBUTES
@@ -335,9 +335,9 @@ class Datamodel:
                     removed = o["SECRETS_ATTRIBUTES"] - n["SECRETS_ATTRIBUTES"]
                     if added:
                         logger.info(
-                            f"New secrets attributes in dataschema type '{objtype}' : {added}"
+                            f"New secrets attributes in dataschema type '{objtype}': {added}"
                         )
-                        # We need to purge attribute from cache : as cache is loaded with
+                        # We need to purge attribute from cache: as cache is loaded with
                         # attribute set up as SECRET, we just have to save the cache (attr
                         # won't be saved anymore, as it's SECRET) and reload cache to
                         # "forget" values loaded from previous cache
@@ -345,7 +345,7 @@ class Datamodel:
                         self.loadRemoteData()
                     if removed:
                         logger.info(
-                            f"Removed secrets attributes from dataschema type '{objtype}' : {removed}"
+                            f"Removed secrets attributes from dataschema type '{objtype}': {removed}"
                         )
 
                     # PRIMARYKEY_ATTRIBUTE
@@ -354,7 +354,7 @@ class Datamodel:
                     if DataObject.isDifferent(npkey, opkey):
                         newpkeys[objtype] = npkey
                         logger.info(
-                            f"New primary key attribute in dataschema type '{objtype}' : {npkey}"
+                            f"New primary key attribute in dataschema type '{objtype}': {npkey}"
                         )
 
         newschema.savecachefile()
@@ -528,7 +528,7 @@ class Datamodel:
                     )
                     if unknownattrs:
                         raise HermesUnknownVarsInJinjaTemplateError(
-                            f"Unknown attributes met in 'hermes-client.datamodel.{objtype}.toString' jinja template : {unknownattrs}"
+                            f"Unknown attributes met in 'hermes-client.datamodel.{objtype}.toString' jinja template: {unknownattrs}"
                         )
                 else:
                     self._datamodel[objtype][k] = v
@@ -595,7 +595,7 @@ class Datamodel:
                 missingpkeys[rtype] = diff
 
         if missingpkeys:
-            err = f"Datamodel errors : remote primary keys are missing from current Dataschema : {missingpkeys}"
+            err = f"Datamodel errors: remote primary keys are missing from current Dataschema: {missingpkeys}"
             logger.critical(err)
             raise InvalidDatamodelError(err)
 
@@ -628,7 +628,7 @@ class Datamodel:
                     )
                 )
 
-            # Filter Jinja templates from pkey :
+            # Filter Jinja templates from pkey:
             # primary key must be used raw to ensure data consistency,
             # but may be used in other attributes's Jinja templates
             attrsmapping = self._datamodel[objtype]["attrsmapping"]
@@ -637,7 +637,7 @@ class Datamodel:
             ]
 
             if len(pkey) != len(remotepkey):
-                err = f"Primary keys mismatch between remote schema and local datamodel for objtype '{objtype}' : remote={remotepkey} ; local={pkey}"
+                err = f"Primary keys mismatch between remote schema and local datamodel for objtype '{objtype}': remote={remotepkey} ; local={pkey}"
                 logger.critical(err)
                 raise InvalidDatamodelError(err)
 

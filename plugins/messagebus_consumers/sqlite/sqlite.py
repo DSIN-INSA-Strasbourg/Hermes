@@ -145,7 +145,7 @@ class SqliteConsumerPlugin(AbstractMessageBusConsumerPlugin):
                 if not self._db:
                     self.open()
                     if not self._db:
-                        # No database, so no data : wait and retry until data or timeout
+                        # No database, so no data: wait and retry until data or timeout
                         time.sleep(0.5)
                         continue
 

@@ -128,7 +128,7 @@ class DatamodelFragment:
         newcls.LOCAL_ATTRIBUTES = set(self._settings["local_attrs"])
 
         logger.debug(
-            f"Created dynamic class :\n"
+            f"Created dynamic class:\n"
             f"  {newcls.__name__}:\n"
             f"    - {newcls.PRIMARYKEY_ATTRIBUTE=}\n"
             f"    - {newcls.HERMES_ATTRIBUTES=}\n"
@@ -253,7 +253,7 @@ class DatamodelFragment:
         REMOTE_ATTRIBUTES as keys, and corresponding fetched values as values
         """
         logger.debug(
-            f"{self.getDataobjClass().__name__} : _runQuery({querytype=}, {query=}, {queryvars=})"
+            f"{self.getDataobjClass().__name__}: _runQuery({querytype=}, {query=}, {queryvars=})"
         )
         fetcheddata = None
         starttime = time.time()
@@ -274,11 +274,11 @@ class DatamodelFragment:
         elapsedms = int(round(1000 * (time.time() - starttime)))
         if fetcheddata is None:
             logger.debug(
-                f"{self.getDataobjClass().__name__} : _runQuery() returned in {elapsedms} ms"
+                f"{self.getDataobjClass().__name__}: _runQuery() returned in {elapsedms} ms"
             )
         else:
             logger.debug(
-                f"{self.getDataobjClass().__name__} : _runQuery() returned {len(fetcheddata)} entries in {elapsedms} ms"
+                f"{self.getDataobjClass().__name__}: _runQuery() returned {len(fetcheddata)} entries in {elapsedms} ms"
             )
 
         return fetcheddata
@@ -287,7 +287,7 @@ class DatamodelFragment:
 class Datamodel:
     """Load and build the Datamodel from config.
 
-    In charge of :
+    In charge of:
     - generating Dataschema
     - retrieving remote data from all sources, and merging it
     """
@@ -380,7 +380,7 @@ class Datamodel:
             unknownattrs = jinjavars - set(count.keys())
             if unknownattrs:
                 raise HermesUnknownVarsInJinjaTemplateError(
-                    f"Unknown attributes met in 'hermes-server.datamodel.{objtype}.toString' jinja template : {unknownattrs}"
+                    f"Unknown attributes met in 'hermes-server.datamodel.{objtype}.toString' jinja template: {unknownattrs}"
                 )
             schema[objtype] = {
                 "HERMES_ATTRIBUTES": set(count.keys()),
@@ -491,7 +491,7 @@ class Datamodel:
                         if toRemove:
                             hasChanged = True
                             # logger.debug(
-                            #     f"Merge constraints : filtering {len(toRemove)} item(s) from {fragment.datasourcename}"
+                            #     f"Merge constraints: filtering {len(toRemove)} item(s) from {fragment.datasourcename}"
                             # )
                             for obj in toRemove:
                                 fragment._dataobjects.remove(obj)
@@ -499,7 +499,7 @@ class Datamodel:
 
                 elapsedms = int(round(1000 * (time.time() - starttime)))
                 logger.debug(
-                    f"Enforced <{objtype}> merge constraints in {elapsedms} ms : filtered {len(mergeFiltered)} item(s)"
+                    f"Enforced <{objtype}> merge constraints in {elapsedms} ms: filtered {len(mergeFiltered)} item(s)"
                 )
 
             # Merge data
@@ -517,7 +517,7 @@ class Datamodel:
             objlist.mergeFiltered |= mergeFiltered
             elapsedms = int(round(1000 * (time.time() - starttime)))
             logger.debug(
-                f"Merged all <{objtype}> data in {elapsedms} ms : filtered {len(mergeFiltered)} item(s)"
+                f"Merged all <{objtype}> data in {elapsedms} ms: filtered {len(mergeFiltered)} item(s)"
             )
 
             # Store merged data in current Datasource var
@@ -569,7 +569,7 @@ class Datamodel:
                         for pkey in integrityFiltered:
                             self.data[objtype].removeByPkey(pkey)
                         logger.debug(
-                            f"Integrity constraints : filtered {len(integrityFiltered)} item(s) from {objtype}"
+                            f"Integrity constraints: filtered {len(integrityFiltered)} item(s) from {objtype}"
                         )
                         self.data[objtype].integrityFiltered |= integrityFiltered
 
