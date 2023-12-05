@@ -22,7 +22,7 @@ along with Hermes. If not, see <https://www.gnu.org/licenses/>.
 
 ## Description
 
-This plugin allows using an PostgreSQL database as datasource.
+This plugin allows using a PostgreSQL database as datasource.
 
 ## Configuration
 
@@ -49,7 +49,7 @@ hermes:
 
 ## Usage
 
-Specify a query. If you'd like to provide values from cache, you should provide them in a `vars` dict, and refer to them by specifying the var key name encased ins `%()s` in the query: this will automatically sanitize the query. See example below.
+Specify a query. If you'd like to provide values from cache, you should provide them in a `vars` dict, and refer to them by specifying the var key name encased in `%()s` in the query: this will automatically sanitize the query. See example below.
 
 The example `vars` names are prefixed with `sanitized_` only for clarity, it's not a requirement.
 
