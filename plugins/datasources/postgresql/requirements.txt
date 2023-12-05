@@ -1,0 +1,3 @@
+# plugins/datasources/postgresql
+psycopg[binary]
+
