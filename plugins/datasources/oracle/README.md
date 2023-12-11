@@ -40,7 +40,9 @@ hermes:
           server: dummy.example.com
           # MANDATORY: the database connection port
           port: 1234
-          # MANDATORY: the database SID
+          # MANDATORY: the database service name. Cannot be set if 'sid' is set
+          service_name: DUMMY.example.com
+          # MANDATORY: the database SID. Cannot be set if 'service_name' is set
           sid: DUMMY
           # MANDATORY: the database credentials to use
           login: HERMES_DUMMY

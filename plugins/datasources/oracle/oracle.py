@@ -43,13 +43,18 @@ class DatasourceOracle(AbstractDataSourcePlugin):
 
     def open(self):
         """Establish connection with Oracle Database"""
-        cp = oracledb.ConnectParams(
-            user=self._settings["login"],
-            password=self._settings["password"],
-            host=self._settings["server"],
-            port=self._settings["port"],
-            sid=self._settings["sid"],
-        )
+        params = {
+            "user": self._settings["login"],
+            "password": self._settings["password"],
+            "host": self._settings["server"],
+            "port": self._settings["port"],
+        }
+        if "service_name" in self._settings:
+            params["service_name"] = self._settings["service_name"]
+        if "sid" in self._settings:
+            params["sid"] = self._settings["sid"]
+
+        cp = oracledb.ConnectParams(**params)
         self._dbcon = oracledb.connect(params=cp)
 
     def close(self):
