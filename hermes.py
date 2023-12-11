@@ -26,7 +26,7 @@ import importlib
 import sys
 import traceback
 import logging
-from os.path import basename, isfile
+from os.path import basename
 
 logger = logging.getLogger("hermes")
 
@@ -108,16 +108,17 @@ if __name__ == "__main__":
         ##########
         elif appname.startswith("hermes-client-"):
             clientname = appname[len("hermes-client-") :]
-            if isfile(f"plugins/clients/{clientname}/{clientname}.py"):
-                config = HermesConfig()
+            try:
                 module = importlib.import_module(
                     f"plugins.clients.{clientname}.{clientname}"
                 )
-                client = getattr(module, module.HERMES_PLUGIN_CLASSNAME)(config)
-                client.mainLoop()
-            else:
+            except ModuleNotFoundError:
                 logger.critical(f"""Specified client '{clientname}' doesn't exist""")
                 sys.exit(2)
+
+            config = HermesConfig()
+            client = getattr(module, module.HERMES_PLUGIN_CLASSNAME)(config)
+            client.mainLoop()
 
     except Exception as e:
         lines = traceback.format_exception(type(e), e, e.__traceback__)
