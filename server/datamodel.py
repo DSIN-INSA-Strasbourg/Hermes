@@ -20,7 +20,7 @@
 # along with Hermes. If not, see <https://www.gnu.org/licenses/>.
 
 
-from typing import Any, TYPE_CHECKING
+from typing import Any, Hashable, TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover
     # Only for type hints, won't import at runtime
@@ -46,6 +46,10 @@ logger = logging.getLogger("hermes")
 
 
 class HermesDataModelMissingPrimarykeyError(Exception):
+    """Raised when the primarykey is missing from the attrsmapping of a source in datamodel"""
+
+
+class HermesInvalidPrimarykeyTypeError(Exception):
     """Raised when the primarykey is missing from the attrsmapping of a source in datamodel"""
 
 
@@ -180,6 +184,17 @@ class DatamodelFragment:
                 else:
                     # Raw value
                     objpkeys.append(objdata.get(remotepkeyattr))
+
+            # Ensure pkeys values are hashable
+            unhashable = {}
+            for i in range(len(pkey_attrs)):
+                if not isinstance(objpkeys[i], Hashable):
+                    unhashable[pkey_attrs[i]] = objpkeys[i]
+
+            if unhashable:
+                err = f""""Invalid value type for primary key(s) : {unhashable}. Primary keys must be 'hashable'"""
+                logger.critical(err)
+                raise HermesInvalidPrimarykeyTypeError(err)
 
             if type(objcls.PRIMARYKEY_ATTRIBUTE) == tuple:
                 objpkey = tuple(objpkeys)
