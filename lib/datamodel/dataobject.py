@@ -73,8 +73,8 @@ class DataObject(JSONSerializable):
     CACHEONLY_ATTRIBUTES: set[str] = None
     """Set containing attributes names that won't be sent in events or used for diff, but
     will be cached. Used by DataObject"""
-    PRIMARYKEY_ATTRIBUTE: str = None
-    """String containing datamodel primary key. Used by DataObject"""
+    PRIMARYKEY_ATTRIBUTE: str | tuple[str, ...] = None
+    """String or tuple of strings containing datamodel primary key(s) attribute name(s)"""
     TOSTRING: Template | None = None
     """Contains a compiled Jinja template for objects repr/string representation if set in
     datamodel, or None to use default one"""
