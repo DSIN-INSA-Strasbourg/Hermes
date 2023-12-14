@@ -550,6 +550,13 @@ class Datamodel:
             for t in self.dataschema.objectlistTypes
         ):
             starttime = time.time()
+
+            # Store all integrity constraints vars
+            all_integrity_vars = set()
+            for objtype in self.dataschema.objectlistTypes:
+                settings = self._config["hermes-server"]["datamodel"][objtype]
+                all_integrity_vars.update(settings["integrity_constraints_vars"])
+
             hasChanged = True
             # Loop until no change is made
             while hasChanged:
@@ -558,10 +565,11 @@ class Datamodel:
                 # Fill vars dict
                 vars = {}
                 for objtype in self.dataschema.objectlistTypes:
+                    settings = self._config["hermes-server"]["datamodel"][objtype]
                     # Generate vars only if required
-                    if objtype + "_pkeys" in settings["integrity_constraints_vars"]:
+                    if objtype + "_pkeys" in all_integrity_vars:
                         vars[objtype + "_pkeys"] = self.data[objtype].getPKeys()
-                    if objtype in settings["integrity_constraints_vars"]:
+                    if objtype in all_integrity_vars:
                         vars[objtype] = self.data[objtype].toNative()
 
                 # Apply constraints
