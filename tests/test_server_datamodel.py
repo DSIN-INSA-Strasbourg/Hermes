@@ -27,7 +27,6 @@ from server.datamodel import (
     HermesDataModelMissingPrimarykeyError,
 )
 
-from lib.datamodel.dataschema import Dataschema
 from lib.datamodel.jinja import HermesDataModelAttrsmappingError
 
 
