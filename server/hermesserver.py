@@ -436,7 +436,7 @@ class HermesServer:
         if self._sock is not None:
             self._sock.startProcessMessagesDaemon()
 
-        # Process schema changes if any, until it suceed
+        # Process schema changes if any, until it succeed
         checkForSchemaChangesDone = False
         while not self._isStopped and not checkForSchemaChangesDone:
             try:
