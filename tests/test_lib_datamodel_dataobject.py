@@ -23,6 +23,7 @@
 from hermestestcase import HermesServerTestCase
 
 from lib.datamodel.dataobject import DataObject, HermesMergingConflictError
+from lib.datamodel.jinja import HermesNativeEnvironment
 
 from jinja2 import StrictUndefined
 from jinja2.nativetypes import NativeEnvironment
@@ -35,7 +36,9 @@ logger = logging.getLogger("hermes")
 class TestDataobjectClass(HermesServerTestCase):
     def setUp(self):
         super().setUp()
-        jinjaenv: NativeEnvironment = NativeEnvironment(undefined=StrictUndefined)
+        jinjaenv: HermesNativeEnvironment = HermesNativeEnvironment(
+            undefined=StrictUndefined
+        )
 
         class TestUsersSource1(DataObject):
             HERMES_ATTRIBUTES = set(

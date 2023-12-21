@@ -30,13 +30,16 @@ from typing import Callable
 
 from jinja2 import StrictUndefined
 from jinja2.environment import Template
-from jinja2.nativetypes import NativeEnvironment
 import time
 
 from lib.datamodel.dataschema import Dataschema
 from lib.datamodel.dataobject import DataObject
 from lib.datamodel.dataobjectlist import DataObjectList
-from lib.datamodel.jinja import Jinja, HermesUnknownVarsInJinjaTemplateError
+from lib.datamodel.jinja import (
+    HermesNativeEnvironment,
+    Jinja,
+    HermesUnknownVarsInJinjaTemplateError,
+)
 from lib.plugins import AbstractDataSourcePlugin
 from lib.datamodel.datasource import Datasource
 
@@ -94,7 +97,9 @@ class DatamodelFragment:
         self._errorcontext: str = (
             f"hermes-server.datamodel.{dataobjtype}.{datasourcename}.attrsmapping"
         )
-        self._jinjaenv: NativeEnvironment = NativeEnvironment(undefined=StrictUndefined)
+        self._jinjaenv: HermesNativeEnvironment = HermesNativeEnvironment(
+            undefined=StrictUndefined
+        )
         self._jinjaenv.filters |= attributesplugins
         self.datasourcename: str = datasourcename
         self._settings: dict[str, str | dict] = fragmentSettings
@@ -314,7 +319,9 @@ class Datamodel:
         }
 
         self._config: "HermesConfig" = config
-        self._jinjaenv: NativeEnvironment = NativeEnvironment(undefined=StrictUndefined)
+        self._jinjaenv: HermesNativeEnvironment = HermesNativeEnvironment(
+            undefined=StrictUndefined
+        )
 
         # Fill the _fragments dictionary
         datamodel: dict[str, Any] = config["hermes-server"]["datamodel"]

@@ -24,7 +24,6 @@ from lib.config import HermesConfig
 
 from jinja2 import StrictUndefined
 from jinja2.environment import Template
-from jinja2.nativetypes import NativeEnvironment
 from typing import Any
 
 from clients.eventqueue import EventQueue
@@ -35,7 +34,11 @@ from lib.datamodel.datasource import Datasource
 from lib.datamodel.diffobject import DiffObject
 from lib.datamodel.event import Event
 from lib.datamodel.serialization import LocalCache
-from lib.datamodel.jinja import Jinja, HermesUnknownVarsInJinjaTemplateError
+from lib.datamodel.jinja import (
+    HermesNativeEnvironment,
+    Jinja,
+    HermesUnknownVarsInJinjaTemplateError,
+)
 
 import logging
 
@@ -77,7 +80,9 @@ class Datamodel:
         self._datamodel: dict[str, Any]
         """Local datamodel dictionary, with compiled Jinja templates"""
 
-        self._jinjaenv: NativeEnvironment = NativeEnvironment(undefined=StrictUndefined)
+        self._jinjaenv: HermesNativeEnvironment = HermesNativeEnvironment(
+            undefined=StrictUndefined
+        )
         if "hermes" in self._config:
             self._jinjaenv.filters |= self._config["hermes"]["plugins"]["attributes"][
                 "_jinjafilters"

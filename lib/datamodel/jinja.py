@@ -20,11 +20,14 @@
 # along with Hermes. If not, see <https://www.gnu.org/licenses/>.
 
 
-from jinja2 import meta
+from ast import parse, literal_eval
+from itertools import chain, islice
+from jinja2 import meta, Environment
 from jinja2.environment import Template
-from jinja2.nativetypes import NativeEnvironment
+from jinja2.nativetypes import NativeCodeGenerator
 from jinja2.nodes import TemplateData
-from typing import Any
+from types import GeneratorType
+from typing import Any, Iterable, Optional
 
 import logging
 
@@ -43,6 +46,49 @@ class HermesUnknownVarsInJinjaTemplateError(Exception):
     """Raised when an unknown var is found in a Jinja template"""
 
 
+def hermes_native_concat(values: Iterable[Any]) -> Optional[Any]:
+    """Copy of jinja2.nativetypes.native_concat that will return the raw string
+    if the resulting value would have been a complex number
+    """
+    head = list(islice(values, 2))
+
+    if not head:
+        return None
+
+    if len(head) == 1:
+        raw = head[0]
+        if not isinstance(raw, str):
+            return raw
+    else:
+        if isinstance(values, GeneratorType):
+            values = chain(head, values)
+        raw = "".join([str(v) for v in values])
+
+    try:
+        res = literal_eval(
+            # In Python 3.10+ ast.literal_eval removes leading spaces/tabs
+            # from the given string. For backwards compatibility we need to
+            # parse the string ourselves without removing leading spaces/tabs.
+            parse(raw, mode="eval")
+        )
+    except (ValueError, SyntaxError, MemoryError):
+        return raw
+
+    if isinstance(res, complex):
+        # Return the raw string instead of the evaluated value
+        return raw
+    else:
+        return res
+
+
+class HermesNativeEnvironment(Environment):
+    """An environment that renders templates to native Python types, excepted
+    the complex numbers that are ignored."""
+
+    code_generator_class = NativeCodeGenerator
+    concat = staticmethod(hermes_native_concat)  # type: ignore
+
+
 class Jinja:
     """Helper class to compile Jinja expressions, and render query vars"""
 
@@ -50,7 +96,7 @@ class Jinja:
     def _compileIfJinjaTemplate(
         cls,
         tpl: str,
-        jinjaenv: NativeEnvironment,
+        jinjaenv: HermesNativeEnvironment,
         errorcontext: str,
         allowOnlyOneTemplate: bool,
         allowOnlyOneVar: bool,
@@ -73,7 +119,7 @@ class Jinja:
         allowOnlyOneVar: if True, if tpl contains more than one variable, an
             HermesTooManyJinjaVarsError will be raised
         """
-        env = NativeEnvironment()
+        env = HermesNativeEnvironment()
         env.filters.update(jinjaenv.filters)
         ast = env.parse(tpl)
         vars = meta.find_undeclared_variables(ast)
@@ -115,7 +161,7 @@ class Jinja:
         cls,
         var: Any,
         flatvars_set: set[str] | None,
-        jinjaenv: NativeEnvironment,
+        jinjaenv: HermesNativeEnvironment,
         errorcontext: str,
         allowOnlyOneTemplate: bool,
         allowOnlyOneVar: bool,
