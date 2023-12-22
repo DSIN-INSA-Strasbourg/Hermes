@@ -151,7 +151,7 @@ class Jinja:
         # tpl is a Jinja template, return each var name it contains
         if allowOnlyOneVar and len(vars) > 1:
             raise HermesTooManyJinjaVarsError(
-                f"{len(vars)} variables found in Jinja template '''{tpl}'''. Only one Jinja var is allowed to ensure data consistency"
+                f"{errorcontext}: {len(vars)} variables found in Jinja template '''{tpl}'''. Only one Jinja var is allowed to ensure data consistency"
             )
 
         return (jinjaenv.from_string(tpl), vars)
