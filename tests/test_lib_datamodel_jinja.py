@@ -24,6 +24,7 @@ import unittest
 from lib.datamodel.jinja import (
     HermesNativeEnvironment,
     Jinja,
+    HermesDataModelAttrsmappingError,
     HermesNotAJinjaExpression,
     HermesTooManyJinjaVarsError,
 )
@@ -160,3 +161,128 @@ class TestJinjaClass(unittest.TestCase):
             allowOnlyOneTemplate=False,
             allowOnlyOneVar=False,
         )
+
+    def test_emptyValues_error(self):
+        env = HermesNativeEnvironment()
+
+        vars = {
+            "empty": "",
+        }
+
+        self.assertRaisesRegex(
+            HermesDataModelAttrsmappingError,
+            "Error context: Empty value was found",
+            Jinja.compileIfJinjaTemplate,
+            var=vars,
+            flatvars_set=None,
+            jinjaenv=env,
+            errorcontext="Error context",
+            allowOnlyOneTemplate=False,
+            allowOnlyOneVar=False,
+        )
+
+        vars = {
+            "empty": "{# comment #}",
+        }
+
+        self.assertRaisesRegex(
+            HermesDataModelAttrsmappingError,
+            "Error context: Empty value was found",
+            Jinja.compileIfJinjaTemplate,
+            var=vars,
+            flatvars_set=None,
+            jinjaenv=env,
+            errorcontext="Error context",
+            allowOnlyOneTemplate=False,
+            allowOnlyOneVar=False,
+        )
+
+    def test_multipleTemplates_error(self):
+        env = HermesNativeEnvironment()
+        vars = {
+            "expressions": "{{ VAR1 | upper }} Hello {{ VAR2 }}",
+        }
+
+        self.assertRaisesRegex(
+            HermesDataModelAttrsmappingError,
+            "Error context: A mix between jinja templates and raw data was found in '''{{ VAR1 | upper }} Hello {{ VAR2 }}''', with this configuration it's impossible to determine source attribute name",
+            Jinja.compileIfJinjaTemplate,
+            var=vars,
+            flatvars_set=None,
+            jinjaenv=env,
+            errorcontext="Error context",
+            allowOnlyOneTemplate=True,
+            allowOnlyOneVar=False,
+        )
+
+    def test_multipleTemplates_success(self):
+        env = HermesNativeEnvironment()
+        vars = {
+            "expressions": "{{ VAR1 | upper }} Hello {{ VAR2 }}",
+        }
+
+        compiled = Jinja.compileIfJinjaTemplate(
+            var=vars,
+            flatvars_set=None,
+            jinjaenv=env,
+            errorcontext="Error context",
+            allowOnlyOneTemplate=False,
+            allowOnlyOneVar=False,
+        )
+
+        context = {
+            "VAR1": "VaLuE_1",
+            "VAR2": "VaLuE_2",
+        }
+
+        result = {
+            "expressions": "VALUE_1 Hello VaLuE_2",
+        }
+
+        rendered = Jinja.renderQueryVars(compiled, context)
+        self.assertDictEqual(rendered, result)
+
+    def test_multipleVars_error(self):
+        env = HermesNativeEnvironment()
+        vars = {
+            "expression": "{{ (VAR1 | upper) ~ ' ' ~ VAR2 }}",
+        }
+
+        self.assertRaisesRegex(
+            HermesTooManyJinjaVarsError,
+            "Error context: 2 variables found in Jinja template '''{{ \(VAR1 \| upper\) ~ ' ' ~ VAR2 }}'''. Only one Jinja var is allowed to ensure data consistency",
+            Jinja.compileIfJinjaTemplate,
+            var=vars,
+            flatvars_set=None,
+            jinjaenv=env,
+            errorcontext="Error context",
+            allowOnlyOneTemplate=False,
+            allowOnlyOneVar=True,
+        )
+
+    def test_multipleVars_success(self):
+        env = HermesNativeEnvironment()
+        vars = {
+            "expression": "{{ (VAR1 | upper) ~ '+' ~ VAR2 }}",
+        }
+
+        compiled = Jinja.compileIfJinjaTemplate(
+            var=vars,
+            flatvars_set=None,
+            jinjaenv=env,
+            errorcontext="Error context",
+            allowOnlyOneTemplate=False,
+            allowOnlyOneVar=False,
+        )
+
+        context = {
+            "VAR1": "VaLuE_1",
+            "VAR2": "VaLuE_2",
+        }
+
+        result = {
+            "expression": "VALUE_1+VaLuE_2",
+        }
+
+        rendered = Jinja.renderQueryVars(compiled, context)
+        self.assertDictEqual(rendered, result)
