@@ -25,13 +25,17 @@ from itertools import chain, islice
 from jinja2 import meta, Environment
 from jinja2.environment import Template
 from jinja2.nativetypes import NativeCodeGenerator
-from jinja2.nodes import TemplateData
+from jinja2.nodes import Output, TemplateData
 from types import GeneratorType
 from typing import Any, Iterable, Optional
 
 import logging
 
 logger = logging.getLogger("hermes")
+
+
+class HermesNotAJinjaExpression(Exception):
+    """Raised when a Jinja statement is found in template"""
 
 
 class HermesDataModelAttrsmappingError(Exception):
@@ -135,6 +139,11 @@ class Jinja:
                     f"{errorcontext}: Multiple jinja templates found in '''{tpl}''', only one is allowed"
                 )
         else:
+            if not isinstance(ast.body[0], Output):
+                raise HermesNotAJinjaExpression(
+                    f"{errorcontext}: Only Jinja expressions '{{{{ ... }}}}' are allowed. Another type of Jinja data was found in '''{tpl}'''"
+                )
+
             if (
                 len(ast.body[0].nodes) == 1
                 and type(ast.body[0].nodes[0]) == TemplateData

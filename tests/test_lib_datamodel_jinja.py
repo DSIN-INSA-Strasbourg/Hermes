@@ -24,6 +24,7 @@ import unittest
 from lib.datamodel.jinja import (
     HermesNativeEnvironment,
     Jinja,
+    HermesNotAJinjaExpression,
     HermesTooManyJinjaVarsError,
 )
 
@@ -140,3 +141,22 @@ class TestJinjaClass(unittest.TestCase):
 
         rendered = Jinja.renderQueryVars(compiled, context)
         self.assertDictEqual(rendered, result)
+
+    def test_renderStatement(self):
+        env = HermesNativeEnvironment()
+
+        vars = {
+            "statement": "{% for c in VAR1 %}{{ c }}{% endfor %}",
+        }
+
+        self.assertRaisesRegex(
+            HermesNotAJinjaExpression,
+            "Error context: Only Jinja expressions '{{ ... }}' are allowed. Another type of Jinja data was found in '''{% for c in VAR1 %}{{ c }}{% endfor %}'''",
+            Jinja.compileIfJinjaTemplate,
+            var=vars,
+            flatvars_set=None,
+            jinjaenv=env,
+            errorcontext="Error context",
+            allowOnlyOneTemplate=False,
+            allowOnlyOneVar=False,
+        )
