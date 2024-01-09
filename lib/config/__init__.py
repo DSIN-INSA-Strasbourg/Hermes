@@ -32,7 +32,6 @@ import sys
 import signal
 import warnings
 import yaml
-import __main__
 from lib.datamodel.serialization import LocalCache
 from lib.plugins import (
     AbstractAttributePlugin,
@@ -263,8 +262,8 @@ class HermesConfig(LocalCache):
         """
         main = self._config["appname"]
 
-        # Retrieve absolute path of main script directory
-        appdir = os.path.realpath(os.path.dirname(__main__.__file__))
+        # Retrieve absolute path of hermes source directory
+        appdir = os.path.realpath(os.path.dirname(__file__) + "/../../")
 
         schemas = {
             # Global config
@@ -315,8 +314,8 @@ class HermesConfig(LocalCache):
         pluginSettingsDotPath: str,
     ):
         """Generic plugin loader"""
-        # Retrieve absolute path of main script directory
-        appdir = os.path.realpath(os.path.dirname(__main__.__file__))
+        # Retrieve absolute path of hermes source directory
+        appdir = os.path.realpath(os.path.dirname(__file__) + "/../../")
 
         modulepath = f"plugins.{pluginFamilyDir}.{pluginName}.{pluginName}"
         try:
