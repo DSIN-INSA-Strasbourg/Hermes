@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Hermes : Change Data Capture (CDC) tool from any source(s) to any target
-# Copyright (C) 2023 INSA Strasbourg
+# Copyright (C) 2023, 2024 INSA Strasbourg
 #
 # This file is part of Hermes.
 #
@@ -20,7 +20,9 @@
 # along with Hermes. If not, see <https://www.gnu.org/licenses/>.
 
 
-from typing import Any, Iterable
+from typing import TypeVar, Any, Iterable
+
+AnyDataObjectList = TypeVar("AnyDataObjectList", bound="DataObjectList")
 
 import time
 
@@ -264,7 +266,7 @@ class DataObjectList(LocalCache):
 
         return pkeysIgnored | pkeysToRemove
 
-    def diffFrom(self, other: "DataObjectList") -> DiffObject:
+    def diffFrom(self, other: AnyDataObjectList) -> DiffObject:
         """Returns a DiffObject containing differences between current instance and
         specified 'other', assuming current is the newest"""
         starttime = time.time()
@@ -301,7 +303,7 @@ class DataObjectList(LocalCache):
         duplicated entries of other sources will be notified in mergeConflicts"""
         return self._inconsistencies.copy()
 
-    def replaceInconsistenciesByCachedValues(self, cache: "DataObjectList"):
+    def replaceInconsistenciesByCachedValues(self, cache: AnyDataObjectList):
         """Replace each entry filtered for inconsistency by their cache value, when existing"""
         for src, srcname in [
             (self._inconsistencies, "inconsistency"),
@@ -324,3 +326,17 @@ class DataObjectList(LocalCache):
         """Returns a set containing primary keys of each entry with a merge conflict
         (i.e. when the same attribute has different values on different sources)"""
         return self._mergeConflicts.copy()
+
+    def extend(self, other: AnyDataObjectList):
+        """Extend current DataObjectList content with the specified other's content,
+        by reference.
+
+        The primary keys of "other" must not exist in current instance, otherwise
+        an KeyError exception will be raised.
+        """
+        if not self._datadict.keys().isdisjoint(other._datadict.keys()):
+            raise KeyError(
+                "Unable to extend, as current instance and 'other' contains some objects with the same primary key"
+            )
+
+        self._datadict |= other._datadict

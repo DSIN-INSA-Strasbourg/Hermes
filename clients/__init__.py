@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Hermes : Change Data Capture (CDC) tool from any source(s) to any target
-# Copyright (C) 2023 INSA Strasbourg
+# Copyright (C) 2023, 2024 INSA Strasbourg
 #
 # This file is part of Hermes.
 #
@@ -238,14 +238,31 @@ class GenericClient:
         """Returns a deepcopy of an object from cache.
         Raise IndexError if objtype is invalid, or if objpkey is not found
         """
-        return deepcopy(self.__datamodel.localdata[objtype][objpkey])
+        ds: Datasource = self.__datamodel.localdata
+
+        (_, obj) = self.__getObjectFromCacheOrTrashbin(ds, objtype, objpkey)
+        if obj is None:
+            raise IndexError(
+                f"No object of {objtype=} with {objpkey=} was found in cache"
+            )
+
+        return deepcopy(obj)
 
     def getDataobjectlistFromCache(self, objtype: str) -> DataObjectList:
         """Returns cache of specified objtype, by reference.
         WARNING: Any modification of the cache content will mess up your client !!!
         Raise IndexError if objtype is invalid
         """
-        return self.__datamodel.localdata[objtype]
+        ds: Datasource = self.__datamodel.localdata
+        cache = ds[objtype]
+        trashbin = ds[f"trashbin_{objtype}"]
+
+        # Create an empty DataObjectList of same type as cache
+        res = type(cache)(objlist=[])
+
+        res.extend(cache)
+        res.extend(trashbin)
+        return res
 
     def __signalHandler(self, signalnumber: int, frame: FrameType | None):
         """Signal handler that will be called on SIGINT and SIGTERM"""
