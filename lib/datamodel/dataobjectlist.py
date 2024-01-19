@@ -120,6 +120,10 @@ class DataObjectList(LocalCache):
         """Returns a list of current DataObject values"""
         return [self._datadict[k] for k in sorted(self._datadict.keys())]
 
+    def __len__(self) -> int:
+        """Returns the number of items in current instance"""
+        return len(self._datadict)
+
     def __iter__(self) -> Iterable:
         """Returns an iterator of current DataObject values"""
         return iter(self._datadict.values())
