@@ -23,6 +23,7 @@
 from typing import Any
 
 from lib.plugins import AbstractDataSourcePlugin
+from datetime import datetime
 import sqlite3
 
 import logging
@@ -40,10 +41,25 @@ class DatasourceSqlite(AbstractDataSourcePlugin):
         """Instantiate new plugin and store a copy of its settings dict in self._settings"""
         super().__init__(settings)
         self._dbcon: sqlite3.Connection | None = None
+        sqlite3.register_adapter(datetime, self.adapt_datetime_iso)
+        sqlite3.register_converter("datetime", self.convert_datetime)
+
+    @staticmethod
+    def adapt_datetime_iso(val: datetime) -> str:
+        """Convert datetime to ISO 8601 datetime string without timezone"""
+        return val.isoformat()
+
+    @staticmethod
+    def convert_datetime(val: bytes) -> datetime:
+        """Convert ISO 8601 datetime string to datetime object"""
+        return datetime.fromisoformat(val.decode())
 
     def open(self):
         """Establish connection with SQLite Database"""
-        self._dbcon = sqlite3.connect(database=self._settings["uri"])
+        self._dbcon = sqlite3.connect(
+            database=self._settings["uri"],
+            detect_types=sqlite3.PARSE_DECLTYPES,
+        )
 
     def close(self):
         """Close connection with SQLite Database"""
