@@ -68,9 +68,9 @@ class JSONEncoder(json.JSONEncoder):
     """Helper to serialize specific objects (datetime, JSONSerializable) in JSON"""
 
     def default(self, obj: Any) -> Any:
-        # If object to encode is a datetime, convert it to isoformat string
+        # If object to encode is a datetime, convert it to an internal isoformat string
         if isinstance(obj, datetime):
-            return f"{obj.isoformat(timespec='seconds')}Z"
+            return f"HermesDatetime({obj.isoformat(timespec='seconds')}Z)"
         if isinstance(obj, JSONSerializable):
             return obj._get_jsondict()
         if isinstance(obj, set):
@@ -159,12 +159,16 @@ class JSONSerializable:
             for index, row in enumerate(value):
                 value[index] = cls._json_parser(row)
         elif isinstance(value, str) and value:
-            # String have to match "yyyy-mm-ddThh:mm:ssZ" to be converted to datetime
-            if not re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z", value):
+            # String have to match internal isoformat  to be converted to datetime:
+            # "HermesDatetime(yyyy-mm-ddThh:mm:ssZ)"
+            if not re.fullmatch(
+                r"HermesDatetime\(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z\)", value
+            ):
                 pass
             try:
-                # Ignore trailing "Z": handle timezone could create a lot of troubles
-                value = datetime.fromisoformat(value[:-1])
+                # Ignore internal isformat container and trailing "Z":
+                # handle timezone could create a lot of troubles
+                value = datetime.fromisoformat(value[15:-2])
             except ValueError:
                 pass
         return value

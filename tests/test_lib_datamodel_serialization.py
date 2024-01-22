@@ -66,7 +66,7 @@ class TestJSONEncoderClass(HermesServerTestCase):
             '        "key32": 32,',
             '        "key33": false,',
             '        "key34": null,',
-            '        "date1": "2023-06-20T08:42:01Z"',
+            '        "date1": "HermesDatetime(2023-06-20T08:42:01Z)"',
             "    }",
             "}",
         ),
