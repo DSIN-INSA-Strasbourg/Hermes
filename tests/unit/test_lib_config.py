@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Hermes : Change Data Capture (CDC) tool from any source(s) to any target
-# Copyright (C) 2023 INSA Strasbourg
+# Copyright (C) 2023, 2024 INSA Strasbourg
 #
 # This file is part of Hermes.
 #
@@ -29,7 +29,7 @@ import shutil
 import signal
 from types import FrameType
 
-from hermestestcase import HermesServerTestCase
+from .hermestestcase import HermesServerTestCase
 from lib.config import (
     HermesConfig,
     HermesInvalidAppname,
@@ -39,7 +39,7 @@ from lib.config import (
 
 
 class TestConfigClass(unittest.TestCase):
-    __FILEDIR__ = f"{os.path.realpath(os.path.dirname(__file__))}"
+    fixturesdir = f"{os.path.realpath(os.path.dirname(__file__))}/fixtures"
 
     def test_validateAppname(self):
         """Test Config._validateAppname"""
@@ -98,9 +98,7 @@ class TestConfigClass(unittest.TestCase):
         config["appname"] = "hermes-server"
         schemas = config._getRequiredSchemas()
 
-        schemas[
-            "hermestestempty"
-        ] = f"{self.__FILEDIR__}/tests/schema_files/empty_schema.yml"
+        schemas["hermestestempty"] = f"{self.fixturesdir}/schema_files/empty_schema.yml"
         merged = config._mergeSchemas(schemas)
         self.assertSetEqual(set(merged.keys()), set(["hermes", "hermes-server"]))
 
@@ -114,7 +112,7 @@ class TestConfigClass(unittest.TestCase):
 
         schemas[
             "hermestestschema"
-        ] = f"{os.getcwd()}/tests/schema_files/invalid_several_keys.yml"
+        ] = f"{self.fixturesdir}/schema_files/invalid_several_keys.yml"
         self.assertRaises(HermesInvalidConfigSchemaKey, config._mergeSchemas, schemas)
 
     def test_mergeSchemas_with_invalid_schema_key_name(self):
@@ -127,7 +125,7 @@ class TestConfigClass(unittest.TestCase):
 
         schemas[
             "hermestestschema"
-        ] = f"{os.getcwd()}/tests/schema_files/invalid_key_name.yml"
+        ] = f"{self.fixturesdir}/schema_files/invalid_key_name.yml"
         self.assertRaises(HermesInvalidConfigSchemaKey, config._mergeSchemas, schemas)
 
 
@@ -140,7 +138,9 @@ class TestConfig_Server(HermesServerTestCase):
         self.assertIsNone(config.load())
 
     def test_duplicated_keys(self):
-        shutil.copy(f"{self.confdir}/duplicated_keys.yml", self.conffile)
+        shutil.copy(
+            f"{self.fixturesdir}/config_files/duplicated_keys.yml", self.conffile
+        )
 
         config = HermesConfig(autoload=False)
 

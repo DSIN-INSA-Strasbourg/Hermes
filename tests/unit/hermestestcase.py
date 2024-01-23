@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Hermes : Change Data Capture (CDC) tool from any source(s) to any target
-# Copyright (C) 2023 INSA Strasbourg
+# Copyright (C) 2023, 2024 INSA Strasbourg
 #
 # This file is part of Hermes.
 #
@@ -38,7 +38,7 @@ class HermesServerTestCase(unittest.TestCase):
     main = __main__.__file__
     argv = sys.argv.copy()
     cwd = os.getcwd()
-    confdir = f"{os.path.realpath(os.path.dirname(__file__))}/config_files/server"
+    fixturesdir = f"{os.path.realpath(os.path.dirname(__file__))}/fixtures"
     tmpdir: TemporaryDirectory | None = None
     conffile = None
 
@@ -66,7 +66,7 @@ class HermesServerTestCase(unittest.TestCase):
     @classmethod
     def loadYaml(cls, path=None):
         if path is None:
-            path = f"{cls.confdir}/valid.yml"
+            path = f"{cls.fixturesdir}/config_files/server-valid.yml"
         with open(path) as f:
             conf = yaml.load(f, Loader=yaml.CSafeLoader)
 

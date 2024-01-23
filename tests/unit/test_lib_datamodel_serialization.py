@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Hermes : Change Data Capture (CDC) tool from any source(s) to any target
-# Copyright (C) 2023 INSA Strasbourg
+# Copyright (C) 2023, 2024 INSA Strasbourg
 #
 # This file is part of Hermes.
 #
@@ -23,7 +23,7 @@
 from datetime import datetime
 import os.path
 
-from hermestestcase import HermesServerTestCase
+from .hermestestcase import HermesServerTestCase
 from lib.datamodel.serialization import (
     JSONSerializable,
     LocalCache,
@@ -207,7 +207,7 @@ class TestJSONEncoderClass(HermesServerTestCase):
         self.assertEqual(
             cm.output,
             [
-                "WARNING:hermes:Unsortable type <class 'test_lib_datamodel_serialization.TestJSONEncoderClass.test_tojson_withunsortable.<locals>.SerializationObj2'> exported as JSON. You should consider to set is sortable"
+                "WARNING:hermes:Unsortable type <class 'unit.test_lib_datamodel_serialization.TestJSONEncoderClass.test_tojson_withunsortable.<locals>.SerializationObj2'> exported as JSON. You should consider to set is sortable"
             ],
         )
 
