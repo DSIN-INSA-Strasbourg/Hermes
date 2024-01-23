@@ -170,6 +170,10 @@ class GenericClient:
         self.__isStopped: bool = False
         """mainloop() will run until this var is set to True"""
 
+        self.__numberOfLoopToProcess: int | None = None
+        """**For functionnal tests only**, if a value is set, will process for *value*
+        iterations of mainloop and pause execution until a new positive value is set"""
+
         self.__sock: SockServer | None = None
         """Facultative socket to allow cli communication"""
         if self.__config["hermes"]["cli_socket"]["path"] is not None:
@@ -461,7 +465,7 @@ class GenericClient:
 
             with self._msgbus:
                 try:
-                    if self.__isPaused:
+                    if self.__isPaused or self.__numberOfLoopToProcess == 0:
                         sleep(1)
                         continue
 
@@ -514,6 +518,10 @@ class GenericClient:
                             self.__datamodel.saveLocalAndRemoteData()
                         self.__callHandler("", "save")  # Call special event "on_save()"
                         self.__notifyQueueErrors()
+
+            # Only used in functionnal tests
+            if self.__numberOfLoopToProcess:
+                self.__numberOfLoopToProcess -= 1
 
     def __retryErrorQueue(self):
         # Enforce retryInterval

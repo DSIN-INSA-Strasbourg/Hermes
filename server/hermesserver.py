@@ -111,6 +111,9 @@ class HermesServer:
             seconds=config["hermes-server"]["updateInterval"]
         )
         """Interval between two update"""
+        self._numberOfLoopToProcess: int | None = None
+        """**For functionnal tests only**, if a value is set, will process for *value*
+        iterations of mainloop and pause execution until a new positive value is set"""
 
         self._firstFetchDone = False
         """Indicate if a full data set has been fetched since start"""
@@ -455,35 +458,43 @@ class HermesServer:
                     self.initsync()
                     self._initSyncRequested = False
 
-                if self._forceUpdate or (
-                    not self._isPaused and datetime.now() >= self._nextUpdate
+                if (
+                    not self._forceUpdate
+                    and not self._numberOfLoopToProcess
+                    and (self._isPaused or datetime.now() < self._nextUpdate)
                 ):
-                    # Standard run
-                    if self._forceUpdate:
-                        self._forceUpdate = False
-                    else:
-                        self._nextUpdate += self._updateInterval
+                    time.sleep(1)
+                    continue
 
-                    self.dm.fetch()
-                    self.generateAndSendEvents(
-                        eventCategory="base",
-                        data=self.dm.data,
-                        cache=self.dm.data.cache,
-                        save=True,
-                        commit=True,
-                        sendEvents=(self._cache.lastUpdate is not None),
-                    )
-                    self._cache.lastUpdate = datetime.now()
-                    self.notifyException(None)
-                    self._cache.savecachefile()
+                # Standard run
+                if self._forceUpdate:
+                    self._forceUpdate = False
+                else:
+                    self._nextUpdate += self._updateInterval
 
-                time.sleep(1)
+                self.dm.fetch()
+                self.generateAndSendEvents(
+                    eventCategory="base",
+                    data=self.dm.data,
+                    cache=self.dm.data.cache,
+                    save=True,
+                    commit=True,
+                    sendEvents=(self._cache.lastUpdate is not None),
+                )
+                self._cache.lastUpdate = datetime.now()
+                self.notifyException(None)
+                self._cache.savecachefile()
 
             except Exception as e:
                 lines = traceback.format_exception(type(e), e, e.__traceback__)
                 trace = "".join(lines).strip()
                 self.notifyException(trace)
                 self._cache.savecachefile()
+
+            # Only used in functionnal tests
+            if self._numberOfLoopToProcess:
+                self._numberOfLoopToProcess -= 1
+
         self._cache.savecachefile()
 
     def status(
