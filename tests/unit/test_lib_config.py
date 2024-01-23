@@ -39,6 +39,8 @@ from lib.config import (
 
 
 class TestConfigClass(unittest.TestCase):
+    __FILEDIR__ = f"{os.path.realpath(os.path.dirname(__file__))}"
+
     def test_validateAppname(self):
         """Test Config._validateAppname"""
         config = HermesConfig(autoload=False)
@@ -98,7 +100,7 @@ class TestConfigClass(unittest.TestCase):
 
         schemas[
             "hermestestempty"
-        ] = f"{os.getcwd()}/tests/schema_files/empty_schema.yml"
+        ] = f"{self.__FILEDIR__}/tests/schema_files/empty_schema.yml"
         merged = config._mergeSchemas(schemas)
         self.assertSetEqual(set(merged.keys()), set(["hermes", "hermes-server"]))
 
