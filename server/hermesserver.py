@@ -464,6 +464,11 @@ class HermesServer:
                     and (self._isPaused or datetime.now() < self._nextUpdate)
                 ):
                     time.sleep(1)
+                    if self._nextUpdate + self._updateInterval < datetime.now():
+                        # Keep updating _nextUpdate even when paused, ensuring that its
+                        # value remains in the past. This will avoid an uninterrupted
+                        # update sequence to make up for the pause time
+                        self._nextUpdate += self._updateInterval
                     continue
 
                 # Standard run
