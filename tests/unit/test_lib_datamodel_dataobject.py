@@ -26,7 +26,6 @@ from lib.datamodel.dataobject import DataObject, HermesMergingConflictError
 from lib.datamodel.jinja import HermesNativeEnvironment
 
 from jinja2 import StrictUndefined
-from jinja2.nativetypes import NativeEnvironment
 
 import logging
 
