@@ -60,6 +60,10 @@ class HermesUnspecifiedCacheFilename(Exception):
     has never been called"""
 
 
+class HermesLocalCacheNotSetupError(Exception):
+    """Raised when trying to use LocalCache without having called LocalCache.setup() before"""
+
+
 class JSONEncoder(json.JSONEncoder):
     """Helper to serialize specific objects (datetime, JSONSerializable) in JSON"""
 
@@ -176,37 +180,61 @@ class LocalCache(JSONSerializable):
     instance from cache file or save current instance to cache file.
     """
 
-    _backupCount: int = 0
-    """Number of backup files to retain"""
+    _settingsbyappname: dict[str, Any] = {}
+    """Class settings (below attributes) stored by appname to be thread safe
+    (only necessary for functional tests)"""
 
-    _cachedir: str = "/dev/null"
-    """Directory where cache file(s) will be stored"""
+    _extensions: dict[bool, str] = {True: ".json.gz", False: ".json"}
+    """Possible cache files extensions according to LocalCache._compressCache() value"""
 
-    _compressCache = False
-    """Boolean indicating if cache files must be gzipped or store as plain text"""
+    @staticmethod
+    def _backupCount() -> int:
+        """Number of backup files to retain"""
+        if __hermes__.appname not in LocalCache._settingsbyappname:
+            raise HermesLocalCacheNotSetupError(
+                "LocalCache.setup() has never be called : unable to use the LocalCache"
+            )
+        return LocalCache._settingsbyappname[__hermes__.appname]["_backupCount"]
 
-    _extensions = {True: ".json.gz", False: ".json"}
-    """Possible cache files extensions according to LocalCache._compressCache value"""
+    @staticmethod
+    def _cachedir() -> str:
+        """Directory where cache file(s) will be stored"""
+        if __hermes__.appname not in LocalCache._settingsbyappname:
+            raise HermesLocalCacheNotSetupError(
+                "LocalCache.setup() has never be called : unable to use the LocalCache"
+            )
+        return LocalCache._settingsbyappname[__hermes__.appname]["_cachedir"]
 
-    _extension = _extensions[_compressCache]
-    """Default cache files extension according to LocalCache._compressCache value"""
+    @staticmethod
+    def _compressCache() -> bool:
+        """Boolean indicating if cache files must be gzipped or store as plain text"""
+        if __hermes__.appname not in LocalCache._settingsbyappname:
+            raise HermesLocalCacheNotSetupError(
+                "LocalCache.setup() has never be called : unable to use the LocalCache"
+            )
+        return LocalCache._settingsbyappname[__hermes__.appname]["_compressCache"]
+
+    @staticmethod
+    def _extension() -> str:
+        """Default cache files extension according to LocalCache._compressCache() value"""
+        if __hermes__.appname not in LocalCache._settingsbyappname:
+            raise HermesLocalCacheNotSetupError(
+                "LocalCache.setup() has never be called : unable to use the LocalCache"
+            )
+        return LocalCache._extensions[
+            LocalCache._settingsbyappname[__hermes__.appname]["_compressCache"]
+        ]
 
     @staticmethod
     def setup(config: "HermesConfig"):
-        LocalCache._backupCount = config["hermes"]["cache"]["backup_count"]
-        """Number of backup files to retain"""
-
-        LocalCache._cachedir = config["hermes"]["cache"]["dirpath"]
-        """Directory where cache file(s) will be stored"""
-
-        LocalCache._compressCache = config["hermes"]["cache"]["enable_compression"]
-        """Boolean indicating if cache files must be gzipped or store as plain text"""
-
-        LocalCache._extensions = {True: ".json.gz", False: ".json"}
-        """Possible cache files extensions according to LocalCache._compressCache value"""
-
-        LocalCache._extension = LocalCache._extensions[LocalCache._compressCache]
-        """Default cache files extension according to LocalCache._compressCache value"""
+        LocalCache._settingsbyappname[__hermes__.appname] = {
+            "_backupCount": config["hermes"]["cache"]["backup_count"],
+            "_cachedir": config["hermes"]["cache"]["dirpath"],
+            "_compressCache": config["hermes"]["cache"]["enable_compression"],
+            "_extension": LocalCache._extensions[
+                config["hermes"]["cache"]["enable_compression"]
+            ],
+        }
 
     def __init__(
         self,
@@ -216,27 +244,25 @@ class LocalCache(JSONSerializable):
         super().__init__(jsondataattr)
         self.setCacheFilename(cachefilename)
 
-        if not os.path.exists(LocalCache._cachedir):
+        if not os.path.exists(LocalCache._cachedir()):
             __hermes__.logger.info(
-                f"Local cache dir '{LocalCache._cachedir}' doesn't exists: create it"
+                f"Local cache dir '{LocalCache._cachedir()}' doesn't exists: create it"
             )
             try:
-                os.makedirs(LocalCache._cachedir, 0o770)
+                os.makedirs(LocalCache._cachedir(), 0o770)
             except Exception as e:
                 __hermes__.logger.fatal(
-                    f"Unable to create local cache dir '{LocalCache._cachedir}': {str(e)}"
+                    f"Unable to create local cache dir '{LocalCache._cachedir()}': {str(e)}"
                 )
                 raise
 
-        if not os.path.isdir(LocalCache._cachedir):
-            err = f"Local cache dir '{LocalCache._cachedir}' exists and is not a directory"
+        if not os.path.isdir(LocalCache._cachedir()):
+            err = f"Local cache dir '{LocalCache._cachedir()}' exists and is not a directory"
             __hermes__.logger.fatal(err)
             raise HermesInvalidCacheDirError(err)
 
-        if not os.access(LocalCache._cachedir, os.W_OK):
-            err = (
-                f"Local cache dir '{LocalCache._cachedir}' exists but is not writeable"
-            )
+        if not os.access(LocalCache._cachedir(), os.W_OK):
+            err = f"Local cache dir '{LocalCache._cachedir()}' exists but is not writeable"
             __hermes__.logger.fatal(err)
             raise HermesInvalidCacheDirError(err)
 
@@ -266,11 +292,11 @@ class LocalCache(JSONSerializable):
         if content != oldcontent:
             # Use a temp file to ensure new data is written before rotating old files
             tmpfilepath: str
-            destpath: str = f"{LocalCache._cachedir}/{self._localCache_filename}{LocalCache._extension}"
+            destpath: str = f"{LocalCache._cachedir()}/{self._localCache_filename}{LocalCache._extension()}"
 
             with NamedTemporaryFile(
-                dir=LocalCache._cachedir,
-                suffix=LocalCache._extension,
+                dir=LocalCache._cachedir(),
+                suffix=LocalCache._extension(),
                 mode="wt",
                 delete=False,
             ) as tmp:
@@ -323,18 +349,18 @@ class LocalCache(JSONSerializable):
         """
         for extension in (
             # Extension that should be used according to Config
-            LocalCache._extensions[LocalCache._compressCache],
+            LocalCache._extensions[LocalCache._compressCache()],
             # Extension that could be used if settings has changed
-            LocalCache._extensions[not LocalCache._compressCache],
+            LocalCache._extensions[not LocalCache._compressCache()],
         ):
-            filepath = f"{LocalCache._cachedir}/{filename}{extension}"
+            filepath = f"{LocalCache._cachedir()}/{filename}{extension}"
             if os.path.exists(filepath):
                 return (True, filepath, extension)
 
         # Not found
         return (
             False,
-            f"{LocalCache._cachedir}/{filename}{LocalCache._extension}",
+            f"{LocalCache._cachedir()}/{filename}{LocalCache._extension()}",
             None,
         )
 
@@ -347,11 +373,11 @@ class LocalCache(JSONSerializable):
     @classmethod
     def _rotatecachefile(cls: type[AnyLocalCache], filename: str):
         idxlen = 6
-        for i in range(LocalCache._backupCount, 0, -1):
+        for i in range(LocalCache._backupCount(), 0, -1):
             oldsuffix = f".{str(i-1).zfill(idxlen)}" if i > 1 else ""
             found, old, ext = cls._getExistingFilePath(f"{filename}{oldsuffix}")
             if found:
-                new = f"{LocalCache._cachedir}/{filename}.{str(i).zfill(idxlen)}{ext}"
+                new = f"{LocalCache._cachedir()}/{filename}.{str(i).zfill(idxlen)}{ext}"
                 os.rename(old, new)
 
     @classmethod
@@ -365,7 +391,7 @@ class LocalCache(JSONSerializable):
 
         # Remove backup cache files
         idxlen = 6
-        for i in range(LocalCache._backupCount, 0, -1):
+        for i in range(LocalCache._backupCount(), 0, -1):
             suffix = f".{str(i-1).zfill(idxlen)}" if i > 1 else ""
             found, path, ext = cls._getExistingFilePath(f"{filename}{suffix}")
             if found:

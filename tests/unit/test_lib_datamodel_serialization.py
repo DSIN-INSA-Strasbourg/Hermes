@@ -394,17 +394,19 @@ class TestLocalCacheClass(HermesServerTestCase):
         )
 
     def test_createcachedir(self):
-        LocalCache._cachedir += "/hermes-test"
+        LocalCache._settingsbyappname[__hermes__.appname]["_cachedir"] += "/hermes-test"
         with self.assertLogs(__hermes__.logger, level="INFO") as cm:
             o = self.SerializationObj(from_raw_dict=TestJSONEncoderClass.dict)
 
         self.assertRegex(
             cm.output[0],
-            f"INFO:hermes-unit-tests:Local cache dir '{LocalCache._cachedir}' doesn't exists: create it",
+            f"INFO:hermes-unit-tests:Local cache dir '{LocalCache._cachedir()}' doesn't exists: create it",
         )
 
     def test_unabletocreatecachedir(self):
-        LocalCache._cachedir = "/sbin/hermes-test"
+        LocalCache._settingsbyappname[__hermes__.appname][
+            "_cachedir"
+        ] = "/sbin/hermes-test"
         with self.assertLogs(__hermes__.logger, level="FATAL"):
             self.assertRaisesRegex(
                 PermissionError,
@@ -414,7 +416,7 @@ class TestLocalCacheClass(HermesServerTestCase):
             )
 
     def test_invalidcachedir_isfile(self):
-        LocalCache._cachedir = "/dev/null"
+        LocalCache._settingsbyappname[__hermes__.appname]["_cachedir"] = "/dev/null"
         with self.assertLogs(__hermes__.logger, level="FATAL"):
             self.assertRaisesRegex(
                 HermesInvalidCacheDirError,
@@ -424,7 +426,7 @@ class TestLocalCacheClass(HermesServerTestCase):
             )
 
     def test_invalidcachedir_nowriteaccess(self):
-        LocalCache._cachedir = "/sbin"
+        LocalCache._settingsbyappname[__hermes__.appname]["_cachedir"] = "/sbin"
         with self.assertLogs(__hermes__.logger, level="FATAL"):
             self.assertRaisesRegex(
                 HermesInvalidCacheDirError,
