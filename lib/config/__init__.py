@@ -30,6 +30,7 @@ import importlib
 import os.path
 import sys
 import signal
+import threading
 import warnings
 import yaml
 from lib.datamodel.serialization import LocalCache
@@ -188,6 +189,10 @@ class HermesConfig(LocalCache):
             handler(signalnumber: int, frame: FrameType | None) -> None
         See https://docs.python.org/3/library/signal.html#signal.signal
         """
+        if threading.current_thread() is not threading.main_thread():
+            # Do nothing if ran in a sub thread
+            # (should happen only from from functional tests)
+            return
         for signum in [signal.SIGINT, signal.SIGTERM]:
             signal.signal(signum, handler)
 
