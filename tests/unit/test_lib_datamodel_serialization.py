@@ -36,8 +36,6 @@ from lib.datamodel.serialization import (
 
 import logging
 
-logger = logging.getLogger("hermes")
-
 
 class TestJSONEncoderClass(HermesServerTestCase):
     dict = {
@@ -202,12 +200,12 @@ class TestJSONEncoderClass(HermesServerTestCase):
                     self.attrs = 1
 
         o = SerializationObj2()
-        with self.assertLogs(logger, level="WARNING") as cm:
+        with self.assertLogs(__hermes__.logger, level="WARNING") as cm:
             o.to_json()
         self.assertEqual(
             cm.output,
             [
-                "WARNING:hermes:Unsortable type <class 'unit.test_lib_datamodel_serialization.TestJSONEncoderClass.test_tojson_withunsortable.<locals>.SerializationObj2'> exported as JSON. You should consider to set is sortable"
+                "WARNING:hermes-unit-tests:Unsortable type <class 'unit.test_lib_datamodel_serialization.TestJSONEncoderClass.test_tojson_withunsortable.<locals>.SerializationObj2'> exported as JSON. You should consider to set is sortable"
             ],
         )
 
@@ -385,29 +383,29 @@ class TestLocalCacheClass(HermesServerTestCase):
         self.assertDictEqual(o1.attrs, o2.attrs)
 
     def test_loadcachefile_unexistent(self):
-        with self.assertLogs(logger, level="INFO") as cm:
+        with self.assertLogs(__hermes__.logger, level="INFO") as cm:
             o = self.SerializationObj.loadcachefile("testserialization")
 
         self.assertDictEqual(o.attrs, dict())
         self.assertEqual(len(cm.output), 1)
         self.assertRegex(
             cm.output[0],
-            "INFO:hermes:Specified cache file '.+' doesn't exists, returning empty data",
+            "INFO:hermes-unit-tests:Specified cache file '.+' doesn't exists, returning empty data",
         )
 
     def test_createcachedir(self):
         LocalCache._cachedir += "/hermes-test"
-        with self.assertLogs(logger, level="INFO") as cm:
+        with self.assertLogs(__hermes__.logger, level="INFO") as cm:
             o = self.SerializationObj(from_raw_dict=TestJSONEncoderClass.dict)
 
         self.assertRegex(
             cm.output[0],
-            f"INFO:hermes:Local cache dir '{LocalCache._cachedir}' doesn't exists: create it",
+            f"INFO:hermes-unit-tests:Local cache dir '{LocalCache._cachedir}' doesn't exists: create it",
         )
 
     def test_unabletocreatecachedir(self):
         LocalCache._cachedir = "/sbin/hermes-test"
-        with self.assertLogs(logger, level="FATAL"):
+        with self.assertLogs(__hermes__.logger, level="FATAL"):
             self.assertRaisesRegex(
                 PermissionError,
                 "\\[Errno 13\\] Permission denied: '/sbin/hermes-test'",
@@ -417,7 +415,7 @@ class TestLocalCacheClass(HermesServerTestCase):
 
     def test_invalidcachedir_isfile(self):
         LocalCache._cachedir = "/dev/null"
-        with self.assertLogs(logger, level="FATAL"):
+        with self.assertLogs(__hermes__.logger, level="FATAL"):
             self.assertRaisesRegex(
                 HermesInvalidCacheDirError,
                 "Local cache dir '/dev/null' exists and is not a directory",
@@ -427,7 +425,7 @@ class TestLocalCacheClass(HermesServerTestCase):
 
     def test_invalidcachedir_nowriteaccess(self):
         LocalCache._cachedir = "/sbin"
-        with self.assertLogs(logger, level="FATAL"):
+        with self.assertLogs(__hermes__.logger, level="FATAL"):
             self.assertRaisesRegex(
                 HermesInvalidCacheDirError,
                 "Local cache dir '/sbin' exists but is not writeable",

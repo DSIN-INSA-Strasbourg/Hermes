@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Hermes : Change Data Capture (CDC) tool from any source(s) to any target
-# Copyright (C) 2023 INSA Strasbourg
+# Copyright (C) 2023, 2024 INSA Strasbourg
 #
 # This file is part of Hermes.
 #
@@ -27,10 +27,6 @@ from lib.datamodel.serialization import LocalCache
 from lib.datamodel.dataobject import DataObject
 from lib.datamodel.dataobjectlist import DataObjectList
 from lib.datamodel.diffobject import DiffObject
-
-import logging
-
-logger = logging.getLogger("hermes")
 
 
 class HermesInvalidDataschemaError(Exception):
@@ -66,12 +62,12 @@ class Dataschema(LocalCache):
         # Args validity check
         if from_raw_dict is None and from_json_dict is None:
             err = f"Cannot instantiate schema from nothing: you must specify one data source"
-            logger.critical(err)
+            __hermes__.logger.critical(err)
             raise AttributeError(err)
 
         if from_raw_dict is not None and from_json_dict is not None:
             err = f"Cannot instantiate schema from multiple data sources at once"
-            logger.critical(err)
+            __hermes__.logger.critical(err)
             raise AttributeError(err)
 
         from_dict: dict[str, Any] = from_raw_dict if from_raw_dict else from_json_dict
@@ -138,7 +134,7 @@ class Dataschema(LocalCache):
             # Remove TOSTRING as we don't need it anymore, and because a compiled Jinja
             # template can't be copied with deepcopy
             del self._schema[objname]["TOSTRING"]
-            logger.debug(
+            __hermes__.logger.debug(
                 f"<{objname} has been set up from schema>:"
                 f" PRIMARYKEY_ATTRIBUTE='{objcls.PRIMARYKEY_ATTRIBUTE}'"
                 f" - HERMES_ATTRIBUTES={objcls.HERMES_ATTRIBUTES}"

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Hermes : Change Data Capture (CDC) tool from any source(s) to any target
-# Copyright (C) 2023 INSA Strasbourg
+# Copyright (C) 2023, 2024 INSA Strasbourg
 #
 # This file is part of Hermes.
 #
@@ -42,8 +42,7 @@ def setup_logger(config: "HermesConfig"):  # pragma: no cover
         "debug": logging.DEBUG,
     }
 
-    logger = logging.getLogger("hermes")
-    logger.setLevel(loglevels[config["hermes"]["logs"]["verbosity"]])
+    __hermes__.logger.setLevel(loglevels[config["hermes"]["logs"]["verbosity"]])
 
     log_format = logging.Formatter(
         "%(levelname)s:%(asctime)s:%(filename)s:%(lineno)d:%(funcName)s():%(message)s"
@@ -54,7 +53,7 @@ def setup_logger(config: "HermesConfig"):  # pragma: no cover
         stream_handler = logging.StreamHandler()
         stream_handler.setFormatter(log_format)
         stream_handler.setLevel(loglevels[config["hermes"]["logs"]["verbosity"]])
-        logger.addHandler(stream_handler)
+        __hermes__.logger.addHandler(stream_handler)
 
     # log file output when set up
     if config["hermes"]["logs"]["logfile"] is not None:
@@ -65,4 +64,4 @@ def setup_logger(config: "HermesConfig"):  # pragma: no cover
         )
         file_handler.setFormatter(log_format)
         file_handler.setLevel(loglevels[config["hermes"]["logs"]["verbosity"]])
-        logger.addHandler(file_handler)
+        __hermes__.logger.addHandler(file_handler)

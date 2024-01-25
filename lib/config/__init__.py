@@ -42,9 +42,6 @@ from lib.plugins import (
 from lib.utils.singleton import SingleInstance, SingleInstanceException
 
 import lib.utils.logging
-import logging
-
-logger = logging.getLogger("hermes")
 
 
 class HermesConfigError(Exception):
@@ -352,7 +349,7 @@ class HermesConfig(LocalCache):
             raise TypeError(
                 f"Plugin <{pluginName}> is not a subclass of '{pluginSuperClass.__name__}'"
             )
-        logger.info(f"Loaded plugin {pluginFamilyDir}/{pluginName}")
+        __hermes__.logger.info(f"Loaded plugin {pluginFamilyDir}/{pluginName}")
 
     def _loadDatasourcesPlugins(self):
         """Load every Datasources plugins"""

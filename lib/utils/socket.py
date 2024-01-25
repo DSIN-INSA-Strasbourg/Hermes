@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Hermes : Change Data Capture (CDC) tool from any source(s) to any target
-# Copyright (C) 2023 INSA Strasbourg
+# Copyright (C) 2023, 2024 INSA Strasbourg
 #
 # This file is part of Hermes.
 #
@@ -32,10 +32,7 @@ from stat import S_ISSOCK
 from time import sleep
 from typing import Any, Callable, IO
 
-import logging
 from lib.datamodel.serialization import JSONSerializable
-
-logger = logging.getLogger("hermes")
 
 
 class InvalidSocketMessageError(Exception):
@@ -101,12 +98,12 @@ class SocketMessageToServer(JSONSerializable):
 
         if argv is None and from_json_dict is None:
             err = f"Cannot instantiante object from nothing: you must specify one data source"
-            logger.critical(err)
+            __hermes__.logger.critical(err)
             raise AttributeError(err)
 
         if argv is not None and from_json_dict is not None:
             err = f"Cannot instantiante object from multiple data sources at once"
-            logger.critical(err)
+            __hermes__.logger.critical(err)
             raise AttributeError(err)
 
         if argv is not None:
@@ -116,13 +113,13 @@ class SocketMessageToServer(JSONSerializable):
 
         if type(self.argv) != list:
             err = f"Invalid type for argv: {type(self.argv)} instead of list"
-            logger.warning(err)
+            __hermes__.logger.warning(err)
             raise InvalidSocketMessageError(err)
 
         for item in self.argv:
             if type(item) != str:
                 err = f"Invalid type in argv: {type(item)} instead of str"
-                logger.warning(err)
+                __hermes__.logger.warning(err)
                 raise InvalidSocketMessageError(err)
 
 
@@ -142,12 +139,12 @@ class SocketMessageToClient(JSONSerializable):
 
         if (retcode is None or retmsg is None) and from_json_dict is None:
             err = f"Cannot instantiante object from nothing: you must specify one data source"
-            logger.critical(err)
+            __hermes__.logger.critical(err)
             raise AttributeError(err)
 
         if (retcode is not None or retmsg is not None) and from_json_dict is not None:
             err = f"Cannot instantiante object from multiple data sources at once"
-            logger.critical(err)
+            __hermes__.logger.critical(err)
             raise AttributeError(err)
 
         if retcode is not None:
@@ -159,12 +156,12 @@ class SocketMessageToClient(JSONSerializable):
 
         if type(self.retcode) != int:
             err = f"Invalid type for retcode: {type(self.retcode)} instead of int"
-            logger.warning(err)
+            __hermes__.logger.warning(err)
             raise InvalidSocketMessageError(err)
 
         if type(self.retmsg) != str:
             err = f"Invalid type for retmsg: {type(self.retmsg)} instead of str"
-            logger.warning(err)
+            __hermes__.logger.warning(err)
             raise InvalidSocketMessageError(err)
 
 
@@ -254,14 +251,14 @@ class SockServer:
                 # Check for new incoming connection
                 connection, client_address = self._sock.accept()
             except BlockingIOError:
-                # logger.debug("No new connection")
+                # __hermes__.logger.debug("No new connection")
                 break
 
             # Set a reasonnable timeout to prevent blocking whole app if a client
             # doesn't close its sending pipe
             connection.settimeout(1)
 
-            logger.debug(f"New CLI connection")
+            __hermes__.logger.debug(f"New CLI connection")
             # Receive the data
             msg = b""
             try:
@@ -271,7 +268,7 @@ class SockServer:
                         break  # EOF
                     msg += data
             except Exception as e:
-                logger.warning(f"Got exception during receive: {str(e)}")
+                __hermes__.logger.warning(f"Got exception during receive: {str(e)}")
             else:
                 # Process message, and generate reply
                 try:
@@ -284,12 +281,14 @@ class SockServer:
                     try:
                         connection.sendall(reply.to_json().encode())  # send reply
                     except Exception as e:
-                        logger.warning(f"Got exception during send: {str(e)}")
+                        __hermes__.logger.warning(
+                            f"Got exception during send: {str(e)}"
+                        )
 
             try:
                 connection.close()
             except Exception as e:
-                logger.warning(f"Got exception during close: {str(e)}")
+                __hermes__.logger.warning(f"Got exception during close: {str(e)}")
 
     def startProcessMessagesDaemon(self):
         """Will call undefinitly processMessagesInQueue() in a separate thread.

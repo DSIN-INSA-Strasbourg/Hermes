@@ -25,10 +25,6 @@ from .hermestestcase import HermesServerTestCase
 from lib.datamodel.datasource import Datasource
 from server.datamodel import Datamodel
 
-import logging
-
-logger = logging.getLogger("hermes")
-
 
 class TestDatasourceClass(HermesServerTestCase):
     @classmethod

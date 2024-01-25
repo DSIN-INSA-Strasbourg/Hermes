@@ -25,10 +25,6 @@ from .hermestestcase import HermesServerTestCase
 from lib.datamodel.dataobject import DataObject
 from lib.datamodel.dataobjectlist import DataObjectList
 
-import logging
-
-logger = logging.getLogger("hermes")
-
 
 class TestDataobjectlistClass(HermesServerTestCase):
     @classmethod

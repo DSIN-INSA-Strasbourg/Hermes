@@ -27,8 +27,6 @@ from lib.datamodel.event import Event
 
 import logging
 
-logger = logging.getLogger("hermes")
-
 
 class TestEventQueueClass(HermesServerTestCase):
     typesMapping = {"TestObj1": "TestObj1_local", "TestObj2": "TestObj2_local"}
@@ -768,12 +766,12 @@ class TestEventQueueClass(HermesServerTestCase):
             "step": 0,
         }
         event = Event(from_json_dict=evjson)
-        with self.assertLogs(logger, level="INFO") as cm:
+        with self.assertLogs(__hermes__.logger, level="INFO") as cm:
             eq.append("remote", event, "Fake error message")
         self.assertEqual(len(cm.output), 1)
         self.assertRegex(
             cm.output[0],
-            "INFO:hermes:Ignore loading of remote event of unknown objtype UnknownTestObj",
+            "INFO:hermes-unit-tests:Ignore loading of remote event of unknown objtype UnknownTestObj",
         )
         self.assertEqual(len(eq), 0)  # Queue should be empty
 

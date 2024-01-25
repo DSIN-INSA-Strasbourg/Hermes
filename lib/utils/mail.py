@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Hermes : Change Data Capture (CDC) tool from any source(s) to any target
-# Copyright (C) 2023 INSA Strasbourg
+# Copyright (C) 2023, 2024 INSA Strasbourg
 #
 # This file is part of Hermes.
 #
@@ -27,10 +27,6 @@ from dataclasses import dataclass
 import difflib
 import gzip
 import smtplib
-
-import logging
-
-logger = logging.getLogger("hermes")
 
 
 @dataclass
@@ -89,7 +85,7 @@ class Email:
             s.send_message(msg)
             s.quit()
         except Exception as e:
-            logger.warning(f"Fail to send mail {subject=}: {str(e)}")
+            __hermes__.logger.warning(f"Fail to send mail {subject=}: {str(e)}")
 
     @staticmethod
     def sendDiff(

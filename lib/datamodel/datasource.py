@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Hermes : Change Data Capture (CDC) tool from any source(s) to any target
-# Copyright (C) 2023 INSA Strasbourg
+# Copyright (C) 2023, 2024 INSA Strasbourg
 #
 # This file is part of Hermes.
 #
@@ -28,9 +28,6 @@ from lib.datamodel.dataobjectlist import DataObjectList
 from lib.datamodel.dataschema import Dataschema
 
 from copy import deepcopy
-import logging
-
-logger = logging.getLogger("hermes")
 
 
 class Datasource:

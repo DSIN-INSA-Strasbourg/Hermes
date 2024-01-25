@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Hermes : Change Data Capture (CDC) tool from any source(s) to any target
-# Copyright (C) 2023 INSA Strasbourg
+# Copyright (C) 2023, 2024 INSA Strasbourg
 #
 # This file is part of Hermes.
 #
@@ -39,10 +39,6 @@ from lib.datamodel.jinja import (
     Jinja,
     HermesUnknownVarsInJinjaTemplateError,
 )
-
-import logging
-
-logger = logging.getLogger("hermes")
 
 
 class InvalidDatamodelError(Exception):
@@ -246,7 +242,7 @@ class Datamodel:
                         " containing the pkey value and transform it locally if you really"
                         " need to"
                     )
-                    logger.critical(err)
+                    __hermes__.logger.critical(err)
                     raise InvalidDatamodelError(err)
 
         new_local_pkeys = {}
@@ -259,7 +255,7 @@ class Datamodel:
         if new_remote_pkeys:
             self.saveLocalAndRemoteData()
             self.saveErrorQueue()
-            logger.info(f"Updating changed primary keys in error queue")
+            __hermes__.logger.info(f"Updating changed primary keys in error queue")
             self.errorqueue.updatePrimaryKeys(
                 new_remote_pkeys,
                 self.remotedata_complete,
@@ -267,13 +263,13 @@ class Datamodel:
                 self.localdata_complete,
             )
 
-            logger.info(
+            __hermes__.logger.info(
                 f"Updating changed remote primary keys in remote cache {new_remote_pkeys=}"
             )
             self.remotedata.updatePrimaryKeys(new_remote_pkeys)
             self.remotedata_complete.updatePrimaryKeys(new_remote_pkeys)
 
-            logger.info(
+            __hermes__.logger.info(
                 f"Updating changed local primary keys in local cache {new_local_pkeys=}"
             )
             self.localdata.updatePrimaryKeys(new_local_pkeys)
@@ -311,10 +307,10 @@ class Datamodel:
             new: dict[str, Any] = newschema.schema
 
             if diff.added:
-                logger.info(f"Types added in Dataschema: {diff.added}")
+                __hermes__.logger.info(f"Types added in Dataschema: {diff.added}")
 
             if diff.removed:
-                logger.info(
+                __hermes__.logger.info(
                     f"Types removed from Dataschema: {diff.removed}, purging cache files"
                 )
                 self.purgeOldCacheFiles(diff.removed)
@@ -327,11 +323,11 @@ class Datamodel:
                     added = n["HERMES_ATTRIBUTES"] - o["HERMES_ATTRIBUTES"]
                     removed = o["HERMES_ATTRIBUTES"] - n["HERMES_ATTRIBUTES"]
                     if added:
-                        logger.info(
+                        __hermes__.logger.info(
                             f"New attributes in dataschema type '{objtype}': {added}"
                         )
                     if removed:
-                        logger.info(
+                        __hermes__.logger.info(
                             f"Removed attributes from dataschema type '{objtype}': {removed}"
                         )
 
@@ -339,7 +335,7 @@ class Datamodel:
                     added = n["SECRETS_ATTRIBUTES"] - o["SECRETS_ATTRIBUTES"]
                     removed = o["SECRETS_ATTRIBUTES"] - n["SECRETS_ATTRIBUTES"]
                     if added:
-                        logger.info(
+                        __hermes__.logger.info(
                             f"New secrets attributes in dataschema type '{objtype}': {added}"
                         )
                         # We need to purge attribute from cache: as cache is loaded with
@@ -349,7 +345,7 @@ class Datamodel:
                         self.saveRemoteData()
                         self.loadRemoteData()
                     if removed:
-                        logger.info(
+                        __hermes__.logger.info(
                             f"Removed secrets attributes from dataschema type '{objtype}': {removed}"
                         )
 
@@ -358,7 +354,7 @@ class Datamodel:
                     opkey = o["PRIMARYKEY_ATTRIBUTE"]
                     if DataObject.isDifferent(npkey, opkey):
                         newpkeys[objtype] = npkey
-                        logger.info(
+                        __hermes__.logger.info(
                             f"New primary key attribute in dataschema type '{objtype}': {npkey}"
                         )
 
@@ -373,7 +369,9 @@ class Datamodel:
         and will only be used to render Jinja Templates.
         Returns None if local event doesn't contains any attribute"""
         if event.objtype not in self.typesmapping:
-            logger.debug(f"Unknown {event.objtype=}. Known are {self.typesmapping}")
+            __hermes__.logger.debug(
+                f"Unknown {event.objtype=}. Known are {self.typesmapping}"
+            )
             return None  # Unknown type
 
         objtype = self.typesmapping[event.objtype]
@@ -601,7 +599,7 @@ class Datamodel:
 
         if missingpkeys:
             err = f"Datamodel errors: remote primary keys are missing from current Dataschema: {missingpkeys}"
-            logger.critical(err)
+            __hermes__.logger.critical(err)
             raise InvalidDatamodelError(err)
 
     def _setupLocalSchema(self) -> Dataschema:
@@ -643,12 +641,12 @@ class Datamodel:
 
             if len(pkey) != len(remotepkey):
                 err = f"Primary keys mismatch between remote schema and local datamodel for objtype '{objtype}': remote={remotepkey} ; local={pkey}"
-                logger.critical(err)
+                __hermes__.logger.critical(err)
                 raise InvalidDatamodelError(err)
 
             if len(pkey) == 0:
                 err = f"No primary key found in local AND in remote datamodel for objtype '{objtype}'. This should never happen and is undoubtly a bug."
-                logger.critical(err)
+                __hermes__.logger.critical(err)
                 raise InvalidDatamodelError(err)
             elif len(pkey) == 1:
                 pkey = pkey[0]

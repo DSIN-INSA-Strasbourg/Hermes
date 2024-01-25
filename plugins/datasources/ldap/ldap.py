@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Hermes : Change Data Capture (CDC) tool from any source(s) to any target
-# Copyright (C) 2023 INSA Strasbourg
+# Copyright (C) 2023, 2024 INSA Strasbourg
 #
 # This file is part of Hermes.
 #
@@ -29,10 +29,6 @@ if TYPE_CHECKING:  # pragma: no cover
 from lib.plugins import AbstractDataSourcePlugin
 import ldap, ldap.modlist
 from datetime import datetime
-
-import logging
-
-logger = logging.getLogger("hermes")
 
 HERMES_PLUGIN_CLASSNAME: str | None = "DatasourceLdap"
 """The plugin class name defined in this module file"""

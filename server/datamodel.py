@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Hermes : Change Data Capture (CDC) tool from any source(s) to any target
-# Copyright (C) 2023 INSA Strasbourg
+# Copyright (C) 2023, 2024 INSA Strasbourg
 #
 # This file is part of Hermes.
 #
@@ -42,10 +42,6 @@ from lib.datamodel.jinja import (
 )
 from lib.plugins import AbstractDataSourcePlugin
 from lib.datamodel.datasource import Datasource
-
-import logging
-
-logger = logging.getLogger("hermes")
 
 
 class HermesDataModelMissingPrimarykeyError(Exception):
@@ -136,7 +132,7 @@ class DatamodelFragment:
         newcls.CACHEONLY_ATTRIBUTES = set(self._settings["cacheonly_attrs"])
         newcls.LOCAL_ATTRIBUTES = set(self._settings["local_attrs"])
 
-        logger.debug(
+        __hermes__.logger.debug(
             f"Created dynamic class:\n"
             f"  {newcls.__name__}:\n"
             f"    - {newcls.PRIMARYKEY_ATTRIBUTE=}\n"
@@ -198,7 +194,7 @@ class DatamodelFragment:
 
             if unhashable:
                 err = f""""Invalid value type for primary key(s) : {unhashable}. Primary keys must be 'hashable'"""
-                logger.critical(err)
+                __hermes__.logger.critical(err)
                 raise HermesInvalidPrimarykeyTypeError(err)
 
             if type(objcls.PRIMARYKEY_ATTRIBUTE) == tuple:
@@ -272,7 +268,7 @@ class DatamodelFragment:
         otherwise returns a list of dict containing each entry fetched, with
         REMOTE_ATTRIBUTES as keys, and corresponding fetched values as values
         """
-        logger.debug(
+        __hermes__.logger.debug(
             f"{self.getDataobjClass().__name__}: _runQuery({querytype=}, {query=}, {queryvars=})"
         )
         fetcheddata = None
@@ -293,11 +289,11 @@ class DatamodelFragment:
 
         elapsedms = int(round(1000 * (time.time() - starttime)))
         if fetcheddata is None:
-            logger.debug(
+            __hermes__.logger.debug(
                 f"{self.getDataobjClass().__name__}: _runQuery() returned in {elapsedms} ms"
             )
         else:
-            logger.debug(
+            __hermes__.logger.debug(
                 f"{self.getDataobjClass().__name__}: _runQuery() returned {len(fetcheddata)} entries in {elapsedms} ms"
             )
 
@@ -463,7 +459,7 @@ class Datamodel:
             for fragment in self._fragments[objtype]:
                 fragment.fetch(cache)  # Fetch fragment data from remote source
             elapsedms = int(round(1000 * (time.time() - starttime)))
-            logger.debug(
+            __hermes__.logger.debug(
                 f"Fetched and converted all <{objtype}> data in {elapsedms} ms"
             )
 
@@ -512,7 +508,7 @@ class Datamodel:
                                     break
                         if toRemove:
                             hasChanged = True
-                            # logger.debug(
+                            # __hermes__.logger.debug(
                             #     f"Merge constraints: filtering {len(toRemove)} item(s) from {fragment.datasourcename}"
                             # )
                             for obj in toRemove:
@@ -520,7 +516,7 @@ class Datamodel:
                                 mergeFiltered.add(obj.getPKey())
 
                 elapsedms = int(round(1000 * (time.time() - starttime)))
-                logger.debug(
+                __hermes__.logger.debug(
                     f"Enforced <{objtype}> merge constraints in {elapsedms} ms: filtered {len(mergeFiltered)} item(s)"
                 )
 
@@ -538,7 +534,7 @@ class Datamodel:
                     )
             objlist.mergeFiltered |= mergeFiltered
             elapsedms = int(round(1000 * (time.time() - starttime)))
-            logger.debug(
+            __hermes__.logger.debug(
                 f"Merged all <{objtype}> data in {elapsedms} ms: filtered {len(mergeFiltered)} item(s)"
             )
 
@@ -598,13 +594,13 @@ class Datamodel:
                         hasChanged = True
                         for pkey in integrityFiltered:
                             self.data[objtype].removeByPkey(pkey)
-                        logger.debug(
+                        __hermes__.logger.debug(
                             f"Integrity constraints: filtered {len(integrityFiltered)} item(s) from {objtype}"
                         )
                         self.data[objtype].integrityFiltered |= integrityFiltered
 
             elapsedms = int(round(1000 * (time.time() - starttime)))
-            logger.debug(f"Integrity constraints enforced in {elapsedms} ms")
+            __hermes__.logger.debug(f"Integrity constraints enforced in {elapsedms} ms")
 
     def commit_one(self, obj: DataObject):
         """Commit that specified 'obj' data changes have successfully sent to message bus"""

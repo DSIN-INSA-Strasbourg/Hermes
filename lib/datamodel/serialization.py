@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Hermes : Change Data Capture (CDC) tool from any source(s) to any target
-# Copyright (C) 2023 INSA Strasbourg
+# Copyright (C) 2023, 2024 INSA Strasbourg
 #
 # This file is part of Hermes.
 #
@@ -37,10 +37,6 @@ import os
 import os.path
 import gzip
 import re
-
-import logging
-
-logger = logging.getLogger("hermes")
 
 
 class HermesInvalidJSONError(Exception):
@@ -123,7 +119,7 @@ class JSONSerializable:
             if not isinstance(data, dict):
                 data = sorted(data)
         except TypeError:
-            logger.warning(
+            __hermes__.logger.warning(
                 f"Unsortable type {type(self)} exported as JSON. You should consider to set is sortable"
             )
         return json.dumps(data, cls=JSONEncoder, indent=4)
@@ -221,27 +217,27 @@ class LocalCache(JSONSerializable):
         self.setCacheFilename(cachefilename)
 
         if not os.path.exists(LocalCache._cachedir):
-            logger.info(
+            __hermes__.logger.info(
                 f"Local cache dir '{LocalCache._cachedir}' doesn't exists: create it"
             )
             try:
                 os.makedirs(LocalCache._cachedir, 0o770)
             except Exception as e:
-                logger.fatal(
+                __hermes__.logger.fatal(
                     f"Unable to create local cache dir '{LocalCache._cachedir}': {str(e)}"
                 )
                 raise
 
         if not os.path.isdir(LocalCache._cachedir):
             err = f"Local cache dir '{LocalCache._cachedir}' exists and is not a directory"
-            logger.fatal(err)
+            __hermes__.logger.fatal(err)
             raise HermesInvalidCacheDirError(err)
 
         if not os.access(LocalCache._cachedir, os.W_OK):
             err = (
                 f"Local cache dir '{LocalCache._cachedir}' exists but is not writeable"
             )
-            logger.fatal(err)
+            __hermes__.logger.fatal(err)
             raise HermesInvalidCacheDirError(err)
 
     def savecachefile(
@@ -298,7 +294,7 @@ class LocalCache(JSONSerializable):
     ) -> AnyLocalCache:
         found, filepath, ext = cls._getExistingFilePath(filename)
         if not found:
-            logger.info(
+            __hermes__.logger.info(
                 f"Specified cache file '{filepath}' doesn't exists, returning empty data"
             )
             jsondata = "{}"
@@ -364,7 +360,7 @@ class LocalCache(JSONSerializable):
         # Remove main cache file
         found, path, ext = cls._getExistingFilePath(f"{filename}")
         if found:
-            logger.debug(f"Deleting '{path}'")
+            __hermes__.logger.debug(f"Deleting '{path}'")
             os.remove(path)
 
         # Remove backup cache files
@@ -373,5 +369,5 @@ class LocalCache(JSONSerializable):
             suffix = f".{str(i-1).zfill(idxlen)}" if i > 1 else ""
             found, path, ext = cls._getExistingFilePath(f"{filename}{suffix}")
             if found:
-                logger.debug(f"Deleting '{path}'")
+                __hermes__.logger.debug(f"Deleting '{path}'")
                 os.remove(path)

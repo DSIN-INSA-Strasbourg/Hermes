@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Hermes : Change Data Capture (CDC) tool from any source(s) to any target
-# Copyright (C) 2023 INSA Strasbourg
+# Copyright (C) 2023, 2024 INSA Strasbourg
 #
 # This file is part of Hermes.
 #
@@ -29,10 +29,6 @@
 import os
 import sys
 import tempfile
-
-import logging
-
-logger = logging.getLogger("hermes")
 
 
 if sys.platform != "win32":
@@ -68,7 +64,7 @@ class SingleInstance(object):  # pragma: no cover
         ).replace("/", "-").replace(":", "").replace("\\", "-") + ".lock"
         self.lockfile = os.path.normpath(tempfile.gettempdir() + "/" + basename)
 
-        logger.debug("SingleInstance lockfile: " + self.lockfile)
+        __hermes__.logger.debug("SingleInstance lockfile: " + self.lockfile)
         if sys.platform == "win32":
             try:
                 # file already exists, we try to remove (in case previous
@@ -79,7 +75,9 @@ class SingleInstance(object):  # pragma: no cover
             except OSError:
                 type, e, tb = sys.exc_info()
                 if e.errno == 13:
-                    logger.error("Another instance is already running, quitting.")
+                    __hermes__.logger.error(
+                        "Another instance is already running, quitting."
+                    )
                     raise SingleInstanceException()
                 print(e.errno)
                 raise
@@ -89,7 +87,9 @@ class SingleInstance(object):  # pragma: no cover
             try:
                 fcntl.lockf(self.fp, fcntl.LOCK_EX | fcntl.LOCK_NB)
             except IOError:
-                logger.error("Another instance is already running, quitting.")
+                __hermes__.logger.error(
+                    "Another instance is already running, quitting."
+                )
                 raise SingleInstanceException()
         self.initialized = True
 
@@ -107,8 +107,8 @@ class SingleInstance(object):  # pragma: no cover
                 if os.path.isfile(self.lockfile):
                     os.unlink(self.lockfile)
         except Exception as e:
-            if logger:
-                logger.warning(e)
+            if __hermes__.logger:
+                __hermes__.logger.warning(e)
             else:
                 print("Unloggable error: %s" % e)
             sys.exit(-1)

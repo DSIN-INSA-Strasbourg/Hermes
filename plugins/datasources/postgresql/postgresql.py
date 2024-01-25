@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Hermes : Change Data Capture (CDC) tool from any source(s) to any target
-# Copyright (C) 2023 INSA Strasbourg
+# Copyright (C) 2023, 2024 INSA Strasbourg
 #
 # This file is part of Hermes.
 #
@@ -25,10 +25,6 @@ from typing import Any
 from lib.plugins import AbstractDataSourcePlugin
 import psycopg
 from psycopg.rows import dict_row
-
-import logging
-
-logger = logging.getLogger("hermes")
 
 HERMES_PLUGIN_CLASSNAME: str | None = "DatasourcePostgresql"
 """The plugin class name defined in this module file"""

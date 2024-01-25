@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Hermes : Change Data Capture (CDC) tool from any source(s) to any target
-# Copyright (C) 2023 INSA Strasbourg
+# Copyright (C) 2023, 2024 INSA Strasbourg
 #
 # This file is part of Hermes.
 #
@@ -28,10 +28,6 @@ from jinja2.nativetypes import NativeCodeGenerator
 from jinja2.nodes import Output, TemplateData
 from types import GeneratorType
 from typing import Any, Iterable, Optional
-
-import logging
-
-logger = logging.getLogger("hermes")
 
 
 class HermesNotAJinjaExpression(Exception):

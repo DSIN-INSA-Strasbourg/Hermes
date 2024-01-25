@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Hermes : Change Data Capture (CDC) tool from any source(s) to any target
-# Copyright (C) 2023 INSA Strasbourg
+# Copyright (C) 2023, 2024 INSA Strasbourg
 #
 # This file is part of Hermes.
 #
@@ -22,13 +22,13 @@
 
 from lib.config import HermesConfig
 
+import builtins
 import importlib
 import sys
+import threading
 import traceback
 import logging
 from os.path import basename
-
-logger = logging.getLogger("hermes")
 
 if __name__ == "__main__":
     # Allow the app context to be specified by script name or symlink name
@@ -46,6 +46,11 @@ if __name__ == "__main__":
         appname = config["appname"]
     else:
         appname = f"hermes-{sys.argv[1]}"
+
+    # Global logger setup
+    builtins.__hermes__ = threading.local()
+    __hermes__.appname = appname
+    __hermes__.logger = logging.getLogger(appname)
 
     try:
         #######
@@ -113,7 +118,9 @@ if __name__ == "__main__":
                     f"plugins.clients.{clientname}.{clientname}"
                 )
             except ModuleNotFoundError:
-                logger.critical(f"""Specified client '{clientname}' doesn't exist""")
+                __hermes__.logger.critical(
+                    f"""Specified client '{clientname}' doesn't exist"""
+                )
                 sys.exit(2)
 
             config = HermesConfig()
@@ -124,7 +131,7 @@ if __name__ == "__main__":
         lines = traceback.format_exception(type(e), e, e.__traceback__)
         trace = "".join(lines).strip()
 
-        logger.critical(f"Unhandled exception: {trace}")
+        __hermes__.logger.critical(f"Unhandled exception: {trace}")
         sys.exit(1)
 
     sys.exit(0)

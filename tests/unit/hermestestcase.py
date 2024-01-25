@@ -24,10 +24,12 @@ import unittest
 
 import __main__
 
+import builtins
 import os
 import shutil
 import sys
 from tempfile import TemporaryDirectory
+import threading
 import yaml
 
 from lib.config import HermesConfig
@@ -45,6 +47,12 @@ class HermesServerTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         logging.disable(logging.CRITICAL)
+
+        # Global logger setup
+        appname = "hermes-unit-tests"
+        builtins.__hermes__ = threading.local()
+        __hermes__.appname = appname
+        __hermes__.logger = logging.getLogger(appname)
 
         # Force server context
         __main__.__file__ = f"{cls.cwd}/hermes.py"

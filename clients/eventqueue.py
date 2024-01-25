@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Hermes : Change Data Capture (CDC) tool from any source(s) to any target
-# Copyright (C) 2023 INSA Strasbourg
+# Copyright (C) 2023, 2024 INSA Strasbourg
 #
 # This file is part of Hermes.
 #
@@ -20,8 +20,6 @@
 # along with Hermes. If not, see <https://www.gnu.org/licenses/>.
 
 
-import logging
-
 from copy import deepcopy
 from typing import Any, Iterable
 
@@ -29,8 +27,6 @@ from lib.datamodel.event import Event
 from lib.datamodel.dataobject import DataObject
 from lib.datamodel.datasource import Datasource
 from lib.datamodel.serialization import LocalCache
-
-logger = logging.getLogger("hermes")
 
 
 class HermesInvalidEventQueueJSONError(Exception):
@@ -99,7 +95,7 @@ class EventQueue(LocalCache):
             raise IndexError(f"Specified {eventNumber=} already exist in queue")
 
         if event.objtype not in self._typesMapping[eventType]:
-            logger.info(
+            __hermes__.logger.info(
                 f"Ignore loading of {eventType} event of unknown objtype {event.objtype}"
             )
             return
@@ -141,7 +137,7 @@ class EventQueue(LocalCache):
             ):
                 del objattrs[key]
 
-            logger.info(
+            __hermes__.logger.info(
                 f"Merging {prevEvent.objattrs=} with {lastEvent.objattrs=}, result is {objattrs=}"
             )
             prevEvent.objattrs = objattrs
@@ -172,7 +168,7 @@ class EventQueue(LocalCache):
                 ).keys() & objattrs.get(prevAction, dict()):
                     del objattrs[prevAction][key]
 
-            logger.info(
+            __hermes__.logger.info(
                 f"Merging {prevEvent.objattrs=} with {lastEvent.objattrs=}, result is {objattrs=}"
             )
             prevEvent.objattrs = objattrs

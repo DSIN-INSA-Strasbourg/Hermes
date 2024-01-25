@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Hermes : Change Data Capture (CDC) tool from any source(s) to any target
-# Copyright (C) 2023 INSA Strasbourg
+# Copyright (C) 2023, 2024 INSA Strasbourg
 #
 # This file is part of Hermes.
 #
@@ -24,10 +24,6 @@ from typing import Any, Iterable
 from jinja2 import Undefined
 
 from lib.datamodel.event import Event
-
-import logging
-
-logger = logging.getLogger("hermes")
 
 
 class FailedToSendEventError(Exception):
@@ -83,7 +79,7 @@ class AbstractDataSourcePlugin:
         try:
             self.close()
         except Exception as e:
-            logger.error(
+            __hermes__.logger.error(
                 f"Error when disconnecting from {self.__class__.__name__}: {str(e)}"
             )
             return False
@@ -154,7 +150,7 @@ class AbstractMessageBusProducerPlugin:
         try:
             self.close()
         except Exception as e:
-            logger.error(
+            __hermes__.logger.error(
                 f"Error when disconnecting from {self.__class__.__name__}: {str(e)}"
             )
             return False
@@ -181,7 +177,7 @@ class AbstractMessageBusProducerPlugin:
         try:
             self._send(event)
         except Exception as e:
-            logger.critical(f"Failed to send event: {str(e)}")
+            __hermes__.logger.critical(f"Failed to send event: {str(e)}")
             raise FailedToSendEventError(str(e)) from None
 
 
@@ -213,7 +209,7 @@ class AbstractMessageBusConsumerPlugin:
         try:
             self.close()
         except Exception as e:
-            logger.error(
+            __hermes__.logger.error(
                 f"Error when disconnecting from {self.__class__.__name__}: {str(e)}"
             )
             return False

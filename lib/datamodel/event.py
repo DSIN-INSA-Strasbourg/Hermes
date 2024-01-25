@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Hermes : Change Data Capture (CDC) tool from any source(s) to any target
-# Copyright (C) 2023 INSA Strasbourg
+# Copyright (C) 2023, 2024 INSA Strasbourg
 #
 # This file is part of Hermes.
 #
@@ -20,8 +20,6 @@
 # along with Hermes. If not, see <https://www.gnu.org/licenses/>.
 
 
-import logging
-
 from typing import Any
 
 from lib.datamodel.dataobject import DataObject
@@ -29,8 +27,6 @@ from lib.datamodel.diffobject import DiffObject
 from lib.datamodel.serialization import JSONSerializable
 
 from datetime import datetime
-
-logger = logging.getLogger("hermes")
 
 
 class Event(JSONSerializable):
@@ -57,12 +53,12 @@ class Event(JSONSerializable):
 
         if objattrs is None and from_json_dict is None:
             err = f"Cannot instantiate object from nothing: you must specify one data source"
-            logger.critical(err)
+            __hermes__.logger.critical(err)
             raise AttributeError(err)
 
         if objattrs is not None and from_json_dict is not None:
             err = f"Cannot instantiate object from multiple data sources at once"
-            logger.critical(err)
+            __hermes__.logger.critical(err)
             raise AttributeError(err)
 
         __jsondataattrs = [

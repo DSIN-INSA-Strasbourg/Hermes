@@ -25,10 +25,6 @@ from .hermestestcase import HermesServerTestCase
 from lib.datamodel.dataobject import DataObject
 from lib.datamodel.event import Event
 
-import logging
-
-logger = logging.getLogger("hermes")
-
 
 class TestEventClass(HermesServerTestCase):
     def setUp(self):

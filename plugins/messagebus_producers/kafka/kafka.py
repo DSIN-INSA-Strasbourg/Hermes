@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Hermes : Change Data Capture (CDC) tool from any source(s) to any target
-# Copyright (C) 2023 INSA Strasbourg
+# Copyright (C) 2023, 2024 INSA Strasbourg
 #
 # This file is part of Hermes.
 #
@@ -25,10 +25,6 @@ from lib.datamodel.event import Event
 
 from kafka import KafkaProducer
 from typing import Any
-
-import logging
-
-logger = logging.getLogger("hermes")
 
 HERMES_PLUGIN_CLASSNAME: str | None = "KafkaProducerPlugin"
 """The plugin class name defined in this module file"""

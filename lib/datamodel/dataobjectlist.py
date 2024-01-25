@@ -30,10 +30,6 @@ from lib.datamodel.diffobject import DiffObject
 from lib.datamodel.dataobject import DataObject, HermesMergingConflictError
 from lib.datamodel.serialization import LocalCache
 
-import logging
-
-logger = logging.getLogger("hermes")
-
 
 class DataObjectList(LocalCache):
     """Generic serializable list of DataObject
@@ -88,12 +84,12 @@ class DataObjectList(LocalCache):
 
         if objlist is None and from_json_dict is None:
             err = f"Cannot instantiate object from nothing: you must specify one data source"
-            logger.critical(err)
+            __hermes__.logger.critical(err)
             raise AttributeError(err)
 
         if objlist is not None and from_json_dict is not None:
             err = f"Cannot instantiate object from multiple data sources at once"
-            logger.critical(err)
+            __hermes__.logger.critical(err)
             raise AttributeError(err)
 
         if objlist is not None:
@@ -160,7 +156,7 @@ class DataObjectList(LocalCache):
 
         pkey = objconverted.getPKey()
         if pkey in self._inconsistencies | self._mergeConflicts:
-            # logger.debug(
+            # __hermes__.logger.debug(
             #     f"<{self.__class__.__name__}> Ignoring {objconverted=} because already known as an inconsistency"
             # )
             return
@@ -168,7 +164,7 @@ class DataObjectList(LocalCache):
         if pkey not in self._datadict:
             self._datadict[pkey] = objconverted
         else:
-            logger.warning(
+            __hermes__.logger.warning(
                 f"<{self.__class__.__name__}> Trying to insert an already existing object: {objconverted=}"
             )
             self._inconsistencies.add(pkey)
@@ -264,7 +260,7 @@ class DataObjectList(LocalCache):
             for pkey in pkeysToRemove:
                 self.removeByPkey(pkey)
 
-        logger.debug(
+        __hermes__.logger.debug(
             f"pkey_merge_constraints: merged {len(pkeysMerged)} objects, ignored {len(pkeysIgnored)} objects, removed {len(pkeysToRemove)} objects from {type(self)}"
         )
 
@@ -294,7 +290,7 @@ class DataObjectList(LocalCache):
 
         diffcount = [f"{len(v)} {k}" for k, v in diff.dict.items() if len(v) > 0]
         info = ", ".join(diffcount) if diffcount else "no difference"
-        logger.debug(
+        __hermes__.logger.debug(
             f"{self.__class__.__name__}: Diffed {len(s)}/{len(o)} entries in {elapsed} ms: {info}"
         )
         return diff
@@ -316,12 +312,12 @@ class DataObjectList(LocalCache):
             for pkey in src:
                 if pkey in cache.getPKeys():
                     self._datadict[pkey] = cache[pkey]
-                    logger.warning(
+                    __hermes__.logger.warning(
                         f"Entry of pkey {pkey} with {srcname} found in cache, using cache value"
                     )
                 else:
                     # Data shouldn't contains an entry with this pkey anymore, nothing to do
-                    logger.warning(
+                    __hermes__.logger.warning(
                         f"Entry of pkey {pkey} with {srcname} not found in cache, ignoring it"
                     )
 

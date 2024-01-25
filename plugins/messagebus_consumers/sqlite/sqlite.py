@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Hermes : Change Data Capture (CDC) tool from any source(s) to any target
-# Copyright (C) 2023 INSA Strasbourg
+# Copyright (C) 2023, 2024 INSA Strasbourg
 #
 # This file is part of Hermes.
 #
@@ -29,10 +29,6 @@ from datetime import datetime, timedelta
 import sqlite3
 import time
 
-import logging
-
-logger = logging.getLogger("hermes")
-
 HERMES_PLUGIN_CLASSNAME: str | None = "SqliteConsumerPlugin"
 """The plugin class name defined in this module file"""
 
@@ -56,7 +52,9 @@ class SqliteConsumerPlugin(AbstractMessageBusConsumerPlugin):
             self._db = sqlite3.connect(database=database, uri=True)
         except sqlite3.OperationalError:
             # No db file found
-            logger.info(f"Sqlite bus file '{self._settings['uri']}' doesn't exist yet")
+            __hermes__.logger.info(
+                f"Sqlite bus file '{self._settings['uri']}' doesn't exist yet"
+            )
         else:
             self._db.row_factory = sqlite3.Row
 

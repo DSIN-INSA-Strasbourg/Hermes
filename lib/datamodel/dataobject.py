@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Hermes : Change Data Capture (CDC) tool from any source(s) to any target
-# Copyright (C) 2023 INSA Strasbourg
+# Copyright (C) 2023, 2024 INSA Strasbourg
 #
 # This file is part of Hermes.
 #
@@ -25,10 +25,6 @@ from lib.datamodel.serialization import JSONSerializable
 
 from jinja2.environment import Template
 from typing import Any
-
-import logging
-
-logger = logging.getLogger("hermes")
 
 
 class HermesMergingConflictError(Exception):
@@ -100,12 +96,12 @@ class DataObject(JSONSerializable):
 
         if from_remote is None and from_json_dict is None:
             err = f"Cannot instantiate object from nothing: you must specify one data source"
-            logger.critical(err)
+            __hermes__.logger.critical(err)
             raise AttributeError(err)
 
         if from_remote is not None and from_json_dict is not None:
             err = f"Cannot instantiate object from multiple data sources at once"
-            logger.critical(err)
+            __hermes__.logger.critical(err)
             raise AttributeError(err)
 
         if from_remote is not None:
@@ -127,7 +123,7 @@ class DataObject(JSONSerializable):
         missingattrs = self.REMOTE_ATTRIBUTES.difference(from_remote.keys())
         if len(missingattrs) > 0:
             err = f"Required attributes are missing from specified from_remote dict: {missingattrs}"
-            logger.critical(err)
+            __hermes__.logger.critical(err)
             raise AttributeError(err)
 
         self._data: dict[str, Any] = {}
@@ -151,7 +147,7 @@ class DataObject(JSONSerializable):
                     del self._data[attr]
             else:
                 err = f"Invalid type met in HERMES_TO_REMOTE_MAPPING['{attr}']: {type(remoteattr)}"
-                logger.critical(err)
+                __hermes__.logger.critical(err)
                 raise AttributeError(err)
 
     def __init_from_json_dict__(self, from_json_dict: dict[str, Any]):
@@ -320,7 +316,7 @@ class DataObject(JSONSerializable):
                 if raiseExceptionOnConflict:
                     raise HermesMergingConflictError(err)
                 else:
-                    logger.debug(f"{err}. The first one is kept")
+                    __hermes__.logger.debug(f"{err}. The first one is kept")
             # else: attributes have same value
 
     def getPKey(self) -> Any:

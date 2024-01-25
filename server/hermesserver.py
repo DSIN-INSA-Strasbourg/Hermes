@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Hermes : Change Data Capture (CDC) tool from any source(s) to any target
-# Copyright (C) 2023 INSA Strasbourg
+# Copyright (C) 2023, 2024 INSA Strasbourg
 #
 # This file is part of Hermes.
 #
@@ -47,10 +47,6 @@ import signal
 import traceback
 from types import FrameType
 from typing import Any
-
-import logging
-
-logger = logging.getLogger("hermes")
 
 
 class HermesServerCache(LocalCache):
@@ -203,7 +199,7 @@ class HermesServer:
 
     def signalHandler(self, signalnumber: int, frame: FrameType | None):
         """Signal handler that will be called on SIGINT and SIGTERM"""
-        logger.critical(
+        __hermes__.logger.critical(
             f"Signal '{signal.strsignal(signalnumber)}' received, terminating"
         )
         self._isStopped = True
@@ -229,7 +225,7 @@ class HermesServer:
             except Exception as e:
                 lines = traceback.format_exception(type(e), e, e.__traceback__)
                 trace = "".join(lines).strip()
-                logger.critical(f"Unhandled exception: {trace}")
+                __hermes__.logger.critical(f"Unhandled exception: {trace}")
                 retmsg = trace
 
         if reply is None:  # Error was met
@@ -250,7 +246,7 @@ class HermesServer:
     def sock_quit(self, args: argparse.Namespace) -> SocketMessageToClient:
         """Handler called when quit subcommand is requested on unix socket"""
         self._isStopped = True
-        logger.info("hermes-server has been requested to quit")
+        __hermes__.logger.info("hermes-server has been requested to quit")
         return SocketMessageToClient(retcode=0, retmsg="")
 
     def sock_pause(self, args: argparse.Namespace) -> SocketMessageToClient:
@@ -265,7 +261,7 @@ class HermesServer:
                 retcode=1, retmsg="Error: server is already paused"
             )
 
-        logger.info("hermes-server has been requested to pause")
+        __hermes__.logger.info("hermes-server has been requested to pause")
         self._isPaused = datetime.now()
         return SocketMessageToClient(retcode=0, retmsg="")
 
@@ -281,7 +277,7 @@ class HermesServer:
                 retcode=1, retmsg="Error: server is not paused"
             )
 
-        logger.info("hermes-server has been requested to resume")
+        __hermes__.logger.info("hermes-server has been requested to resume")
         self._isPaused = None
         return SocketMessageToClient(retcode=0, retmsg="")
 
@@ -326,15 +322,15 @@ class HermesServer:
             old: dict[str, Any] = oldschema.schema
             new: dict[str, Any] = curschema.schema
             if old:
-                logger.info("Dataschema has changed since last run")
+                __hermes__.logger.info("Dataschema has changed since last run")
             else:
-                logger.info("Loading first dataschema")
+                __hermes__.logger.info("Loading first dataschema")
 
             if diff.added:
-                logger.info(f"Types added in Dataschema: {diff.added}")
+                __hermes__.logger.info(f"Types added in Dataschema: {diff.added}")
 
             if diff.removed:
-                logger.info(
+                __hermes__.logger.info(
                     f"Types removed from Dataschema: {diff.removed}, generate events to mark data as deleted"
                 )
 
@@ -362,7 +358,7 @@ class HermesServer:
                     sendEvents=True,
                 )
 
-                logger.info(
+                __hermes__.logger.info(
                     f"Types removed from Dataschema: {diff.removed}, purging cache files"
                 )
                 for objtype in diff.removed:
@@ -377,11 +373,11 @@ class HermesServer:
                     added = n["HERMES_ATTRIBUTES"] - o["HERMES_ATTRIBUTES"]
                     removed = o["HERMES_ATTRIBUTES"] - n["HERMES_ATTRIBUTES"]
                     if added:
-                        logger.info(
+                        __hermes__.logger.info(
                             f"New attributes in dataschema type '{objtype}': {added}"
                         )
                     if removed:
-                        logger.info(
+                        __hermes__.logger.info(
                             f"Removed attributes from dataschema type '{objtype}': {removed}"
                         )
 
@@ -389,7 +385,7 @@ class HermesServer:
                     added = n["SECRETS_ATTRIBUTES"] - o["SECRETS_ATTRIBUTES"]
                     removed = o["SECRETS_ATTRIBUTES"] - n["SECRETS_ATTRIBUTES"]
                     if added:
-                        logger.info(
+                        __hermes__.logger.info(
                             f"New secrets attributes in dataschema type '{objtype}': {added}"
                         )
                         # We need to purge attribute from cache: as cache is loaded with
@@ -399,7 +395,7 @@ class HermesServer:
                         self.dm.data.cache.save()
                         self.dm.data.cache.loadFromCache()
                     if removed:
-                        logger.info(
+                        __hermes__.logger.info(
                             f"Removed secrets attributes from dataschema type '{objtype}': {removed}"
                         )
 
@@ -415,7 +411,9 @@ class HermesServer:
                         schema=oldschema, enableTrashbin=False, enableCache=False
                     )
                     olddata.loadFromCache()
-                    logger.info(f"Updating changed primary keys in cache {newpkeys=}")
+                    __hermes__.logger.info(
+                        f"Updating changed primary keys in cache {newpkeys=}"
+                    )
                     # Only necessary to ensure no problem is met, may be removed
                     olddata.updatePrimaryKeys(newpkeys)
                     self.dm.data.loadFromCache()  # Reload modified data to get new pkeys values
@@ -426,7 +424,9 @@ class HermesServer:
                     eventtype="dataschema",
                     objattrs=new,
                 )
-                logger.info(f"Sending new schema on message bus {e.toString(set())}")
+                __hermes__.logger.info(
+                    f"Sending new schema on message bus {e.toString(set())}"
+                )
                 with self._msgbus:
                     self._msgbus.send(event=e)
 
@@ -615,7 +615,7 @@ class HermesServer:
 
         if eventCategory not in ("base", "initsync"):
             err = f"Specified eventType '{eventCategory}' is invalid"
-            logger.critical(err)
+            __hermes__.logger.critical(err)
             raise ValueError(err)
 
         with self._msgbus:
@@ -636,7 +636,7 @@ class HermesServer:
                 diff = data[objtype].diffFrom(cache[objtype])
                 diffs[objtype] = diff
                 if diff:
-                    logger.info(
+                    __hermes__.logger.info(
                         f"{objtype} have changed: {len(diff.added)} added,"
                         f" {len(diff.modified)} modified,"
                         f" {len(diff.removed)} removed"
@@ -665,13 +665,15 @@ class HermesServer:
                         if sendEvents:
                             # Send event
                             try:
-                                logger.info(f"Sending {event.toString(secretAttrs)}")
+                                __hermes__.logger.info(
+                                    f"Sending {event.toString(secretAttrs)}"
+                                )
                                 self._msgbus.send(event=event)
                             except FailedToSendEventError as e:
                                 # Event not sent
                                 if save:
                                     cache.save()
-                                logger.critical(
+                                __hermes__.logger.critical(
                                     f"Failed to send event. Execution aborted: {str(e)}"
                                 )
                                 raise
@@ -722,7 +724,7 @@ class HermesServer:
         nl = "\n"
 
         if new_errors:
-            logger.error(f"Data errors met: {nl}{new_errstr}")
+            __hermes__.logger.error(f"Data errors met: {nl}{new_errstr}")
 
         if new_errstr != old_errstr:
             if new_errors:
@@ -730,7 +732,7 @@ class HermesServer:
             else:
                 desc = "no more data errors"
 
-            logger.info(desc)
+            __hermes__.logger.info(desc)
             Email.sendDiff(
                 config=self.config,
                 contentdesc=desc,
@@ -742,7 +744,7 @@ class HermesServer:
     def notifyException(self, trace: str | None):
         """Notify of any unhandled exception met/solved"""
         if trace:
-            logger.critical(f"Unhandled exception: {trace}")
+            __hermes__.logger.critical(f"Unhandled exception: {trace}")
 
         if self._cache.exception != trace:
             if trace:
@@ -750,7 +752,7 @@ class HermesServer:
             else:
                 desc = "no more unhandled exception"
 
-            logger.info(desc)
+            __hermes__.logger.info(desc)
             previous = "" if self._cache.exception is None else self._cache.exception
             current = "" if trace is None else trace
             Email.sendDiff(

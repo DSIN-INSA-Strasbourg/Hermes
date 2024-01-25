@@ -29,8 +29,6 @@ from jinja2 import StrictUndefined
 
 import logging
 
-logger = logging.getLogger("hermes")
-
 
 class TestDataobjectClass(HermesServerTestCase):
     def setUp(self):
@@ -550,13 +548,13 @@ class TestDataobjectClass(HermesServerTestCase):
         user1.cn = "Other User"
 
         user.mergeWith(other=user1, raiseExceptionOnConflict=False)
-        with self.assertLogs(logger, level="DEBUG") as cm:
+        with self.assertLogs(__hermes__.logger, level="DEBUG") as cm:
             user.mergeWith(other=user2, raiseExceptionOnConflict=False)
 
         self.assertEqual(
             cm.output,
             [
-                "DEBUG:hermes:Merging conflict. Attribute 'cn' exist on both objects with differents values (<TestUsers[42]>: 'Other User' / <TestUsersSource2[42]>: 'Test User'). The first one is kept"
+                "DEBUG:hermes-unit-tests:Merging conflict. Attribute 'cn' exist on both objects with differents values (<TestUsers[42]>: 'Other User' / <TestUsersSource2[42]>: 'Test User'). The first one is kept"
             ],
         )
 
