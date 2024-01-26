@@ -458,11 +458,16 @@ class HermesServer:
                     self.initsync()
                     self._initSyncRequested = False
 
-                if (
-                    not self._forceUpdate
-                    and not self._numberOfLoopToProcess
-                    and (self._isPaused or datetime.now() < self._nextUpdate)
-                ):
+                if self._numberOfLoopToProcess is None:
+                    # Normal operations
+                    updateRequired = self._forceUpdate or (
+                        not self._isPaused and datetime.now() >= self._nextUpdate
+                    )
+                else:
+                    # Special case for functional tests
+                    updateRequired = self._numberOfLoopToProcess > 0
+
+                if not updateRequired:
                     time.sleep(1)
                     if self._nextUpdate + self._updateInterval < datetime.now():
                         # Keep updating _nextUpdate even when paused, ensuring that its
