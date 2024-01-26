@@ -457,7 +457,7 @@ class GenericClient:
             __hermes__.logger.debug(f"No remote Dataschema in cache yet")
 
         if self.__sock is not None:
-            self.__sock.startProcessMessagesDaemon()
+            self.__sock.startProcessMessagesDaemon(appname=__hermes__.appname)
 
         isFirstLoopIteration: bool = True
         while not self.__isStopped:

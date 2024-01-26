@@ -23,6 +23,7 @@
 import argparse
 import atexit
 import grp
+import logging
 import os
 import pwd
 import socket
@@ -290,14 +291,24 @@ class SockServer:
             except Exception as e:
                 __hermes__.logger.warning(f"Got exception during close: {str(e)}")
 
-    def startProcessMessagesDaemon(self):
+    def startProcessMessagesDaemon(self, appname: str | None = None):
         """Will call undefinitly processMessagesInQueue() in a separate thread.
         Its to the caller responsability to ensure there will be no race
-        condition beetween threads"""
-        t = threading.Thread(target=self.__daemonLoop, daemon=True)
+        condition beetween threads
+
+        If appname is specified, the daemon loop will fill local thread attributes of
+        builtin var "__hermes__" at start
+        """
+        t = threading.Thread(
+            target=self.__daemonLoop, daemon=True, kwargs={"appname": appname}
+        )
         t.start()
 
-    def __daemonLoop(self):
+    def __daemonLoop(self, appname: str | None = None):
+        if appname:
+            __hermes__.appname = appname
+            __hermes__.logger = logging.getLogger(appname)
+
         while True:
             self.processMessagesInQueue()
             sleep(0.5)

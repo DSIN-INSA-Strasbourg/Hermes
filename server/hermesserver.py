@@ -437,7 +437,7 @@ class HermesServer:
         self.startTime = datetime.now()
 
         if self._sock is not None:
-            self._sock.startProcessMessagesDaemon()
+            self._sock.startProcessMessagesDaemon(appname=__hermes__.appname)
 
         # Process schema changes if any, until it succeed
         checkForSchemaChangesDone = False
