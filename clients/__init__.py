@@ -464,11 +464,11 @@ class GenericClient:
             self.__saveRequired = False
 
             with self._msgbus:
-                try:
-                    if self.__isPaused or self.__numberOfLoopToProcess == 0:
-                        sleep(1)
-                        continue
+                if self.__isPaused or self.__numberOfLoopToProcess == 0:
+                    sleep(1)
+                    continue
 
+                try:
                     if self.__hasAlreadyBeenInitialized():
                         if isFirstLoopIteration:
                             try:
