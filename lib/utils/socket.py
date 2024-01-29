@@ -299,8 +299,16 @@ class SockServer:
         If appname is specified, the daemon loop will fill local thread attributes of
         builtin var "__hermes__" at start
         """
+        if appname:
+            threadname = f"{appname}-cli-listener"
+        else:
+            threadname = None
+
         t = threading.Thread(
-            target=self.__daemonLoop, daemon=True, kwargs={"appname": appname}
+            target=self.__daemonLoop,
+            name=threadname,
+            kwargs={"appname": appname},
+            daemon=True,
         )
         t.start()
 
