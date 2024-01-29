@@ -452,6 +452,9 @@ class HermesServer:
             else:
                 checkForSchemaChangesDone = True
 
+        # Reduce sleep duration during functional tests to speed them up
+        sleepDuration = 1 if self._numberOfLoopToProcess is None else 0.05
+
         while not self._isStopped:
             try:
                 if self._initSyncRequested:
@@ -468,7 +471,7 @@ class HermesServer:
                     updateRequired = self._numberOfLoopToProcess > 0
 
                 if not updateRequired:
-                    time.sleep(1)
+                    time.sleep(sleepDuration)
                     if self._nextUpdate + self._updateInterval < datetime.now():
                         # Keep updating _nextUpdate even when paused, ensuring that its
                         # value remains in the past. This will avoid an uninterrupted

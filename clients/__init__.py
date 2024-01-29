@@ -459,13 +459,16 @@ class GenericClient:
         if self.__sock is not None:
             self.__sock.startProcessMessagesDaemon(appname=__hermes__.appname)
 
+        # Reduce sleep duration during functional tests to speed them up
+        sleepDuration = 1 if self.__numberOfLoopToProcess is None else 0.05
+
         isFirstLoopIteration: bool = True
         while not self.__isStopped:
             self.__saveRequired = False
 
             with self._msgbus:
                 if self.__isPaused or self.__numberOfLoopToProcess == 0:
-                    sleep(1)
+                    sleep(sleepDuration)
                     continue
 
                 try:
