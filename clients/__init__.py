@@ -1477,8 +1477,11 @@ class GenericClient:
                     )
 
                     # Compute differences between new local data and local data cache
+                    completeLocalDataObjtype: DataObjectList = completeLocalData.get(
+                        l_objtype, DataObjectList([])
+                    )
                     datadiff = new_local_data[l_objtype].diffFrom(
-                        completeLocalData.get(l_objtype, DataObjectList([]))
+                        completeLocalDataObjtype
                     )
 
                     for changeType, difflist in datadiff.dict.items():
@@ -1492,10 +1495,34 @@ class GenericClient:
                             )
 
                             if prefix == "trashbin_":
-                                # Preserve object _trashbin_timestamp
-                                obj._trashbin_timestamp = completeLocalData[l_objtype][
-                                    obj.getPKey()
-                                ]._trashbin_timestamp
+                                if obj not in completeLocalDataObjtype:
+                                    # Object exists in remote trashbin, but not in local one
+                                    # as it has been removed before its type was added to
+                                    # client's Datamodel
+                                    # Process a local "added" event, then a local "removed"
+                                    # event to store local object in trashbin
+                                    
+                                    # Add local object
+                                    self.__processLocalEvent(
+                                        event, enqueueEventWithError=True
+                                    )
+
+                                    # Prepare "removed" event
+                                    event = Event(
+                                        evcategory="base",
+                                        eventtype="removed",
+                                        obj=obj,
+                                        objattrs={},
+                                    )
+                                    # Preserve object _trashbin_timestamp
+                                    event.timestamp = completeRemoteData[
+                                        f"{prefix}{r_objtype}"
+                                    ][obj]._trashbin_timestamp
+                                else:
+                                    # Preserve object _trashbin_timestamp
+                                    obj._trashbin_timestamp = completeLocalDataObjtype[
+                                        obj
+                                    ]._trashbin_timestamp
 
                             # Process Event and update cache if no error is met,
                             # enqueue event otherwise
