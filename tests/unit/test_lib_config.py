@@ -110,9 +110,9 @@ class TestConfigClass(unittest.TestCase):
         config["appname"] = "hermes-server"
         schemas = config._getRequiredSchemas()
 
-        schemas[
-            "hermestestschema"
-        ] = f"{self.fixturesdir}/schema_files/invalid_several_keys.yml"
+        schemas["hermestestschema"] = (
+            f"{self.fixturesdir}/schema_files/invalid_several_keys.yml"
+        )
         self.assertRaises(HermesInvalidConfigSchemaKey, config._mergeSchemas, schemas)
 
     def test_mergeSchemas_with_invalid_schema_key_name(self):
@@ -123,9 +123,9 @@ class TestConfigClass(unittest.TestCase):
         config["appname"] = "hermes-server"
         schemas = config._getRequiredSchemas()
 
-        schemas[
-            "hermestestschema"
-        ] = f"{self.fixturesdir}/schema_files/invalid_key_name.yml"
+        schemas["hermestestschema"] = (
+            f"{self.fixturesdir}/schema_files/invalid_key_name.yml"
+        )
         self.assertRaises(HermesInvalidConfigSchemaKey, config._mergeSchemas, schemas)
 
 

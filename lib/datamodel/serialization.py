@@ -292,7 +292,9 @@ class LocalCache(JSONSerializable):
         if content != oldcontent:
             # Use a temp file to ensure new data is written before rotating old files
             tmpfilepath: str
-            destpath: str = f"{LocalCache._cachedir()}/{self._localCache_filename}{LocalCache._extension()}"
+            destpath: str = (
+                f"{LocalCache._cachedir()}/{self._localCache_filename}{LocalCache._extension()}"
+            )
 
             with NamedTemporaryFile(
                 dir=LocalCache._cachedir(),

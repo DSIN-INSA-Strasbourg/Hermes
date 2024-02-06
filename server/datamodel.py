@@ -483,9 +483,9 @@ class Datamodel:
                             fragment.datasourcename + "_pkeys"
                             in settings["merge_constraints_vars"]
                         ):
-                            vars[
-                                fragment.datasourcename + "_pkeys"
-                            ] = dataobjlist.getPKeys()
+                            vars[fragment.datasourcename + "_pkeys"] = (
+                                dataobjlist.getPKeys()
+                            )
                         if (
                             fragment.datasourcename
                             in settings["merge_constraints_vars"]

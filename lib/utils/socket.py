@@ -182,9 +182,9 @@ class SockServer:
         All received messages will be send to specified processHdlr"""
         atexit.register(self._cleanup)  # Do our best to delete sock file at exit
         self._sockpath: str = path
-        self._processHdlr: Callable[
-            [SocketMessageToServer], SocketMessageToClient
-        ] = processHdlr
+        self._processHdlr: Callable[[SocketMessageToServer], SocketMessageToClient] = (
+            processHdlr
+        )
         self._sock = None
 
         self._removeSocket()  # Try to remove the socket if it already exist

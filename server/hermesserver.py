@@ -542,12 +542,16 @@ class HermesServer:
                 "information": {
                     "startTime": self.startTime.strftime("%Y-%m-%d %H:%M:%S"),
                     "status": "paused" if self._isPaused else "running",
-                    "pausedSince": self._isPaused.strftime("%Y-%m-%d %H:%M:%S")
-                    if self._isPaused
-                    else "None",
-                    "lastUpdate": self._cache.lastUpdate.strftime("%Y-%m-%d %H:%M:%S")
-                    if self._cache.lastUpdate
-                    else "None",
+                    "pausedSince": (
+                        self._isPaused.strftime("%Y-%m-%d %H:%M:%S")
+                        if self._isPaused
+                        else "None"
+                    ),
+                    "lastUpdate": (
+                        self._cache.lastUpdate.strftime("%Y-%m-%d %H:%M:%S")
+                        if self._cache.lastUpdate
+                        else "None"
+                    ),
                     "nextUpdate": self._nextUpdate.strftime("%Y-%m-%d %H:%M:%S"),
                 },
                 "warning": {},

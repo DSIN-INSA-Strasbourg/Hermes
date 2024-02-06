@@ -211,9 +211,11 @@ class DataObject(JSONSerializable):
                     hash(
                         tuple(
                             [
-                                tuple(self._data[k])
-                                if type(self._data[k]) == list
-                                else self._data[k]
+                                (
+                                    tuple(self._data[k])
+                                    if type(self._data[k]) == list
+                                    else self._data[k]
+                                )
                                 for k in keys
                             ]
                         )
