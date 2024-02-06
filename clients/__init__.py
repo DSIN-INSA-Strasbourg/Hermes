@@ -102,9 +102,9 @@ class HermesClientCache(LocalCache):
         )
         """Dictionary containing current objects in error queue, for notifications"""
 
-        self.datamodelWarnings: dict[
-            str, dict[str, dict[str, Any]]
-        ] = from_json_dict.get("datamodelWarnings", {})
+        self.datamodelWarnings: dict[str, dict[str, dict[str, Any]]] = (
+            from_json_dict.get("datamodelWarnings", {})
+        )
         """Dictionary containing current datamodel warnings, for notifications"""
 
         self.exception: str | None = from_json_dict.get("exception")
@@ -1470,10 +1470,10 @@ class GenericClient:
                     l_objtype = f"{prefix}{self.__datamodel.typesmapping[r_objtype]}"
 
                     # Convert remote data cache to local data
-                    new_local_data[
-                        l_objtype
-                    ] = self.__datamodel.convertDataObjectListToLocal(
-                        r_objtype, completeRemoteData[f"{prefix}{r_objtype}"]
+                    new_local_data[l_objtype] = (
+                        self.__datamodel.convertDataObjectListToLocal(
+                            r_objtype, completeRemoteData[f"{prefix}{r_objtype}"]
+                        )
                     )
 
                     # Compute differences between new local data and local data cache
@@ -1558,9 +1558,11 @@ class GenericClient:
                 "information": {
                     "startTime": self.__startTime.strftime("%Y-%m-%d %H:%M:%S"),
                     "status": "paused" if self.__isPaused else "running",
-                    "pausedSince": self.__isPaused.strftime("%Y-%m-%d %H:%M:%S")
-                    if self.__isPaused
-                    else "None",
+                    "pausedSince": (
+                        self.__isPaused.strftime("%Y-%m-%d %H:%M:%S")
+                        if self.__isPaused
+                        else "None"
+                    ),
                 },
                 "warning": {},
                 "error": {},
