@@ -124,9 +124,13 @@ class DataObjectList(LocalCache):
         """Returns an iterator of current DataObject values"""
         return iter(self._datadict.values())
 
-    def __getitem__(self, pkey: Any) -> DataObject:
-        """Indexer operator '[]' returning DataObject entry with specified pkey"""
-        return self._datadict[pkey]
+    def __getitem__(self, objOrPkey: Any) -> DataObject:
+        """Indexer operator '[]' returning DataObject entry with same pkey as specified
+        one, or as specified DataObject"""
+        if isinstance(objOrPkey, DataObject):
+            return self._datadict[objOrPkey.getPKey()]
+        else:
+            return self._datadict[objOrPkey]
 
     def __contains__(self, objOrPkey: Any) -> bool:
         """'in' operator: return True if specified DataObject or pkey exists in current instance"""
