@@ -1,4 +1,4 @@
 # plugins/clients/usersgroups_adwinrm
-cryptography==39.0.0
+cryptography==42.0.2
 pywinrm[credssp]==0.4.3
 

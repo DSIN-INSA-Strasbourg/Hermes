@@ -1,4 +1,4 @@
 # plugins/clients/usersgroups_ldap
 #     Build deps: sudo apt install libldap-dev libsasl2-dev
-python-ldap==3.4.3
+python-ldap==3.4.4
 
