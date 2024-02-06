@@ -62,7 +62,7 @@ class InvalidGroupError(Exception):
     """Raised when specified socket group doesn't exist"""
 
 
-class SocketArgumentParser(argparse.ArgumentParser):  # pragma: no cover
+class SocketArgumentParser(argparse.ArgumentParser):
     """Subclass of argument parser to avoid exiting on error. Will parse arguments received
     on server socket"""
 

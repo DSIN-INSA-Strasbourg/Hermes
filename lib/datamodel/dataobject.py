@@ -336,14 +336,14 @@ class DataObject(JSONSerializable):
         """Return current class name"""
         return self.__class__.__name__
 
-    def __repr__(self) -> str:  # pragma: no cover
+    def __repr__(self) -> str:
         """String representation of current instance"""
         if isinstance(self.TOSTRING, Template):
             return self.TOSTRING.render(self._data)
         else:
             return f"<{self.getType()}[{self.getPKey()}]>"
 
-    def __str__(self) -> str:  # pragma: no cover
+    def __str__(self) -> str:
         """Multiline string representation of current instance, with data it contains"""
         lf = "\n"
         ret = repr(self)

@@ -31,7 +31,7 @@ import logging
 from logging.handlers import TimedRotatingFileHandler
 
 
-def setup_logger(config: "HermesConfig"):  # pragma: no cover
+def setup_logger(config: "HermesConfig"):
     """Setup logging for the whole app"""
 
     loglevels = {
@@ -49,7 +49,7 @@ def setup_logger(config: "HermesConfig"):  # pragma: no cover
     )
 
     # stderr output (always except when executing unit tests)
-    if "unittest" not in sys.modules:
+    if "unittest" not in sys.modules:  # pragma: no cover
         stream_handler = logging.StreamHandler()
         stream_handler.setFormatter(log_format)
         stream_handler.setLevel(loglevels[config["hermes"]["logs"]["verbosity"]])

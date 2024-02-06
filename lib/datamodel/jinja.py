@@ -52,14 +52,14 @@ def hermes_native_concat(values: Iterable[Any]) -> Optional[Any]:
     """
     head = list(islice(values, 2))
 
-    if not head:  # pragma: no cover
+    if not head:
         return None
 
     if len(head) == 1:
         raw = head[0]
         if not isinstance(raw, str):
             return raw
-    else:  # pragma: no cover
+    else:
         if isinstance(values, GeneratorType):
             values = chain(head, values)
         raw = "".join([str(v) for v in values])
