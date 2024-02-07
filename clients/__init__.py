@@ -20,7 +20,7 @@
 # along with Hermes. If not, see <https://www.gnu.org/licenses/>.
 
 
-from clients.datamodel import Datamodel
+from clients.datamodel import Datamodel, InvalidDatamodelError
 from lib.config import HermesConfig
 from lib.datamodel.dataobject import DataObject
 from lib.datamodel.dataobjectlist import DataObjectList
@@ -508,6 +508,12 @@ class GenericClient:
 
                 except HermesAlreadyNotifiedException:
                     pass
+                except InvalidDatamodelError as e:
+                    self.__notifyFatalException(
+                        HermesClientHandlerError.exceptionToString(
+                            e, purgeCurrentFileFromTrace=False
+                        )
+                    )
                 except Exception as e:
                     self.__notifyException(
                         HermesClientHandlerError.exceptionToString(
