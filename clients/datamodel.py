@@ -358,7 +358,6 @@ class Datamodel:
                             f"New primary key attribute in dataschema type '{objtype}': {npkey}"
                         )
 
-        newschema.savecachefile()
         return newpkeys
 
     def convertEventToLocal(
