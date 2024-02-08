@@ -401,28 +401,6 @@ class TestEventQueueClass(HermesServerTestCase):
             "Fake error message"
         ],
         "3": [
-            "local",
-            {
-                "evcategory": "base",
-                "eventtype": "modified",
-                "objtype": "TestObj2_local",
-                "objpkey": 201,
-                "objattrs": {
-                    "added": {
-                        "new_attr1": "new_attr1_value"
-                    },
-                    "modified": {
-                        "name": "Object2_02_modified"
-                    },
-                    "removed": {
-                        "description": null
-                    }
-                },
-                "step": 0
-            },
-            "Fake error message"
-        ],
-        "4": [
             "remote",
             {
                 "evcategory": "base",
@@ -445,7 +423,7 @@ class TestEventQueueClass(HermesServerTestCase):
             },
             "Fake error message"
         ],
-        "5": [
+        "4": [
             "remote",
             {
                 "evcategory": "base",
@@ -457,7 +435,7 @@ class TestEventQueueClass(HermesServerTestCase):
             },
             "Fake error message"
         ],
-        "6": [
+        "5": [
             "remote",
             {
                 "evcategory": "base",
@@ -510,28 +488,6 @@ class TestEventQueueClass(HermesServerTestCase):
                     "obj_id": 201,
                     "name": "Object2_01",
                     "description": "Test Object2 01"
-                },
-                "step": 0
-            },
-            "Fake error message"
-        ],
-        "4": [
-            "local",
-            {
-                "evcategory": "base",
-                "eventtype": "modified",
-                "objtype": "TestObj2_local",
-                "objpkey": 201,
-                "objattrs": {
-                    "added": {
-                        "new_attr1": "new_attr1_value"
-                    },
-                    "modified": {
-                        "name": "Object2_02_modified"
-                    },
-                    "removed": {
-                        "description": null
-                    }
                 },
                 "step": 0
             },
@@ -731,8 +687,9 @@ class TestEventQueueClass(HermesServerTestCase):
         for evtype, evjson, errmsg in self.queue.values():
             event = Event(from_json_dict=evjson)
             eq.append(evtype, event, errmsg)
-        self.assertEqual(len(eq), 6)  # Queue contains 6 items
-        self.assertEqual(len(list(eq.allEvents())), 6)  # Queue contains 6 items
+        self.assertEqual(len(eq), 5)  # Queue contains 5 items
+        self.assertEqual(len(list(eq.allEvents())), 5)  # Queue contains 5 items
+        self.maxDiff = None
         self.assertEqual(
             len(list(iter(eq))), 3
         )  # Only 3 different objects are in queue
@@ -744,8 +701,8 @@ class TestEventQueueClass(HermesServerTestCase):
             autoremediate=True,
             from_json_dict={"_queue": self.queue},
         )
-        self.assertEqual(len(eq), 6)  # Queue contains 6 items
-        self.assertEqual(len(list(eq.allEvents())), 6)  # Queue contains 6 items
+        self.assertEqual(len(eq), 5)  # Queue contains 5 items
+        self.assertEqual(len(list(eq.allEvents())), 5)  # Queue contains 5 items
         self.assertEqual(
             len(list(iter(eq))), 3
         )  # Only 3 different objects are in queue

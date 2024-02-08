@@ -124,8 +124,17 @@ class EventQueue(LocalCache):
         (prevEventType, prevEvent, prevErrorMsg) = allEvents[-2]
 
         if prevEventType != lastEventType:
-            # Won't remediate across different eventTypes
-            return
+            if lastEventType == "local" and prevEvent.eventtype == "added":
+                # We can ignore all local events if previous eventype require to
+                # add, as the object doesn't exist yet
+                __hermes__.logger.info(
+                    f"Ignoring local event {repr(prevEvent)}, as its object has its 'added' event in error queue"
+                )
+                self.remove(eventNumber)
+                return
+            else:
+                # Won't remediate across different eventTypes
+                return
 
         if prevEvent.eventtype == "added":
             # Merge
