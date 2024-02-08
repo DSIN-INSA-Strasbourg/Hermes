@@ -439,6 +439,7 @@ class Datamodel:
             )
             res.objtype = objtype
             res.objpkey = event.objpkey
+            res.objrepr = str(res.objpkey)
             res.timestamp = event.timestamp
             res.step = event.step
         return res
