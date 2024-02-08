@@ -103,44 +103,6 @@ class Datasource:
                     f"{self.__cacheFilePrefix}trashbin_{objtype}{self.__cacheFileSuffix}"
                 )
 
-    def updatePrimaryKeys(self, newpkeys: dict[str, str]):
-        """Will update primary keys. newpkeys is a dict with objtype as key,
-        and the new primary key attribute name as value.
-        Data update will be processed for each objtype specified, and then, if no error
-        was met, the cache files will be saved.
-        The Datasource MUST be re-instantiated by caller to reflect Dataschema changes,
-        and update data in memory.
-        """
-        for objtype, newpkey in newpkeys.items():
-            self._updatePrimaryKeysOf(objtype, objtype, newpkey)
-            if self._hasTrashbin:
-                self._updatePrimaryKeysOf(f"trashbin_{objtype}", objtype, newpkey)
-
-        # No error met during update, save cache files
-        for objtype in newpkeys.keys():
-            self._data[objtype].savecachefile(
-                f"{self.__cacheFilePrefix}{objtype}{self.__cacheFileSuffix}"
-            )
-            if self._hasTrashbin:
-                self._data[f"trashbin_{objtype}"].savecachefile(
-                    f"{self.__cacheFilePrefix}trashbin_{objtype}{self.__cacheFileSuffix}"
-                )
-
-    def _updatePrimaryKeysOf(self, dest: str, objtype: str, newpkey: str):
-        """Update primary keys of specified objtype, stored in specified dest.
-        newpkey is the new primary key attribute name.
-        """
-        objlistcls = self.schema.objectlistTypes[objtype]
-        prevdata = self._data[dest]
-        newdata = objlistcls(objlist=[])
-        obj: DataObject
-        for obj in prevdata:
-            newobj: DataObject = deepcopy(obj)
-            newobj.setPKey(getattr(obj, newpkey))
-            newdata.append(newobj)
-
-        self._data[dest] = newdata
-
     def __len__(self) -> int:
         return self._data.__len__()
 

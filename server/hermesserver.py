@@ -365,7 +365,6 @@ class HermesServer:
                     LocalCache.deleteAllCacheFiles(objtype)
 
             if diff.modified:
-                newpkeys = {}
                 for objtype in diff.modified:
                     n = new[objtype]
                     o = old[objtype]
@@ -398,25 +397,6 @@ class HermesServer:
                         __hermes__.logger.info(
                             f"Removed secrets attributes from dataschema type '{objtype}': {removed}"
                         )
-
-                    # PRIMARYKEY_ATTRIBUTE
-                    npkey = n["PRIMARYKEY_ATTRIBUTE"]
-                    opkey = o["PRIMARYKEY_ATTRIBUTE"]
-                    if DataObject.isDifferent(npkey, opkey):
-                        newpkeys[objtype] = npkey
-
-                if newpkeys:
-                    # Load previous data
-                    olddata: Datasource = Datasource(
-                        schema=oldschema, enableTrashbin=False, enableCache=False
-                    )
-                    olddata.loadFromCache()
-                    __hermes__.logger.info(
-                        f"Updating changed primary keys in cache {newpkeys=}"
-                    )
-                    # Only necessary to ensure no problem is met, may be removed
-                    olddata.updatePrimaryKeys(newpkeys)
-                    self.dm.data.loadFromCache()  # Reload modified data to get new pkeys values
 
             if old:
                 e = Event(

@@ -379,9 +379,24 @@ class EventQueue(LocalCache):
                 new_pkeys = new_local_pkeys
                 ds = local_data
 
-            newevent = deepcopy(event)
+            if event.objtype not in new_pkeys.keys():
+                # Objtype of event has no pkey update
+                newqueue[eventNumber] = (eventType, event, errorMsg)
+                continue
+
             oldobj = ds[event.objtype][event.objpkey]
-            newevent.objpkey = getattr(oldobj, new_pkeys[event.objtype])
+            if type(new_pkeys[event.objtype]) == tuple:
+                # New pkey is a tuple, loop over each attr
+                newpkey = []
+                for pkattr in new_pkeys[event.objtype]:
+                    newpkey.append(getattr(oldobj, pkattr))
+                newpkey = tuple(newpkey)
+            else:
+                newpkey = getattr(oldobj, new_pkeys[event.objtype])
+
+            # Save modified event
+            newevent = deepcopy(event)
+            newevent.objpkey = newpkey
             newqueue[eventNumber] = (eventType, newevent, errorMsg)
 
         self._queue = newqueue

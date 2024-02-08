@@ -263,18 +263,6 @@ class Datamodel:
                 self.localdata_complete,
             )
 
-            __hermes__.logger.info(
-                f"Updating changed remote primary keys in remote cache {new_remote_pkeys=}"
-            )
-            self.remotedata.updatePrimaryKeys(new_remote_pkeys)
-            self.remotedata_complete.updatePrimaryKeys(new_remote_pkeys)
-
-            __hermes__.logger.info(
-                f"Updating changed local primary keys in local cache {new_local_pkeys=}"
-            )
-            self.localdata.updatePrimaryKeys(new_local_pkeys)
-            self.localdata_complete.updatePrimaryKeys(new_local_pkeys)
-
             # Save and reload error queue
             self.saveErrorQueue()
             self.loadErrorQueue()

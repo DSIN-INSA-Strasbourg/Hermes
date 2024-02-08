@@ -328,10 +328,6 @@ class DataObject(JSONSerializable):
         else:
             return getattr(self, self.PRIMARYKEY_ATTRIBUTE)
 
-    def setPKey(self, newPkey: Any):
-        """Update primary key value"""
-        setattr(self, self.PRIMARYKEY_ATTRIBUTE, newPkey)
-
     def getType(self) -> str:
         """Return current class name"""
         return self.__class__.__name__
