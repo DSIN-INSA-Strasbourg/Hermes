@@ -80,7 +80,7 @@ class FlatfilesEmailsOfGroups(GenericClient):
         for pkey in self.groupsChanged:
             try:
                 group = self.getObjectFromCache("Groups", pkey)
-            except KeyError:
+            except IndexError:
                 continue
             self.updateGroupFile(group)
         self.groupsChanged = set()
