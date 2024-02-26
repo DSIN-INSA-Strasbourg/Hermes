@@ -81,9 +81,7 @@ class PypsrpADClient(GenericClient):
         """Decorator restoring connection if necessary"""
 
         def decorated(self, *args, **kwargs):
-            if self.pool.state != 2:
-                self.pool.close()
-                self.__connect()
+            self.__connect()
             return func(self, *args, **kwargs)
 
         return decorated
@@ -91,9 +89,14 @@ class PypsrpADClient(GenericClient):
     def __init__(self, config: HermesConfig):
         super().__init__(config)
         self.__init_settings()
-        self.__connect()
+        self.pool: RunspacePool | None = None
 
     def __connect(self):
+        if self.pool is not None:
+            if self.pool.state == 2:  # Connection is up
+                return
+            self.__disconnect()
+
         self.wsman = WSMan(
             server=self.winrm_host,
             port=self.winrm_port,
@@ -110,6 +113,17 @@ class PypsrpADClient(GenericClient):
         self.pool = RunspacePool(self.wsman)
         self.pool.open()
         self.run_ps("Import-Module ActiveDirectory")
+
+    def __disconnect(self):
+        if self.pool is None:
+            return  # Not connected
+
+        try:
+            self.pool.close()
+        except Exception:
+            pass
+        del self.pool
+        self.pool = None
 
     @staticmethod
     def escape(arg: str) -> str:
@@ -568,3 +582,8 @@ class PypsrpADClient(GenericClient):
             userdn=f"CN={self.escape(cacheduser.SamAccountName)},{self.users_ou}",
             password=self.escape(self.generateRandomPassword()),
         )
+
+    def on_save(self):
+        # As an idle pypsrp session may quickly become invalid, close it on processing end
+        # to avoid errors
+        self.__disconnect()
