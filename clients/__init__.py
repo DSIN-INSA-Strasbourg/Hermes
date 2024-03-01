@@ -1507,7 +1507,7 @@ class GenericClient:
                                     # client's Datamodel
                                     # Process a local "added" event, then a local "removed"
                                     # event to store local object in trashbin
-                                    
+
                                     # Add local object
                                     self.__processLocalEvent(
                                         event, enqueueEventWithError=True
