@@ -527,6 +527,7 @@ class GenericClient:
                         self.__cache.savecachefile()
                         if self.__hasAtLeastBeganInitialization():
                             self.__datamodel.saveLocalAndRemoteData()
+                        self.currentStep = 0  # Reset current step for "on_save" event
                         self.__callHandler("", "save")  # Call special event "on_save()"
                         self.__notifyQueueErrors()
 
