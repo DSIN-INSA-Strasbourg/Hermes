@@ -240,7 +240,7 @@ class GenericClient:
         """
         ds: Datasource = self.__datamodel.localdata
 
-        (_, obj) = self.__getObjectFromCacheOrTrashbin(ds, objtype, objpkey)
+        (_, obj) = Datamodel.getObjectFromCacheOrTrashbin(ds, objtype, objpkey)
         if obj is None:
             raise IndexError(
                 f"No object of {objtype=} with {objpkey=} was found in cache"
@@ -815,10 +815,12 @@ class GenericClient:
         # template rendering
         r_obj_complete: DataObject | None = None
         if remote_event.eventtype == "modified":
-            cache_complete, r_cachedobj_complete = self.__getObjectFromCacheOrTrashbin(
-                self.__datamodel.remotedata_complete,
-                remote_event.objtype,
-                remote_event.objpkey,
+            cache_complete, r_cachedobj_complete = (
+                Datamodel.getObjectFromCacheOrTrashbin(
+                    self.__datamodel.remotedata_complete,
+                    remote_event.objtype,
+                    remote_event.objpkey,
+                )
             )
             if r_cachedobj_complete is not None:
                 r_obj_complete = self.__getUpdatedObject(
@@ -1118,7 +1120,7 @@ class GenericClient:
             r_cachedobj: DataObject = maincache.get(remote_event.objpkey)
             r_obj = self.__getUpdatedObject(r_cachedobj, remote_event.objattrs)
 
-        cache_complete, r_cachedobj_complete = self.__getObjectFromCacheOrTrashbin(
+        cache_complete, r_cachedobj_complete = Datamodel.getObjectFromCacheOrTrashbin(
             self.__datamodel.remotedata_complete,
             remote_event.objtype,
             remote_event.objpkey,
@@ -1150,7 +1152,7 @@ class GenericClient:
             l_cachedobj: DataObject = maincache.get(local_ev.objpkey)
             l_obj = self.__getUpdatedObject(l_cachedobj, local_ev.objattrs)
 
-        cache_complete, l_cachedobj_complete = self.__getObjectFromCacheOrTrashbin(
+        cache_complete, l_cachedobj_complete = Datamodel.getObjectFromCacheOrTrashbin(
             self.__datamodel.localdata_complete, local_ev.objtype, local_ev.objpkey
         )
 
@@ -1261,13 +1263,13 @@ class GenericClient:
             f"__remoteRemoved({remote_event.toString(secretAttrs)})"
         )
 
-        cache, r_cachedobj = self.__getObjectFromCacheOrTrashbin(
+        cache, r_cachedobj = Datamodel.getObjectFromCacheOrTrashbin(
             self.__datamodel.remotedata,
             remote_event.objtype,
             remote_event.objpkey,
         )
 
-        cache_complete, r_cachedobj_complete = self.__getObjectFromCacheOrTrashbin(
+        cache_complete, r_cachedobj_complete = Datamodel.getObjectFromCacheOrTrashbin(
             self.__datamodel.remotedata_complete,
             remote_event.objtype,
             remote_event.objpkey,
@@ -1297,13 +1299,13 @@ class GenericClient:
         )
         __hermes__.logger.debug(f"__localRemoved({local_ev.toString(secretAttrs)})")
 
-        cache, l_cachedobj = self.__getObjectFromCacheOrTrashbin(
+        cache, l_cachedobj = Datamodel.getObjectFromCacheOrTrashbin(
             self.__datamodel.localdata,
             local_ev.objtype,
             local_ev.objpkey,
         )
 
-        cache_complete, l_cachedobj_complete = self.__getObjectFromCacheOrTrashbin(
+        cache_complete, l_cachedobj_complete = Datamodel.getObjectFromCacheOrTrashbin(
             self.__datamodel.localdata_complete,
             local_ev.objtype,
             local_ev.objpkey,
@@ -1366,20 +1368,6 @@ class GenericClient:
             )
             raise HermesClientHandlerError(e)
 
-    def __getObjectFromCacheOrTrashbin(
-        self, ds: Datasource, objtype: str, objpkey: Any
-    ) -> tuple[DataObjectList | None, DataObject | None]:
-        """Look for objpkey in maincache and trashbin of objtype in specified ds.
-        If found, returns a tuple with a the DataObjectList where the object is, and the
-        object itself. Otherwise, returns (None, None)"""
-        src: DataObjectList
-        obj: DataObject | None
-        for src in (ds[objtype], ds[f"trashbin_{objtype}"]):
-            obj = src.get(objpkey)
-            if obj is not None:
-                return (src, obj)
-        return (None, None)
-
     def __processDatamodelUpdate(self):
         """Check difference between current datamodel and previous one. If datamodel has
         changed, generate local events according to datamodel changes"""
@@ -1413,7 +1401,7 @@ class GenericClient:
 
                 # Call remove on each object
                 for pkey in pkeys:
-                    _, l_obj = self.__getObjectFromCacheOrTrashbin(
+                    _, l_obj = Datamodel.getObjectFromCacheOrTrashbin(
                         self.__datamodel.localdata, l_objtype, pkey
                     )
                     if l_obj:
@@ -1645,11 +1633,11 @@ class GenericClient:
                 else:
                     objtype = event.objtype
 
-                _, obj = self.__getObjectFromCacheOrTrashbin(
+                _, obj = Datamodel.getObjectFromCacheOrTrashbin(
                     self.__datamodel.localdata_complete, objtype, event.objpkey
                 )
                 if obj is None and eventType == "remote":
-                    _, obj = self.__getObjectFromCacheOrTrashbin(
+                    _, obj = Datamodel.getObjectFromCacheOrTrashbin(
                         self.__datamodel.remotedata_complete,
                         event.objtype,
                         event.objpkey,

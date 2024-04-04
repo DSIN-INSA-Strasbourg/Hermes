@@ -654,3 +654,18 @@ class Datamodel:
 
         res = Dataschema(schema)
         return res
+
+    @staticmethod
+    def getObjectFromCacheOrTrashbin(
+        ds: Datasource, objtype: str, objpkey: Any
+    ) -> tuple[DataObjectList | None, DataObject | None]:
+        """Look for objpkey in maincache and trashbin of objtype in specified ds.
+        If found, returns a tuple with a the DataObjectList where the object is, and the
+        object itself. Otherwise, returns (None, None)"""
+        src: DataObjectList
+        obj: DataObject | None
+        for src in (ds[objtype], ds[f"trashbin_{objtype}"]):
+            obj = src.get(objpkey)
+            if obj is not None:
+                return (src, obj)
+        return (None, None)
