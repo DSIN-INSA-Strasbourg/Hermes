@@ -534,7 +534,7 @@ class Datamodel:
             for t in self.unknownRemoteTypes:
                 del typesmapping[t]
 
-        # Reorder typemapping to respect th order specified on remote schema
+        # Reorder typemapping to respect the order specified on remote schema
         self.typesmapping = {}
         for rtype in self.remote_schema.schema:
             if rtype in typesmapping:
