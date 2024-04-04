@@ -20,7 +20,7 @@
 # along with Hermes. If not, see <https://www.gnu.org/licenses/>.
 
 
-from clients.datamodel import Datamodel, InvalidDatamodelError
+from clients.datamodel import Datamodel, InvalidDataError
 from lib.config import HermesConfig
 from lib.datamodel.dataobject import DataObject
 from lib.datamodel.dataobjectlist import DataObjectList
@@ -508,7 +508,7 @@ class GenericClient:
 
                 except HermesAlreadyNotifiedException:
                     pass
-                except InvalidDatamodelError as e:
+                except InvalidDataError as e:
                     self.__notifyFatalException(
                         HermesClientHandlerError.exceptionToString(
                             e, purgeCurrentFileFromTrace=False
@@ -590,10 +590,13 @@ class GenericClient:
             # Update __errorQueue_lastretry only if loop hasn't been interrupted
             self.__errorQueue_lastretry = now
 
-    def __emptyTrashBin(self):
+    def __emptyTrashBin(self, force: bool = False):
         # Enforce purgeInterval
         now = datetime.now()
-        if now < self.__trashbin_lastpurge + self.__trashbin_purgeInterval:
+        if (
+            not force
+            and now < self.__trashbin_lastpurge + self.__trashbin_purgeInterval
+        ):
             return  # Too early to process again
         if self.__trashbin_retention is not None:
             retentionLimit = datetime.now() - self.__trashbin_retention
@@ -702,6 +705,11 @@ class GenericClient:
         return True
 
     def __updateSchema(self, newSchema: Dataschema):
+        if self.__datamodel.forcePurgeOfTrashedObjectsWithoutNewPkeys(
+            self.__datamodel.remote_schema, newSchema
+        ):
+            self.__emptyTrashBin(force=True)
+
         self.__datamodel.updateSchema(newSchema)
         self.__config.savecachefile()  # Save config to be able to rebuild datamodel
         # Save and reload error queue to purge it from events of suppressed types, if any

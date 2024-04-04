@@ -22,6 +22,7 @@
 
 from lib.config import HermesConfig
 
+from datetime import datetime
 from jinja2 import StrictUndefined
 from jinja2.environment import Template
 from typing import Any
@@ -41,8 +42,8 @@ from lib.datamodel.jinja import (
 )
 
 
-class InvalidDatamodelError(Exception):
-    """Raised when the datamodel is invalid"""
+class InvalidDataError(Exception):
+    """Raised when a case that should never happen occurs (a critical bug)"""
 
 
 class Datamodel:
@@ -115,8 +116,6 @@ class Datamodel:
             ...
         }
         """
-        self._remotevars: set[str]
-        """Set containing all remote vars used"""
 
         if self.hasRemoteSchema():
             self._mergeWithSchema(self.remote_schema)
@@ -215,9 +214,8 @@ class Datamodel:
         prev_remote_schema = self.remote_schema
         self.remote_schema = remote_schema
         self._remote2local = {}
-        self._remotevars = set()
 
-        new_remote_pkeys = self._checkForSchemaChanges(
+        prev_remote_pkeys, new_remote_pkeys = self._checkForSchemaChanges(
             prev_remote_schema, self.remote_schema
         )
 
@@ -226,35 +224,94 @@ class Datamodel:
 
         self.local_schema = self._setupLocalSchema()
 
-        # Ensure pkeys values aren't modified by Jinja template, otherwise the whole
-        # data model may be totally broken
-        for r_objtype, model in self.local_schema.schema.items():
-            pkeys = model["PRIMARYKEY_ATTRIBUTE"]
-            if type(pkeys) is str:
-                pkeys = [pkeys]
-            for pkey in pkeys:
-                pkeyconf = self._datamodel[r_objtype]["attrsmapping"][pkey]
-                if isinstance(pkeyconf, Template):
-                    err = (
-                        f"'{r_objtype}' type primary key '{pkey}' value MUST not be"
-                        " transformed locally with Jinja to prevent data inconsistencies"
-                        " between declared types. You can declare a new attribute on server"
-                        " containing the pkey value and transform it locally if you really"
-                        " need to"
-                    )
-                    __hermes__.logger.critical(err)
-                    raise InvalidDatamodelError(err)
-
-        new_local_pkeys = {}
-        for r_type in new_remote_pkeys.keys():
-            l_type = self.typesmapping[r_type]
-            l_pkey = self.local_schema.schema[l_type]["PRIMARYKEY_ATTRIBUTE"]
-            new_local_pkeys[l_type] = l_pkey
-
         # Update pkeys when necessary
         if new_remote_pkeys:
+            __hermes__.logger.info(f"Updating local cache primary keys")
+
             self.saveLocalAndRemoteData()
             self.saveErrorQueue()
+
+            new_local_pkeys: dict[str, str | tuple[str]] = {}
+            l_pkeys_to_add: dict[str, set[str]] = {}
+            l_pkeys_to_remove: dict[str, set[str]] = {}
+            local_types: dict[str, set[type[DataObject]]] = {}
+            for r_objtype in new_remote_pkeys.keys():
+                if r_objtype not in self.typesmapping:
+                    continue
+
+                # Determine local objtype and its new primary key
+                l_objtype = self.typesmapping[r_objtype]
+                new_local_pkeys[l_objtype] = self.local_schema.schema[l_objtype][
+                    "PRIMARYKEY_ATTRIBUTE"
+                ]
+
+                # Compute local pkeys to add and to remove for each local data type
+                r_prev_pkeys = prev_remote_pkeys[r_objtype]
+                r_new_pkeys = new_remote_pkeys[r_objtype]
+                if type(r_prev_pkeys) == str:
+                    r_prev_pkeys = (r_prev_pkeys,)
+                if type(r_new_pkeys) == str:
+                    r_new_pkeys = (r_new_pkeys,)
+                l_prev_pkeys = set([f"_pkey_{pkey}" for pkey in r_prev_pkeys])
+                l_new_pkeys = set([f"_pkey_{pkey}" for pkey in r_new_pkeys])
+                l_pkeys_to_add[l_objtype] = l_new_pkeys - l_prev_pkeys
+                l_pkeys_to_remove[l_objtype] = l_prev_pkeys - l_new_pkeys
+
+                local_types[l_objtype] = set()
+
+                # Add new pkey attributes and values to localdata objects
+                for src in (self.localdata, self.localdata_complete):
+                    for type_prefix in ("", "trashbin_"):
+                        obj: DataObject
+                        for obj in src[f"{type_prefix}{l_objtype}"]:
+                            if type(obj) not in local_types[l_objtype]:
+                                local_types[l_objtype].add(type(obj))
+                                type(obj).HERMES_ATTRIBUTES |= l_pkeys_to_add[l_objtype]
+                            # Get corresponding remote object from cache
+                            (_, r_obj) = Datamodel.getObjectFromCacheOrTrashbin(
+                                self.remotedata_complete, r_objtype, obj.getPKey()
+                            )
+                            if r_obj is None:
+                                # Should never happen : if so, it's a bug
+                                msg = f"BUG ! No matching of local object {repr(obj)} found in remotedata_complete cache. The client is probably broken"
+                                __hermes__.logger.critical(msg)
+                                raise InvalidDataError(msg)
+
+                            for pkey in r_new_pkeys:
+                                try:
+                                    # Get pkey value from remote object
+                                    value = getattr(r_obj, pkey)
+                                except AttributeError:
+                                    # Should never happen : if so, it's a bug
+                                    msg = f"BUG ! No value exist in remote cache for attribute '{pkey}' of object {r_obj}. The client is probably broken"
+                                    __hermes__.logger.critical(msg)
+                                    raise InvalidDataError(msg)
+                                # Store pkey value to local object
+                                setattr(obj, f"_pkey_{pkey}", value)
+
+                # Update PRIMARYKEY_ATTRIBUTE of each local type
+                for l_objtype, l_types in local_types.items():
+                    for l_type in l_types:
+                        l_type.PRIMARYKEY_ATTRIBUTE = new_local_pkeys[l_objtype]
+
+                # Remove previous pkey attributes that are not used anymore from localdata objects
+                for src in (self.localdata, self.localdata_complete):
+                    for type_prefix in ("", "trashbin_"):
+                        obj: DataObject
+                        for obj in src[f"{type_prefix}{l_objtype}"]:
+                            for pkey in l_pkeys_to_remove[l_objtype]:
+                                try:
+                                    delattr(obj, pkey)
+                                except AttributeError:
+                                    pass
+
+                # Remove previous pkey attributes that are not used anymore from HERMES_ATTRIBUTES of each local type
+                for l_objtype, l_types in local_types.items():
+                    for l_type in l_types:
+                        l_type.HERMES_ATTRIBUTES -= l_pkeys_to_remove[l_objtype]
+
+            self.saveLocalData()
+
             __hermes__.logger.info(f"Updating changed primary keys in error queue")
             self.errorqueue.updatePrimaryKeys(
                 new_remote_pkeys,
@@ -280,13 +337,56 @@ class Datamodel:
         self._mergeWithSchema(remote_schema)
         self.remote_schema.savecachefile()
 
+    def forcePurgeOfTrashedObjectsWithoutNewPkeys(
+        self, oldschema: Dataschema | None, newschema: Dataschema
+    ) -> dict[str, set[Any]]:
+        """On schema update, when primary key have changed, the trashed objects may not contain
+        the value of the new primary key attribute(s). This function will change the trashbin
+        timestamp of all those objects to force their removal.
+        Returns True if a trashbin purge is required, False otherwise
+        """
+        isTrashbinPurgeRequired: bool = False
+        if oldschema is None:
+            return False
+
+        diff = newschema.diffFrom(oldschema)
+
+        if not (diff and diff.modified):
+            return False
+
+        old: dict[str, Any] = oldschema.schema
+        new: dict[str, Any] = newschema.schema
+        for objtype in diff.modified:
+            if objtype not in self.typesmapping:
+                continue
+            npkey = new[objtype]["PRIMARYKEY_ATTRIBUTE"]
+            opkey = old[objtype]["PRIMARYKEY_ATTRIBUTE"]
+            if not DataObject.isDifferent(npkey, opkey):
+                continue
+            npkeys = (npkey,) if type(npkey) == str else npkey
+            obj: DataObject
+            for obj in self.remotedata[f"trashbin_{objtype}"]:
+                for pkey in npkeys:
+                    if not hasattr(obj, pkey):
+                        __hermes__.logger.warning(
+                            f"Object {repr(obj)} of type '{objtype}' in trashbin will be purged, as it doesn't have the new primary key value"
+                        )
+                        isTrashbinPurgeRequired = True
+                        obj._trashbin_timestamp = datetime(year=1, month=1, day=1)
+                        break
+        return isTrashbinPurgeRequired
+
     def _checkForSchemaChanges(
         self, oldschema: Dataschema | None, newschema: Dataschema
-    ) -> dict[str, str]:
-        """Returns a dict containing remote types as key, and new remote primary key attribute as value"""
+    ) -> tuple[dict[str, str | tuple[str]], dict[str, str | tuple[str]]]:
+        """Returns a tuple of two dicts :
+        - first dict with remote types as key, and previous remote primary key attribute as value
+        - second dict with remote types as key, and new remote primary key attribute as value
+        """
+        previouspkeys = {}
         newpkeys = {}
         if oldschema is None:
-            return newpkeys
+            return (previouspkeys, newpkeys)
 
         diff = newschema.diffFrom(oldschema)
 
@@ -341,12 +441,13 @@ class Datamodel:
                     npkey = n["PRIMARYKEY_ATTRIBUTE"]
                     opkey = o["PRIMARYKEY_ATTRIBUTE"]
                     if DataObject.isDifferent(npkey, opkey):
+                        previouspkeys[objtype] = opkey
                         newpkeys[objtype] = npkey
                         __hermes__.logger.info(
                             f"New primary key attribute in dataschema type '{objtype}': {npkey}"
                         )
 
-        return newpkeys
+        return (previouspkeys, newpkeys)
 
     def convertEventToLocal(
         self, event: Event, new_obj: DataObject | None = None
@@ -490,15 +591,7 @@ class Datamodel:
             self._datamodel[objtype] = {}
             for k, v in self._config["hermes-client"]["datamodel"][objtype].items():
                 if k == "attrsmapping":
-                    # Compile attrsmapping's jinja templates
-                    self._datamodel[objtype][k] = Jinja.compileIfJinjaTemplate(
-                        v,
-                        self._remotevars,
-                        self._jinjaenv,
-                        f"hermes-client.datamodel.{objtype}.attrsmapping",
-                        False,
-                        False,
-                    )
+                    self._datamodel[objtype][k] = dict(v)
                 elif k == "toString" and v is not None:
                     # Compile toString's jinja template
                     jinjavars = set()
@@ -541,16 +634,26 @@ class Datamodel:
                 self.typesmapping[rtype] = typesmapping[rtype]
 
         # Fill the remote2local mapping dict
-        for objsettings in self._config["hermes-client"]["datamodel"].values():
+        for objsettings in self._datamodel.values():
             remote_objtype = objsettings["hermesType"]
             self._remote2local[remote_objtype] = {}
+            # Add primary keys to mapping to ensure they're always available
+            if remote_objtype in self.remote_schema.schema:
+                pkeys = self.remote_schema.schema[remote_objtype][
+                    "PRIMARYKEY_ATTRIBUTE"
+                ]
+                if type(pkeys) not in [list, tuple]:
+                    pkeys = [pkeys]
+                for pkey in pkeys:
+                    objsettings["attrsmapping"][f"_pkey_{pkey}"] = pkey
+
             for local_attr, remote_attr in objsettings["attrsmapping"].items():
                 remote_vars = set()
-                Jinja.compileIfJinjaTemplate(
+                objsettings["attrsmapping"][local_attr] = Jinja.compileIfJinjaTemplate(
                     remote_attr,
                     remote_vars,
                     self._jinjaenv,
-                    f"hermes-client.datamodel",
+                    f"hermes-client.datamodel.{remote_objtype}.attrsmapping",
                     False,
                     False,
                 )
@@ -566,7 +669,6 @@ class Datamodel:
 
         # Attributes consistency check
         self.unknownRemoteAttributes = {}
-        missingpkeys = {}
         for rtype in self.typesmapping:
             diff = (
                 self._remote2local[rtype].keys()
@@ -575,20 +677,6 @@ class Datamodel:
             )
             if diff:
                 self.unknownRemoteAttributes[rtype] = diff
-
-            pkeys = self.remote_schema.schema[rtype]["PRIMARYKEY_ATTRIBUTE"]
-            if type(pkeys) in [list, tuple]:
-                pkeys = set(pkeys)
-            else:
-                pkeys = set([pkeys])
-            diff = pkeys - self._remote2local[rtype].keys()
-            if diff:
-                missingpkeys[rtype] = diff
-
-        if missingpkeys:
-            err = f"Datamodel errors: remote primary keys are missing from current Dataschema: {missingpkeys}"
-            __hermes__.logger.critical(err)
-            raise InvalidDatamodelError(err)
 
     def _setupLocalSchema(self) -> Dataschema:
         """Build local schema from local datamodel and remote schema"""
@@ -603,43 +691,12 @@ class Datamodel:
                 if v is not None:
                     secrets.extend(v)
 
-            pkey = []
-            remotepkey = []
-            if type(rschema[remote_objtype]["PRIMARYKEY_ATTRIBUTE"]) in [list, tuple]:
-                remotepkey.extend(list(rschema[remote_objtype]["PRIMARYKEY_ATTRIBUTE"]))
-                for attr in rschema[remote_objtype]["PRIMARYKEY_ATTRIBUTE"]:
-                    v = self._remote2local[remote_objtype].get(attr)
-                    if v is not None:
-                        pkey.extend(v)
+            # Add primary keys to mapping to ensure they're always there
+            pkeys = self.remote_schema.schema[remote_objtype]["PRIMARYKEY_ATTRIBUTE"]
+            if type(pkeys) in [list, tuple]:
+                pkey = tuple([f"_pkey_{pkey}" for pkey in pkeys])
             else:
-                remotepkey.append(rschema[remote_objtype]["PRIMARYKEY_ATTRIBUTE"])
-                pkey.extend(
-                    self._remote2local[remote_objtype].get(
-                        rschema[remote_objtype]["PRIMARYKEY_ATTRIBUTE"]
-                    )
-                )
-
-            # Filter Jinja templates from pkey:
-            # primary key must be used raw to ensure data consistency,
-            # but may be used in other attributes's Jinja templates
-            attrsmapping = self._datamodel[objtype]["attrsmapping"]
-            pkey = [
-                attr for attr in pkey if not isinstance(attrsmapping[attr], Template)
-            ]
-
-            if len(pkey) != len(remotepkey):
-                err = f"Primary keys mismatch between remote schema and local datamodel for objtype '{objtype}': remote={remotepkey} ; local={pkey}"
-                __hermes__.logger.critical(err)
-                raise InvalidDatamodelError(err)
-
-            if len(pkey) == 0:
-                err = f"No primary key found in local AND in remote datamodel for objtype '{objtype}'. This should never happen and is undoubtly a bug."
-                __hermes__.logger.critical(err)
-                raise InvalidDatamodelError(err)
-            elif len(pkey) == 1:
-                pkey = pkey[0]
-            else:
-                pkey = tuple(pkey)
+                pkey = f"_pkey_{pkeys}"
 
             schema[objtype] = {
                 "HERMES_ATTRIBUTES": set(
