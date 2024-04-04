@@ -653,5 +653,4 @@ class Datamodel:
             }
 
         res = Dataschema(schema)
-        res.setCacheFilename("_dataschema_local")
         return res
