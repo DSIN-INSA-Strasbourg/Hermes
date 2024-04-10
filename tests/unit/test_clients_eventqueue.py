@@ -21,14 +21,14 @@
 
 
 from .hermestestcase import HermesServerTestCase
-from clients.eventqueue import EventQueue, HermesInvalidEventQueueJSONError
+from clients.eventqueue import ErrorQueue, HermesInvalidErrorQueueJSONError
 from lib.datamodel.dataobject import DataObject
 from lib.datamodel.event import Event
 
 import logging
 
 
-class TestEventQueueClass(HermesServerTestCase):
+class TestErrorQueueClass(HermesServerTestCase):
     typesMapping = {"TestObj1": "TestObj1_local", "TestObj2": "TestObj2_local"}
 
     queue = {
@@ -603,13 +603,13 @@ class TestEventQueueClass(HermesServerTestCase):
         self.purgeTmpdirContent()
 
     def test_init(self):
-        eq = EventQueue(typesMapping=self.typesMapping, autoremediate=False)
+        eq = ErrorQueue(typesMapping=self.typesMapping, autoremediate=False)
         self.assertEqual(len(eq), 0)
 
     def test_init_from_invalid_json(self):
         self.assertRaises(
-            HermesInvalidEventQueueJSONError,
-            EventQueue,
+            HermesInvalidErrorQueueJSONError,
+            ErrorQueue,
             typesMapping=self.typesMapping,
             autoremediate=False,
             from_json_dict={"queue": self.queue},  # key should be "_queue"
@@ -617,15 +617,15 @@ class TestEventQueueClass(HermesServerTestCase):
 
     def test_init_from_invalid_json(self):
         self.assertRaises(
-            HermesInvalidEventQueueJSONError,
-            EventQueue,
+            HermesInvalidErrorQueueJSONError,
+            ErrorQueue,
             typesMapping=self.typesMapping,
             autoremediate=False,
             from_json_dict={"queue": self.queue},  # key should be "_queue"
         )
 
     def test_fill_queue_twice_with_same_eventnumber(self):
-        eq = EventQueue(typesMapping=self.typesMapping, autoremediate=False)
+        eq = ErrorQueue(typesMapping=self.typesMapping, autoremediate=False)
 
         evtype, evjson, errmsg = self.queue["1"]
         event = Event(from_json_dict=evjson)
@@ -644,7 +644,7 @@ class TestEventQueueClass(HermesServerTestCase):
         )
 
     def test_index_event_absent_from_queue(self):
-        eq = EventQueue(typesMapping=self.typesMapping, autoremediate=False)
+        eq = ErrorQueue(typesMapping=self.typesMapping, autoremediate=False)
 
         evtype, evjson, errmsg = self.queue["1"]
         event = Event(from_json_dict=evjson)
@@ -658,7 +658,7 @@ class TestEventQueueClass(HermesServerTestCase):
         )
 
     def test_fill_queue_noremediate(self):
-        eq = EventQueue(typesMapping=self.typesMapping, autoremediate=False)
+        eq = ErrorQueue(typesMapping=self.typesMapping, autoremediate=False)
         for evtype, evjson, errmsg in self.queue.values():
             event = Event(from_json_dict=evjson)
             eq.append(evtype, event, errmsg)
@@ -670,7 +670,7 @@ class TestEventQueueClass(HermesServerTestCase):
         self.assertEqual(eq.to_json(), self.queuejson)
 
     def test_fill_queue_fromjson_noremediate(self):
-        eq = EventQueue(
+        eq = ErrorQueue(
             typesMapping=self.typesMapping,
             autoremediate=False,
             from_json_dict={"_queue": self.queue},
@@ -683,7 +683,7 @@ class TestEventQueueClass(HermesServerTestCase):
         self.assertEqual(eq.to_json(), self.queuejson)
 
     def test_fill_queue_remediate(self):
-        eq = EventQueue(typesMapping=self.typesMapping, autoremediate=True)
+        eq = ErrorQueue(typesMapping=self.typesMapping, autoremediate=True)
         for evtype, evjson, errmsg in self.queue.values():
             event = Event(from_json_dict=evjson)
             eq.append(evtype, event, errmsg)
@@ -696,7 +696,7 @@ class TestEventQueueClass(HermesServerTestCase):
         self.assertEqual(eq.to_json(), self.queueremediatedjson)
 
     def test_fill_queue_fromjson_remediate(self):
-        eq = EventQueue(
+        eq = ErrorQueue(
             typesMapping=self.typesMapping,
             autoremediate=True,
             from_json_dict={"_queue": self.queue},
@@ -709,7 +709,7 @@ class TestEventQueueClass(HermesServerTestCase):
         self.assertEqual(eq.to_json(), self.queueremediatedatimportjson)
 
     def test_append_unknown_objtype(self):
-        eq = EventQueue(typesMapping=self.typesMapping, autoremediate=False)
+        eq = ErrorQueue(typesMapping=self.typesMapping, autoremediate=False)
         evjson = {
             "evcategory": "base",
             "eventtype": "added",
@@ -733,7 +733,7 @@ class TestEventQueueClass(HermesServerTestCase):
         self.assertEqual(len(eq), 0)  # Queue should be empty
 
     def test_updateErrorMsg_invalid_eventNumber(self):
-        eq = EventQueue(
+        eq = ErrorQueue(
             typesMapping=self.typesMapping,
             autoremediate=False,
             from_json_dict={"_queue": self.queue},
@@ -748,7 +748,7 @@ class TestEventQueueClass(HermesServerTestCase):
         )
 
     def test_updateErrorMsg(self):
-        eq = EventQueue(
+        eq = ErrorQueue(
             typesMapping=self.typesMapping,
             autoremediate=False,
             from_json_dict={"_queue": self.queue},
@@ -764,7 +764,7 @@ class TestEventQueueClass(HermesServerTestCase):
         self.assertEqual(errmsg, "Fake error message updated")
 
     def test_remove_invalid_eventNumber_ignore(self):
-        eq = EventQueue(
+        eq = ErrorQueue(
             typesMapping=self.typesMapping,
             autoremediate=False,
             from_json_dict={"_queue": self.queue},
@@ -775,7 +775,7 @@ class TestEventQueueClass(HermesServerTestCase):
         self.assertEqual(queuelen, len(eq))
 
     def test_remove_invalid_eventNumber_exception(self):
-        eq = EventQueue(
+        eq = ErrorQueue(
             typesMapping=self.typesMapping,
             autoremediate=False,
             from_json_dict={"_queue": self.queue},
@@ -790,7 +790,7 @@ class TestEventQueueClass(HermesServerTestCase):
         )
 
     def test_purgeAllEvents(self):
-        eq = EventQueue(
+        eq = ErrorQueue(
             typesMapping=self.typesMapping,
             autoremediate=False,
             from_json_dict={"_queue": self.queue},
@@ -803,7 +803,7 @@ class TestEventQueueClass(HermesServerTestCase):
         eq.purgeAllEvents("remote", "TestObj1", 103)  # 2 events
         self.assertEqual(len(eq), 0)
 
-        eq = EventQueue(
+        eq = ErrorQueue(
             typesMapping=self.typesMapping,
             autoremediate=False,
             from_json_dict={"_queue": self.queue},
@@ -815,7 +815,7 @@ class TestEventQueueClass(HermesServerTestCase):
         self.assertEqual(len(eq), 5)
 
     def test_iter_with_remove(self):
-        eq = EventQueue(
+        eq = ErrorQueue(
             typesMapping=self.typesMapping,
             autoremediate=False,
             from_json_dict={"_queue": self.queue},
@@ -833,7 +833,7 @@ class TestEventQueueClass(HermesServerTestCase):
         self.assertEqual(count, 2)  # 2 remaining different objects in queue
 
     def test_allEvents_with_remove(self):
-        eq = EventQueue(
+        eq = ErrorQueue(
             typesMapping=self.typesMapping,
             autoremediate=False,
             from_json_dict={"_queue": self.queue},
@@ -851,7 +851,7 @@ class TestEventQueueClass(HermesServerTestCase):
         self.assertEqual(count, 5)  # 5 remaining events in queue
 
     def test_containsObjectByEvent(self):
-        eq = EventQueue(
+        eq = ErrorQueue(
             typesMapping=self.typesMapping,
             autoremediate=False,
             from_json_dict={"_queue": self.queue},
@@ -863,7 +863,7 @@ class TestEventQueueClass(HermesServerTestCase):
         self.assertFalse(eq.containsObjectByEvent("remote", ev))
 
     def test_containsObjectByDataobject(self):
-        eq = EventQueue(
+        eq = ErrorQueue(
             typesMapping=self.typesMapping,
             autoremediate=False,
             from_json_dict={"_queue": self.queue},

@@ -29,11 +29,11 @@ from lib.datamodel.datasource import Datasource
 from lib.datamodel.serialization import LocalCache
 
 
-class HermesInvalidEventQueueJSONError(Exception):
-    """Raised when trying to import an EventQueue from json with invalid JSON data"""
+class HermesInvalidErrorQueueJSONError(Exception):
+    """Raised when trying to import an ErrorQueue from json with invalid JSON data"""
 
 
-class EventQueue(LocalCache):
+class ErrorQueue(LocalCache):
     """Store and manage an indexed event queue. Useful for retrying Event in error"""
 
     def __init__(
@@ -75,7 +75,7 @@ class EventQueue(LocalCache):
 
         if from_json_dict:
             if from_json_dict.keys() != set(["_queue"]):
-                raise HermesInvalidEventQueueJSONError(f"{from_json_dict=}")
+                raise HermesInvalidErrorQueueJSONError(f"{from_json_dict=}")
             else:
                 # Prevent changes on deep references of from_json_dict
                 from_json = deepcopy(from_json_dict)
@@ -367,7 +367,7 @@ class EventQueue(LocalCache):
         with local objtype as key, and the new local primary key attribute name as value.
         The specified datasources must not have their primary keys updated yet, to allow conversion.
 
-        The EventQueue MUST immediately be saved and re-instantiated from cache by caller to reflect
+        The ErrorQueue MUST immediately be saved and re-instantiated from cache by caller to reflect
         data changes Dataschema changes.
         """
         newqueue = {}

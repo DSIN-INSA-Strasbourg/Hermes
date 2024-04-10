@@ -27,7 +27,7 @@ from jinja2 import StrictUndefined
 from jinja2.environment import Template
 from typing import Any
 
-from clients.eventqueue import EventQueue
+from clients.eventqueue import ErrorQueue
 from lib.datamodel.dataobject import DataObject
 from lib.datamodel.dataobjectlist import DataObjectList
 from lib.datamodel.dataschema import Dataschema
@@ -100,7 +100,7 @@ class Datamodel:
         self.localdata_complete: Datasource | None = None
         """Datasource of local objects as it should be without error"""
 
-        self.errorqueue: EventQueue | None = None
+        self.errorqueue: ErrorQueue | None = None
         """Queue of Events in error"""
 
         self.typesmapping: dict[str, str]
@@ -196,7 +196,7 @@ class Datamodel:
     def loadErrorQueue(self):
         """Load or reload error queue from cache"""
         if self.hasRemoteSchema():
-            self.errorqueue = EventQueue.loadcachefile(
+            self.errorqueue = ErrorQueue.loadcachefile(
                 "_errorqueue",
                 typesMapping=self.typesmapping,
                 autoremediate=self._config["hermes-client"]["enableAutoremediation"],
