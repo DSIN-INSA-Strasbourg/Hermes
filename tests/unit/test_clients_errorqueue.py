@@ -21,7 +21,7 @@
 
 
 from .hermestestcase import HermesServerTestCase
-from clients.eventqueue import ErrorQueue, HermesInvalidErrorQueueJSONError
+from clients.errorqueue import ErrorQueue, HermesInvalidErrorQueueJSONError
 from lib.datamodel.dataobject import DataObject
 from lib.datamodel.event import Event
 

@@ -27,7 +27,7 @@ from jinja2 import StrictUndefined
 from jinja2.environment import Template
 from typing import Any
 
-from clients.eventqueue import ErrorQueue
+from clients.errorqueue import ErrorQueue
 from lib.datamodel.dataobject import DataObject
 from lib.datamodel.dataobjectlist import DataObjectList
 from lib.datamodel.dataschema import Dataschema
