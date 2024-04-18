@@ -235,7 +235,6 @@ class ErrorQueue(LocalCache):
             )
             __hermes__.logger.critical(errmsg)
             raise AssertionError(errmsg)
-            # return (False, None)
 
     def _remediateWithPrevious(self, eventNumber: int):
         lastEventNumber = eventNumber
