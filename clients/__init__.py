@@ -542,46 +542,54 @@ class GenericClient:
             return  # Too early to process again
 
         eventNumber: int
-        eventType: str
-        event: Event
-        for eventNumber, eventType, event, errorMsg in self.__datamodel.errorqueue:
-            match eventType:
-                case "remote":
-                    __hermes__.logger.info(
-                        f"Retrying to process remote event {event} from error queue"
+        localEvent: Event
+        remoteEvent: Event
+        for (
+            eventNumber,
+            remoteEvent,
+            localEvent,
+            errorMsg,
+        ) in self.__datamodel.errorqueue:
+            if remoteEvent is not None:
+                __hermes__.logger.info(
+                    f"Retrying to process remote event {remoteEvent} from error queue"
+                )
+                try:
+                    self.__processRemoteEvent(
+                        remoteEvent, localEvent, enqueueEventWithError=False
                     )
-                    try:
-                        self.__processRemoteEvent(event, enqueueEventWithError=False)
-                    except HermesClientHandlerError as e:
-                        __hermes__.logger.info(
-                            f"... failed on step {self.currentStep}: {str(e)}"
-                        )
-                        event.step = self.currentStep
-                        self.__datamodel.errorqueue.updateErrorMsg(eventNumber, e.msg)
-                    else:
-                        # If event has suppressed object, eventNumber has already been
-                        # purged from queue
-                        self.__datamodel.errorqueue.remove(
-                            eventNumber, ignoreMissingEventNumber=True
-                        )
-                case "local":
+                except HermesClientHandlerError as e:
                     __hermes__.logger.info(
-                        f"Retrying to process local event {event} from error queue"
+                        f"... failed on step {self.currentStep}: {str(e)}"
                     )
-                    try:
-                        self.__processLocalEvent(event, enqueueEventWithError=False)
-                    except HermesClientHandlerError as e:
-                        __hermes__.logger.info(
-                            f"... failed on step {self.currentStep}: {str(e)}"
-                        )
-                        event.step = self.currentStep
-                        self.__datamodel.errorqueue.updateErrorMsg(eventNumber, e.msg)
-                    else:
-                        # If event has suppressed object, eventNumber has already been
-                        # purged from queue
-                        self.__datamodel.errorqueue.remove(
-                            eventNumber, ignoreMissingEventNumber=True
-                        )
+                    remoteEvent.step = self.currentStep
+                    self.__datamodel.errorqueue.updateErrorMsg(eventNumber, e.msg)
+                else:
+                    # If event has suppressed object, eventNumber has already been
+                    # purged from queue
+                    self.__datamodel.errorqueue.remove(
+                        eventNumber, ignoreMissingEventNumber=True
+                    )
+            else:
+                __hermes__.logger.info(
+                    f"Retrying to process local event {localEvent} from error queue"
+                )
+                try:
+                    self.__processLocalEvent(
+                        remoteEvent, localEvent, enqueueEventWithError=False
+                    )
+                except HermesClientHandlerError as e:
+                    __hermes__.logger.info(
+                        f"... failed on step {self.currentStep}: {str(e)}"
+                    )
+                    localEvent.step = self.currentStep
+                    self.__datamodel.errorqueue.updateErrorMsg(eventNumber, e.msg)
+                else:
+                    # If event has suppressed object, eventNumber has already been
+                    # purged from queue
+                    self.__datamodel.errorqueue.remove(
+                        eventNumber, ignoreMissingEventNumber=True
+                    )
             while self.__isPaused and not self.__isStopped:
                 sleep(1)  # Allow loop to be paused
             if self.__isStopped:
@@ -620,16 +628,18 @@ class GenericClient:
                     )
                     __hermes__.logger.info(f"Trying to purge {repr(obj)} from trashbin")
                     if self.__datamodel.errorqueue.containsObjectByEvent(
-                        "remote", event
+                        event, isLocalEvent=False
                     ):
                         try:
                             self.__processRemoteEvent(
-                                event, enqueueEventWithError=False
+                                event, local_event=None, enqueueEventWithError=False
                             )
                         except HermesClientHandlerError:
                             pass
                     else:
-                        self.__processRemoteEvent(event, enqueueEventWithError=True)
+                        self.__processRemoteEvent(
+                            event, local_event=None, enqueueEventWithError=True
+                        )
 
                 while self.__isPaused and not self.__isStopped:
                     sleep(1)  # Allow loop to be paused
@@ -768,7 +778,9 @@ class GenericClient:
             # Process "standard" message
             match remote_event.eventtype:
                 case "added" | "modified" | "removed":
-                    self.__processRemoteEvent(remote_event, enqueueEventWithError=True)
+                    self.__processRemoteEvent(
+                        remote_event, local_event=None, enqueueEventWithError=True
+                    )
                 case "dataschema":
                     schema = Dataschema.from_json(remote_event.objattrs)
                     self.__updateSchema(schema)
@@ -787,6 +799,7 @@ class GenericClient:
     def __processRemoteEvent(
         self,
         remote_event: Event | None,
+        local_event: Event | None,
         enqueueEventWithError: bool,
         simulateOnly: bool = False,
     ):
@@ -797,24 +810,6 @@ class GenericClient:
             f"__processRemoteEvent({remote_event.toString(secretAttrs)})"
         )
         self.__saveRequired = True
-
-        if (
-            not simulateOnly
-            and enqueueEventWithError
-            and self.__datamodel.errorqueue.containsObjectByEvent(
-                "remote", remote_event
-            )
-        ):
-            secretAttrs = self.__datamodel.remote_schema.secretsAttributesOf(
-                remote_event.objtype
-            )
-            errorMsg = f"Object in remote event {remote_event.toString(secretAttrs)} already had unresolved errors: appending event to error queue"
-            __hermes__.logger.warning(errorMsg)
-            self.__processRemoteEvent(
-                remote_event, enqueueEventWithError=False, simulateOnly=True
-            )
-            self.__datamodel.errorqueue.append("remote", remote_event, errorMsg)
-            return
 
         # In case of modification, try to compose full object in order to provide all
         # attributes values, in order to render Jinja Template with several vars.
@@ -835,8 +830,41 @@ class GenericClient:
                     r_cachedobj_complete, remote_event.objattrs
                 )
 
-        local_event = self.__datamodel.convertEventToLocal(remote_event, r_obj_complete)
+        # Should be always None, except when called from __retryErrorQueue()
+        # In this case, we have to use the provided local_event, as it may contains
+        # some extra changes stacked by autoremediation
+        if local_event is None:
+            local_event = self.__datamodel.convertEventToLocal(
+                remote_event, r_obj_complete
+            )
         trashbin = self.__datamodel.remotedata[f"trashbin_{remote_event.objtype}"]
+
+        if (
+            not simulateOnly
+            and enqueueEventWithError
+            and self.__datamodel.errorqueue.containsObjectByEvent(
+                remote_event, isLocalEvent=False
+            )
+        ):
+            secretAttrs = self.__datamodel.remote_schema.secretsAttributesOf(
+                remote_event.objtype
+            )
+            errorMsg = f"Object in remote event {remote_event.toString(secretAttrs)} already had unresolved errors: appending event to error queue"
+            __hermes__.logger.warning(errorMsg)
+            self.__processRemoteEvent(
+                remote_event,
+                local_event=None,
+                enqueueEventWithError=False,
+                simulateOnly=True,
+            )
+            if local_event is None:
+                # Force empty event generation when local_event doesn't change anything
+                local_event = self.__datamodel.convertEventToLocal(
+                    remote_event, r_obj_complete, allowEmptyEvent=True
+                )
+            self.__datamodel.errorqueue.append(remote_event, local_event, errorMsg)
+            return
+
         try:
             match remote_event.eventtype:
                 case "added":
@@ -869,15 +897,25 @@ class GenericClient:
         except HermesClientHandlerError as e:
             if not simulateOnly and enqueueEventWithError:
                 self.__processRemoteEvent(
-                    remote_event, enqueueEventWithError=False, simulateOnly=True
+                    remote_event,
+                    local_event=None,
+                    enqueueEventWithError=False,
+                    simulateOnly=True,
                 )
                 remote_event.step = self.currentStep
-                self.__datamodel.errorqueue.append("remote", remote_event, e.msg)
+
+                if local_event is None:
+                    # Force empty event generation when local_event doesn't change anything
+                    local_event = self.__datamodel.convertEventToLocal(
+                        remote_event, r_obj_complete, allowEmptyEvent=True
+                    )
+                self.__datamodel.errorqueue.append(remote_event, local_event, e.msg)
             else:
                 raise
 
     def __processLocalEvent(
         self,
+        remote_event: Event | None,
         local_event: Event | None,
         enqueueEventWithError: bool,
         simulateOnly: bool = False,
@@ -901,7 +939,9 @@ class GenericClient:
         if (
             not simulateOnly
             and enqueueEventWithError
-            and self.__datamodel.errorqueue.containsObjectByEvent("local", local_event)
+            and self.__datamodel.errorqueue.containsObjectByEvent(
+                local_event, isLocalEvent=True
+            )
         ):
             secretAttrs = self.__datamodel.local_schema.secretsAttributesOf(
                 local_event.objtype
@@ -909,9 +949,9 @@ class GenericClient:
             errorMsg = f"Object in local event {local_event.toString(secretAttrs)} has unresolved errors, appending event to error queue"
             __hermes__.logger.info(errorMsg)
             self.__processLocalEvent(
-                local_event, enqueueEventWithError=False, simulateOnly=True
+                None, local_event, enqueueEventWithError=False, simulateOnly=True
             )
-            self.__datamodel.errorqueue.append("local", local_event, errorMsg)
+            self.__datamodel.errorqueue.append(remote_event, local_event, errorMsg)
             return
 
         trashbin = self.__datamodel.localdata[f"trashbin_{local_event.objtype}"]
@@ -932,6 +972,7 @@ class GenericClient:
                         if enqueueEventWithError:
                             # As the object changes will be processed at restore, ignore the change
                             self.__processLocalEvent(
+                                None,
                                 local_event,
                                 enqueueEventWithError=False,
                                 simulateOnly=True,
@@ -957,10 +998,10 @@ class GenericClient:
         except HermesClientHandlerError as e:
             if not simulateOnly and enqueueEventWithError:
                 self.__processLocalEvent(
-                    local_event, enqueueEventWithError=False, simulateOnly=True
+                    None, local_event, enqueueEventWithError=False, simulateOnly=True
                 )
                 local_event.step = self.currentStep
-                self.__datamodel.errorqueue.append("local", local_event, e.msg)
+                self.__datamodel.errorqueue.append(remote_event, local_event, e.msg)
             else:
                 raise
 
@@ -976,7 +1017,10 @@ class GenericClient:
             remote_event.objtype, remote_event.objattrs
         )
         self.__processLocalEvent(
-            local_event, enqueueEventWithError=False, simulateOnly=simulateOnly
+            remote_event,
+            local_event,
+            enqueueEventWithError=False,
+            simulateOnly=simulateOnly,
         )
 
         # Add remote object to cache
@@ -1034,7 +1078,10 @@ class GenericClient:
         )
 
         self.__processLocalEvent(
-            local_event, enqueueEventWithError=False, simulateOnly=simulateOnly
+            remote_event,
+            local_event,
+            enqueueEventWithError=False,
+            simulateOnly=simulateOnly,
         )
 
         # Remove remote object from trashbin
@@ -1108,7 +1155,9 @@ class GenericClient:
             # postpone its processing once all caches of previous one are up to date.
             # Otherwise, if an error is met on this second event (modified), we'll try
             # to reprocess the first one (recycled)
-            self.__datamodel.errorqueue.append("local", event, errorMsg=None)
+            self.__datamodel.errorqueue.append(
+                remoteEvent=None, localEvent=event, errorMsg=None
+            )
             # ... and force error queue to be retried asap in order to process the
             # pending event
             self.__errorQueue_lastretry = datetime(year=1, month=1, day=1)
@@ -1138,7 +1187,10 @@ class GenericClient:
         )
 
         self.__processLocalEvent(
-            local_event, enqueueEventWithError=False, simulateOnly=simulateOnly
+            remote_event,
+            local_event,
+            enqueueEventWithError=False,
+            simulateOnly=simulateOnly,
         )
 
         # Update remote object in cache
@@ -1209,7 +1261,10 @@ class GenericClient:
         r_cachedobj_complete: DataObject = maincache_complete.get(remote_event.objpkey)
 
         self.__processLocalEvent(
-            local_event, enqueueEventWithError=False, simulateOnly=simulateOnly
+            remote_event,
+            local_event,
+            enqueueEventWithError=False,
+            simulateOnly=simulateOnly,
         )
 
         if not simulateOnly:
@@ -1284,7 +1339,10 @@ class GenericClient:
         )
 
         self.__processLocalEvent(
-            local_event, enqueueEventWithError=False, simulateOnly=simulateOnly
+            remote_event,
+            local_event,
+            enqueueEventWithError=False,
+            simulateOnly=simulateOnly,
         )
 
         # Remove remote object from cache or trashbin
@@ -1298,7 +1356,7 @@ class GenericClient:
         if not simulateOnly:
             # Remove eventual events relative to current object from error queue
             self.__datamodel.errorqueue.purgeAllEventsOfDataObject(
-                "remote", r_cachedobj
+                r_cachedobj, isLocalObjtype=False
             )
 
     def __localRemoved(self, local_ev: Event, simulateOnly: bool = False):
@@ -1338,7 +1396,9 @@ class GenericClient:
 
         if not simulateOnly:
             # Remove eventual events relative to current object from error queue
-            self.__datamodel.errorqueue.purgeAllEventsOfDataObject("local", l_cachedobj)
+            self.__datamodel.errorqueue.purgeAllEventsOfDataObject(
+                l_cachedobj, isLocalObjtype=True
+            )
 
     def __callHandler(self, objtype: str, eventtype: str, **kwargs):
         if not objtype:
@@ -1433,7 +1493,7 @@ class GenericClient:
                 for l_obj in self.__datamodel.localdata_complete[l_objtype]:
                     # Remove eventual events relative to current object from error queue
                     self.__datamodel.errorqueue.purgeAllEventsOfDataObject(
-                        "local", l_obj
+                        l_obj, isLocalObjtype=True
                     )
 
             self.__datamodel.saveLocalAndRemoteData()  # Save changes
@@ -1507,7 +1567,7 @@ class GenericClient:
 
                                     # Add local object
                                     self.__processLocalEvent(
-                                        event, enqueueEventWithError=True
+                                        None, event, enqueueEventWithError=True
                                     )
 
                                     # Prepare "removed" event
@@ -1529,7 +1589,9 @@ class GenericClient:
 
                             # Process Event and update cache if no error is met,
                             # enqueue event otherwise
-                            self.__processLocalEvent(event, enqueueEventWithError=True)
+                            self.__processLocalEvent(
+                                None, event, enqueueEventWithError=True
+                            )
 
         self.__config.savecachefile()  # Save config to be able to rebuild datamodel
         self.__datamodel.saveLocalAndRemoteData()  # Save data
@@ -1626,45 +1688,46 @@ class GenericClient:
 
         if self.__datamodel.errorqueue is not None:
             eventNumber: int
-            eventType: str
-            event: Event
+            remoteEvent: Event | None
+            localEvent: Event
             errorMsg: str
-            for eventNumber, eventType, event, errorMsg in self.__datamodel.errorqueue:
+            for (
+                eventNumber,
+                remoteEvent,
+                localEvent,
+                errorMsg,
+            ) in self.__datamodel.errorqueue:
                 if errorMsg is None:
                     # Ignore the events in queue that are not errors
                     continue
 
                 # Always try to get object from local cache in order to use configured
                 # toString template for obj repr()
-                if eventType == "remote":
-                    objtype = self.__datamodel.typesmapping[event.objtype]
-                else:
-                    objtype = event.objtype
+                objtype = localEvent.objtype
 
                 _, obj = Datamodel.getObjectFromCacheOrTrashbin(
-                    self.__datamodel.localdata_complete, objtype, event.objpkey
+                    self.__datamodel.localdata_complete, objtype, localEvent.objpkey
                 )
-                if obj is None and eventType == "remote":
+                if obj is None and remoteEvent is not None:
                     _, obj = Datamodel.getObjectFromCacheOrTrashbin(
                         self.__datamodel.remotedata_complete,
-                        event.objtype,
-                        event.objpkey,
+                        remoteEvent.objtype,
+                        remoteEvent.objpkey,
                     )
                 if obj is None:
-                    obj = f"<{event.objtype}[{event.objpkey}]>"
+                    obj = f"<{localEvent.objtype}[{localEvent.objpkey}]>"
                 else:
                     obj = repr(obj)
 
                 res["errorQueue"]["error"][eventNumber] = {
-                    "eventType": eventType,
                     "objrepr": obj,
                     "errorMsg": errorMsg,
                 }
                 if verbose:
                     res["errorQueue"]["error"][eventNumber] |= {
-                        "objtype": event.objtype,
-                        "objpkey": event.objpkey,
-                        "objattrs": event.objattrs,
+                        "objtype": localEvent.objtype,
+                        "objpkey": localEvent.objpkey,
+                        "objattrs": localEvent.objattrs,
                     }
 
         # Clean empty categories

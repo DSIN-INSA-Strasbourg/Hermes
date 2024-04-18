@@ -450,12 +450,16 @@ class Datamodel:
         return (previouspkeys, newpkeys)
 
     def convertEventToLocal(
-        self, event: Event, new_obj: DataObject | None = None
+        self,
+        event: Event,
+        new_obj: DataObject | None = None,
+        allowEmptyEvent: bool = False,
     ) -> Event | None:
         """Convert specified remote event to local one.
         If new_obj is provided, it must contains all the new remote object values,
         and will only be used to render Jinja Templates.
-        Returns None if local event doesn't contains any attribute"""
+        Returns None if local event doesn't contains any attribute and allowEmptyEvent
+        is False"""
         if event.objtype not in self.typesmapping:
             __hermes__.logger.debug(
                 f"Unknown {event.objtype=}. Known are {self.typesmapping}"
@@ -520,7 +524,7 @@ class Datamodel:
                 objattrs[source] = attrs
 
         res = None
-        if hasContent or event.eventtype == "removed":
+        if hasContent or allowEmptyEvent or event.eventtype == "removed":
             res = Event(
                 evcategory=event.evcategory,
                 eventtype=event.eventtype,
