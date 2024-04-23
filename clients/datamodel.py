@@ -173,6 +173,13 @@ class Datamodel:
             cacheFileSuffix="_complete__",
         )
         self.remotedata_complete.loadFromCache()
+        if self.errorqueue is not None:
+            self.errorqueue.updateDatasources(
+                self.remotedata,
+                self.remotedata_complete,
+                self.localdata,
+                self.localdata_complete,
+            )
 
     def saveRemoteData(self):
         """Save remotedata and remotedata_complete when they're set"""
@@ -199,7 +206,11 @@ class Datamodel:
             self.errorqueue = ErrorQueue.loadcachefile(
                 "_errorqueue",
                 typesMapping=self.typesmapping,
-                autoremediate=self._config["hermes-client"]["enableAutoremediation"],
+                remotedata_complete=self.remotedata_complete,
+                remotedata=self.remotedata,
+                localdata=self.localdata,
+                localdata_complete=self.localdata_complete,
+                autoremediate=self._config["hermes-client"]["autoremediation"],
             )
         else:
             self.errorqueue = None

@@ -23,12 +23,14 @@ hermes-client:
   required: true
   empty: false
   schema:
-    enableAutoremediation:
-      type: boolean
+    autoremediation:
+      type: string
       required: false
-      nullable: false
-      empty: false
-      default: false
+      default: disabled
+      allowed:
+        - disabled
+        - conservative
+        - maximum
     errorQueue_retryInterval:
       type: integer
       required: true

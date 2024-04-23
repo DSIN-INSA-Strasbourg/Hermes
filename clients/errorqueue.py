@@ -39,13 +39,20 @@ class ErrorQueue(LocalCache):
     def __init__(
         self,
         typesMapping: dict[str, str],
+        remotedata: Datasource | None = None,
+        remotedata_complete: Datasource | None = None,
+        localdata: Datasource | None = None,
+        localdata_complete: Datasource | None = None,
         from_json_dict: dict[str, Any] | None = None,
-        autoremediate: bool = False,
+        autoremediate: str = "disabled",
     ):
         """Create an empty Event queue, or load it from specified 'from_json_dict'"""
 
-        self._autoremediate: bool = autoremediate
-        """Indicate if queue must autoremediate by merging all add/modify events"""
+        if autoremediate in ("conservative", "maximum"):
+            self._autoremediate: str | None = autoremediate
+            """If set, indicate the policy to use for autoremediation"""
+        else:
+            self._autoremediate = None
 
         self._queue: dict[int, tuple[Event | None, Event, str | None]] = {}
         """The event queue, key is a unique integer, value is a tuple with the
@@ -74,6 +81,10 @@ class ErrorQueue(LocalCache):
 
         super().__init__(jsondataattr=["_queue"])
 
+        self.updateDatasources(
+            remotedata, remotedata_complete, localdata, localdata_complete
+        )
+
         if from_json_dict:
             if from_json_dict.keys() != set(["_queue"]):
                 raise HermesInvalidErrorQueueJSONError(f"{from_json_dict=}")
@@ -91,6 +102,20 @@ class ErrorQueue(LocalCache):
                         remoteEvent = Event(from_json_dict=remoteEventDict)
                     localEvent = Event(from_json_dict=localEventDict)
                     self._append(remoteEvent, localEvent, errorMsg, int(eventNumber))
+
+    def updateDatasources(
+        self,
+        remotedata: Datasource | None = None,
+        remotedata_complete: Datasource | None = None,
+        localdata: Datasource | None = None,
+        localdata_complete: Datasource | None = None,
+    ):
+        """Update the references to the datasources used, required for a case in
+        autoremediation"""
+        self._remotedata: Datasource | None = remotedata
+        self._remotedata_complete: Datasource | None = remotedata_complete
+        self._localdata: Datasource | None = localdata
+        self._localdata_complete: Datasource | None = localdata_complete
 
     def append(
         self, remoteEvent: Event | None, localEvent: Event | None, errorMsg: str | None
@@ -133,22 +158,35 @@ class ErrorQueue(LocalCache):
             self._remediateWithPrevious(eventNumber)
 
     def _mergeEvents(
-        self, prevEvent: Event | None, lastEvent: Event | None
+        self,
+        prevEvent: Event | None,
+        lastEvent: Event | None,
+        datasource: Datasource | None,
+        datasource_complete: Datasource | None,
+        numberOfPreviousEvents: int,
     ) -> tuple[bool, Event | None]:
         """Merge two events for remediation, and returns the result as a tuple with
-        - a boolean indicating that the merge was done, meaning that the last event must be deleted
-        - the resulting Event
+        - wasMerged : a boolean indicating that the merge was done, meaning that the last event must be removed. If False, the values of removeBothEvents and newEvent in tuple must be ignored
+        - removeBothEvents: a boolean indicating that the merge consists of both events removal. If True, the value of newEvent must be ignored
+        - newEvent: the merged Event
         """
-        # Handle None values, that can only occurs with remote events
+        # Handle None values, that may only occurs for remote events
         if lastEvent is None and prevEvent is None:
-            # Nothing to merge
-            return (True, None)
+            # No data : merging is easy
+            __hermes__.logger.info(f"Merging two None events, result is None")
+            return (True, False, None)
         elif lastEvent is None:
             # Keep prevEvent values
-            return (True, prevEvent)
+            __hermes__.logger.info(
+                f"Merging {prevEvent.objattrs=} with lastEvent=None, result is {prevEvent=}"
+            )
+            return (True, False, prevEvent)
         elif prevEvent is None:
             # Keep lastEvent values
-            return (True, lastEvent)
+            __hermes__.logger.info(
+                f"Merging prevEvent=None with {lastEvent.objattrs=}, result is {lastEvent=}"
+            )
+            return (True, False, lastEvent)
 
         if (
             (prevEvent.eventtype == "added" and lastEvent.eventtype == "added")
@@ -157,8 +195,8 @@ class ErrorQueue(LocalCache):
             or (prevEvent.eventtype == "modified" and lastEvent.eventtype == "added")
         ):
             errmsg = (
-                f"BUG : trying to merge an {prevEvent.eventtype} event with a"
-                f" previous {lastEvent.eventtype} event, this should never happen."
+                f"BUG : trying to merge a {lastEvent.eventtype} event with a"
+                f" previous {prevEvent.eventtype} event, this should never happen."
                 f" {lastEvent=} {prevEvent=}"
             )
             __hermes__.logger.critical(errmsg)
@@ -176,21 +214,65 @@ class ErrorQueue(LocalCache):
                 del objattrs[key]
 
             __hermes__.logger.info(
-                f"Merging {prevEvent.objattrs=} with {lastEvent.objattrs=}, result is {objattrs=}"
+                f"Merging added {prevEvent.objattrs=} with modified {lastEvent.objattrs=}, result is added {objattrs=}"
             )
-            return (True, mergedEvent)
+            return (True, False, mergedEvent)
         elif prevEvent.eventtype == "added" and lastEvent.eventtype == "removed":
-            # TODO create two autoremediation policies :
-            #   - "conservative" : don't merge the events (current implementation)
-            #   - "complete" : remove the two events
-            return (False, None)
+            if self._autoremediate == "maximum":
+                # Remove the two events
+                return (True, True, None)
+            # Use "conservative" as fallback : don't merge the events
+            return (False, False, None)
         elif prevEvent.eventtype == "removed" and lastEvent.eventtype == "added":
-            # TODO create two autoremediation policies :
-            #   - "conservative" : don't merge the events (current implementation)
-            #   - "complete" : merge the events into a modified one. But it is currently
-            #     impossible to implement, as this instance has no way to obtain the
-            #     object's state to generate the diff with lastEvent
-            return (False, None)
+            if self._autoremediate == "maximum":
+                # Ensure required data to process is available, otherwise fallback to
+                # "conservative" policy
+                if datasource is None:
+                    __hermes__.logger.info(
+                        f"Unable to merge removed {prevEvent=} with added "
+                        f"{lastEvent.objattrs=}, as no datasource is available. "
+                        "Fallback to 'conservative' mode."
+                    )
+                else:
+                    currentObj: DataObject | None = datasource.get(
+                        lastEvent.objtype, {}
+                    ).get(lastEvent.objpkey, None)
+
+                    newObj: DataObject | None = datasource_complete.get(
+                        lastEvent.objtype, {}
+                    ).get(lastEvent.objpkey, None)
+
+                    if numberOfPreviousEvents != 0:
+                        # There are previous unprocesed events in error queue.
+                        # Merging is possible but its implementation is too much work for
+                        # a case that should never occur, so it will fallback to conservative if met
+                        __hermes__.logger.warning(
+                            f"Unable to merge removed {prevEvent=} with added "
+                            f"{lastEvent.objattrs=}, as there is {numberOfPreviousEvents} "
+                            "previous events in error queue, so fallback to "
+                            "'conservative' mode. Consider reporting this on "
+                            "github's issues, as developper was convinced this case "
+                            "would never be met :-)"
+                        )
+                    elif currentObj is None or newObj is None:
+                        __hermes__.logger.warning(
+                            f"BUG ? - Unable to merge removed {prevEvent=} with added "
+                            f"{lastEvent.objattrs=}, as related object was not found "
+                            f"in caches. {currentObj=} {newObj=}"
+                        )
+                    else:
+                        # Diff the desired object with current one to generate a modified event
+                        mergedEvent, _ = Event.fromDiffItem(
+                            newObj.diffFrom(currentObj), "base", "modified"
+                        )
+                        __hermes__.logger.info(
+                            f"Merging removed {prevEvent=} with added {lastEvent.objattrs=}, "
+                            f"result is modified {mergedEvent=} {mergedEvent.objattrs=}"
+                        )
+                        return (True, False, mergedEvent)
+
+            # Use "conservative" as fallback : don't merge the events
+            return (False, False, None)
         elif prevEvent.eventtype == "modified" and lastEvent.eventtype == "modified":
             # Merge the two modified events
             mergedEvent = deepcopy(prevEvent)
@@ -220,17 +302,21 @@ class ErrorQueue(LocalCache):
                     del objattrs[prevAction][key]
 
             __hermes__.logger.info(
-                f"Merging {prevEvent.objattrs=} with {lastEvent.objattrs=}, result is {objattrs=}"
+                f"Merging modified {prevEvent.objattrs=} with modified {lastEvent.objattrs=}, result is modified {objattrs=}"
             )
-            return (True, mergedEvent)
+            return (True, False, mergedEvent)
         elif prevEvent.eventtype == "modified" and lastEvent.eventtype == "removed":
-            # TODO create two autoremediation policies :
-            #   - "conservative" : don't merge the events (current implementation)
-            #   - "complete" : remove prevEvent
-            return (False, None)
+            if self._autoremediate == "maximum":
+                # Remove prevEvent
+                __hermes__.logger.info(
+                    f"Merging modified {prevEvent.objattrs=} with removed {lastEvent.objattrs=}, result is removed {lastEvent=}"
+                )
+                return (True, False, lastEvent)
+            # Use "conservative" as fallback : don't merge the events
+            return (False, False, None)
         else:
             errmsg = (
-                "BUG : unexpected eventtype met when trying to merge two events"
+                "BUG : unexpected eventtype met when trying to merge two events "
                 f"{lastEvent=} {lastEvent.eventtype=} ; {prevEvent=} {prevEvent.eventtype=}"
             )
             __hermes__.logger.critical(errmsg)
@@ -244,6 +330,7 @@ class ErrorQueue(LocalCache):
             self._index[lastLocalEvent.objtype][lastLocalEvent.objpkey]
         )
         allEvents = [self._queue[evNum] for evNum in allEventNumbers]
+        numberOfPreviousEvents = len(allEvents) - 2
         if len(allEvents) < 2:
             # No previous event to remediate with
             return
@@ -251,19 +338,35 @@ class ErrorQueue(LocalCache):
         prevEventNumber = allEventNumbers[-2]
         (prevRemoteEvent, prevLocalEvent, prevErrorMsg) = allEvents[-2]
 
-        (remotedWasMerged, newRemoteEvent) = self._mergeEvents(
-            prevRemoteEvent, lastRemoteEvent
+        (remotedWasMerged, remoteRemoveBothEvents, newRemoteEvent) = self._mergeEvents(
+            prevRemoteEvent,
+            lastRemoteEvent,
+            self._remotedata,
+            self._remotedata_complete,
+            numberOfPreviousEvents,
         )
-        (localWasMerged, newLocalEvent) = self._mergeEvents(
-            prevLocalEvent, lastLocalEvent
+        (localWasMerged, localRemoveBothEvents, newLocalEvent) = self._mergeEvents(
+            prevLocalEvent,
+            lastLocalEvent,
+            self._localdata,
+            self._localdata_complete,
+            numberOfPreviousEvents,
         )
 
         if remotedWasMerged != localWasMerged:
-            errmsg = "BUG : inconsitency between remote and local merge results"
+            errmsg = f"BUG : inconsistency between remote and local merge results : {remotedWasMerged=}, {localWasMerged=}. {prevEventNumber=}, {lastEventNumber=} {prevRemoteEvent.toString(set())=} {lastRemoteEvent.toString(set())=}, {prevLocalEvent.toString(set())=}, {lastLocalEvent.toString(set())=}"
             __hermes__.logger.critical(errmsg)
             raise AssertionError(errmsg)
 
-        if localWasMerged:
+        if not localWasMerged:
+            # No merge was done
+            return
+
+        # Local processing result is the only one that really matters here
+        if localRemoveBothEvents:
+            self.remove(lastEventNumber)
+            self.remove(prevEventNumber)
+        else:
             # Last event was merged into previous, update previous and remove last from queue
             self._queue[prevEventNumber] = (newRemoteEvent, newLocalEvent, prevErrorMsg)
             self.remove(lastEventNumber)
