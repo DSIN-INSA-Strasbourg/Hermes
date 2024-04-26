@@ -563,6 +563,7 @@ class GenericClient:
                         f"... failed on step {self.currentStep}: {str(e)}"
                     )
                     remoteEvent.step = self.currentStep
+                    localEvent.step = self.currentStep
                     self.__datamodel.errorqueue.updateErrorMsg(eventNumber, e.msg)
                 else:
                     # If event has suppressed object, eventNumber has already been
@@ -582,6 +583,8 @@ class GenericClient:
                     __hermes__.logger.info(
                         f"... failed on step {self.currentStep}: {str(e)}"
                     )
+                    if remoteEvent is not None:
+                        remoteEvent.step = self.currentStep
                     localEvent.step = self.currentStep
                     self.__datamodel.errorqueue.updateErrorMsg(eventNumber, e.msg)
                 else:
@@ -903,6 +906,7 @@ class GenericClient:
                     simulateOnly=True,
                 )
                 remote_event.step = self.currentStep
+                local_event.step = self.currentStep
 
                 if local_event is None:
                     # Force empty event generation when local_event doesn't change anything
@@ -1000,6 +1004,8 @@ class GenericClient:
                 self.__processLocalEvent(
                     None, local_event, enqueueEventWithError=False, simulateOnly=True
                 )
+                if remote_event is not None:
+                    remote_event.step = self.currentStep
                 local_event.step = self.currentStep
                 self.__datamodel.errorqueue.append(remote_event, local_event, e.msg)
             else:
