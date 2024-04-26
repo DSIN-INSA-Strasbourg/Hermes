@@ -829,7 +829,7 @@ class GenericClient:
                 )
             )
             if r_cachedobj_complete is not None:
-                r_obj_complete = self.__getUpdatedObject(
+                r_obj_complete = Datamodel.getUpdatedObject(
                     r_cachedobj_complete, remote_event.objattrs
                 )
 
@@ -1181,14 +1181,14 @@ class GenericClient:
 
         if not simulateOnly:
             r_cachedobj: DataObject = maincache.get(remote_event.objpkey)
-            r_obj = self.__getUpdatedObject(r_cachedobj, remote_event.objattrs)
+            r_obj = Datamodel.getUpdatedObject(r_cachedobj, remote_event.objattrs)
 
         cache_complete, r_cachedobj_complete = Datamodel.getObjectFromCacheOrTrashbin(
             self.__datamodel.remotedata_complete,
             remote_event.objtype,
             remote_event.objpkey,
         )
-        r_obj_complete = self.__getUpdatedObject(
+        r_obj_complete = Datamodel.getUpdatedObject(
             r_cachedobj_complete, remote_event.objattrs
         )
 
@@ -1216,7 +1216,7 @@ class GenericClient:
 
         if not simulateOnly:
             l_cachedobj: DataObject = maincache.get(local_ev.objpkey)
-            l_obj = self.__getUpdatedObject(l_cachedobj, local_ev.objattrs)
+            l_obj = Datamodel.getUpdatedObject(l_cachedobj, local_ev.objattrs)
 
         cache_complete, l_cachedobj_complete = Datamodel.getObjectFromCacheOrTrashbin(
             self.__datamodel.localdata_complete, local_ev.objtype, local_ev.objpkey
@@ -1224,7 +1224,7 @@ class GenericClient:
 
         # May not exist
         if cache_complete is not None:
-            l_obj_complete = self.__getUpdatedObject(
+            l_obj_complete = Datamodel.getUpdatedObject(
                 l_cachedobj_complete, local_ev.objattrs
             )
 
@@ -1602,25 +1602,6 @@ class GenericClient:
         self.__config.savecachefile()  # Save config to be able to rebuild datamodel
         self.__datamodel.saveLocalAndRemoteData()  # Save data
         self.__checkDatamodelWarnings()
-
-    @classmethod
-    def __getUpdatedObject(
-        cls, obj: DataObject, objattrs: dict[str, Any]
-    ) -> DataObject:
-        """Return a deepcopy of specified obj, with its attributes updated upon specified
-        objattrs dict from Event"""
-        newobj = deepcopy(obj)
-
-        # Update newobj attributes
-        for attrname, value in objattrs["added"].items():
-            setattr(newobj, attrname, value)  # Add new attributes
-        for attrname, value in objattrs["modified"].items():
-            setattr(newobj, attrname, value)  # Update existing attributes
-        for attrname, value in objattrs["removed"].items():
-            if hasattr(newobj, attrname):
-                delattr(newobj, attrname)  # Delete existing attributes
-
-        return newobj
 
     def __status(
         self, verbose=False, level="information", ignoreUnhandledExceptions=False

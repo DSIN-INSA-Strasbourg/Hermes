@@ -28,6 +28,39 @@ from lib.datamodel.event import Event
 import logging
 
 
+# Table of event flow in queue
+#
+# |         |         objpkey=1        |||         objpkey=2        |||         objpkey=3        |||         objpkey=4        |||         objpkey=5        |||
+# | Event # |  Remote  |   Local  | Step |  Remote  |   Local  | Step |  Remote  |   Local  | Step |  Remote  |   Local  | Step |  Remote  |   Local  | Step |
+# |:-------:|:--------:|:--------:|:----:|:--------:|:--------:|:----:|:--------:|:--------:|:----:|:--------:|:--------:|:----:|:--------:|:--------:|:----:|
+# |     1   |   added  |   added  |   0  |          |          |      |          |          |      |          |          |      |          |          |      |
+# |     2   |          |          |      |     -    | modified |   0  |          |          |      |          |          |      |          |          |      |
+# |     3   |          |          |      |          |          |      | modified | modified |   0  |          |          |      |          |          |      |
+# |     4   |          |          |      |          |          |      |          |          |      |   added  |   added  |   0  |          |          |      |
+# |     5   |          |          |      |          |          |      |          |          |      |          |          |      |   added  |   added  |   0  |
+# |     6   |  removed |  removed |   0  |          |          |      |          |          |      |          |          |      |          |          |      |
+# |     7   |          |          |      |     -    | modified |   0  |          |          |      |          |          |      |          |          |      |
+# |     8   |          |          |      |          |          |      | modified | modified |   0  |          |          |      |          |          |      |
+# |     9   |          |          |      |          |          |      |          |          |      |     -    | modified |   0  |          |          |      |
+# |    10   |          |          |      |          |          |      |          |          |      |          |          |      |     -    | modified |   1  |
+# |    11   |          |          |      | modified | modified |   0  |          |          |      |          |          |      |          |          |      |
+# |    12   |          |          |      |          |          |      |  removed |  removed |   0  |          |          |      |          |          |      |
+# |    13   |          |          |      |          |          |      |          |          |      | modified | modified |   0  |          |          |      |
+# |    14   |          |          |      |          |          |      |          |          |      |          |          |      | modified | modified |   0  |
+# |    15   |          |          |      |          |          |      |   added  |   added  |   0  |          |          |      |          |          |      |
+# |    16   |          |          |      |          |          |      |          |          |      |          |          |      |  removed |  removed |   0  |
+# |    17   |          |          |      |          |          |      | modified | modified |   1  |          |          |      |          |          |      |
+# |    18   |          |          |      |          |          |      |          |          |      |          |          |      |   added  |   added  |   0  |
+
+# Number of events remaining in queue according to autoremediation policy
+#
+# |                          | objpkey=1 | objpkey=2 | objpkey=3 | objpkey=4 | objpkey=5 | TOTAL IN QUEUE |
+# |:------------------------:|:---------:|:---------:|:---------:|:---------:|:---------:|:--------------:|
+# | Conservative             |     2     |     1     |     4     |     1     |     5     |       13       |
+# | Maximum w/o datasources  |     0     |     1     |     3     |     1     |     4     |        9       |
+# | Maximum with datasources |     0     |     1     |     2     |     1     |     3     |        7       |
+
+
 class TestErrorQueueClass(HermesServerTestCase):
     typesMapping = {"TestObj1": "TestObj1_local"}
 
@@ -138,6 +171,33 @@ class TestErrorQueueClass(HermesServerTestCase):
         "5": [
             {
                 "evcategory": "base",
+                "eventtype": "added",
+                "objtype": "TestObj1",
+                "objpkey": 5,
+                "objattrs": {
+                    "obj_id": 5,
+                    "name": "Object5",
+                    "description": "Test Object5",
+                },
+                "step": 0,
+            },
+            {
+                "evcategory": "base",
+                "eventtype": "added",
+                "objtype": "TestObj1_local",
+                "objpkey": 5,
+                "objattrs": {
+                    "obj_id": 5,
+                    "name": "Object5",
+                    "description": "Test Object5",
+                },
+                "step": 0,
+            },
+            "Fake error message",
+        ],
+        "6": [
+            {
+                "evcategory": "base",
                 "eventtype": "removed",
                 "objtype": "TestObj1",
                 "objpkey": 1,
@@ -154,7 +214,7 @@ class TestErrorQueueClass(HermesServerTestCase):
             },
             "Fake error message",
         ],
-        "6": [
+        "7": [
             None,
             {
                 "evcategory": "base",
@@ -173,7 +233,7 @@ class TestErrorQueueClass(HermesServerTestCase):
             },
             "Fake error message",
         ],
-        "7": [
+        "8": [
             {
                 "evcategory": "base",
                 "eventtype": "modified",
@@ -206,7 +266,7 @@ class TestErrorQueueClass(HermesServerTestCase):
             },
             "Fake error message",
         ],
-        "8": [
+        "9": [
             None,
             {
                 "evcategory": "base",
@@ -224,53 +284,21 @@ class TestErrorQueueClass(HermesServerTestCase):
             },
             "Fake error message",
         ],
-        "9": [
-            {
-                "evcategory": "base",
-                "eventtype": "modified",
-                "objtype": "TestObj1",
-                "objpkey": 2,
-                "objattrs": {
-                    "added": {"new_attr20": "new_attr20_value"},
-                    "modified": {
-                        "name": "Object2_modified_final",
-                    },
-                    "removed": {"new_attr2": None},
-                },
-                "step": 0,
-            },
-            {
-                "evcategory": "base",
-                "eventtype": "modified",
-                "objtype": "TestObj1_local",
-                "objpkey": 2,
-                "objattrs": {
-                    "added": {"new_attr20": "new_attr20_value"},
-                    "modified": {
-                        "name": "Object2_modified_final",
-                    },
-                    "removed": {"new_attr2": None},
-                },
-                "step": 0,
-            },
-            "Fake error message",
-        ],
         "10": [
+            None,
             {
                 "evcategory": "base",
-                "eventtype": "removed",
-                "objtype": "TestObj1",
-                "objpkey": 3,
-                "objattrs": {},
-                "step": 0,
-            },
-            {
-                "evcategory": "base",
-                "eventtype": "removed",
+                "eventtype": "modified",
                 "objtype": "TestObj1_local",
-                "objpkey": 3,
-                "objattrs": {},
-                "step": 0,
+                "objpkey": 5,
+                "objattrs": {
+                    "added": {"new_attr5": "new_attr5_value"},
+                    "modified": {
+                        "name": "Object5_modified",
+                    },
+                    "removed": {"description": None},
+                },
+                "step": 1,
             },
             "Fake error message",
         ],
@@ -279,6 +307,56 @@ class TestErrorQueueClass(HermesServerTestCase):
                 "evcategory": "base",
                 "eventtype": "modified",
                 "objtype": "TestObj1",
+                "objpkey": 2,
+                "objattrs": {
+                    "added": {"new_attr20": "new_attr20_value"},
+                    "modified": {
+                        "name": "Object2_modified_final",
+                    },
+                    "removed": {"new_attr2": None},
+                },
+                "step": 0,
+            },
+            {
+                "evcategory": "base",
+                "eventtype": "modified",
+                "objtype": "TestObj1_local",
+                "objpkey": 2,
+                "objattrs": {
+                    "added": {"new_attr20": "new_attr20_value"},
+                    "modified": {
+                        "name": "Object2_modified_final",
+                    },
+                    "removed": {"new_attr2": None},
+                },
+                "step": 0,
+            },
+            "Fake error message",
+        ],
+        "12": [
+            {
+                "evcategory": "base",
+                "eventtype": "removed",
+                "objtype": "TestObj1",
+                "objpkey": 3,
+                "objattrs": {},
+                "step": 0,
+            },
+            {
+                "evcategory": "base",
+                "eventtype": "removed",
+                "objtype": "TestObj1_local",
+                "objpkey": 3,
+                "objattrs": {},
+                "step": 0,
+            },
+            "Fake error message",
+        ],
+        "13": [
+            {
+                "evcategory": "base",
+                "eventtype": "modified",
+                "objtype": "TestObj1",
                 "objpkey": 4,
                 "objattrs": {
                     "added": {"new_attr41": "new_attr41_value_final"},
@@ -305,7 +383,38 @@ class TestErrorQueueClass(HermesServerTestCase):
             },
             "Fake error message",
         ],
-        "12": [
+        "14": [
+            {
+                "evcategory": "base",
+                "eventtype": "modified",
+                "objtype": "TestObj1",
+                "objpkey": 5,
+                "objattrs": {
+                    "added": {"new_attr51": "new_attr51_value_final"},
+                    "modified": {
+                        "name": "Object5_modified_final",
+                    },
+                    "removed": {"description": None},
+                },
+                "step": 0,
+            },
+            {
+                "evcategory": "base",
+                "eventtype": "modified",
+                "objtype": "TestObj1_local",
+                "objpkey": 5,
+                "objattrs": {
+                    "added": {"new_attr51": "new_attr51_value_final"},
+                    "modified": {
+                        "name": "Object5_modified_final",
+                    },
+                    "removed": {"description": None},
+                },
+                "step": 0,
+            },
+            "Fake error message",
+        ],
+        "15": [
             {
                 "evcategory": "base",
                 "eventtype": "added",
@@ -327,6 +436,83 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "obj_id": 3,
                     "name": "Object3_v2",
                     "description": "Test Object3_v2",
+                },
+                "step": 0,
+            },
+            "Fake error message",
+        ],
+        "16": [
+            {
+                "evcategory": "base",
+                "eventtype": "removed",
+                "objtype": "TestObj1",
+                "objpkey": 5,
+                "objattrs": {},
+                "step": 0,
+            },
+            {
+                "evcategory": "base",
+                "eventtype": "removed",
+                "objtype": "TestObj1_local",
+                "objpkey": 5,
+                "objattrs": {},
+                "step": 0,
+            },
+            "Fake error message",
+        ],
+        "17": [
+            {
+                "evcategory": "base",
+                "eventtype": "modified",
+                "objtype": "TestObj1",
+                "objpkey": 3,
+                "objattrs": {
+                    "added": {"new_attr34": "new_attr34_value"},
+                    "modified": {
+                        "name": "Object3_v2_modified",
+                    },
+                    "removed": {"description": None},
+                },
+                "step": 1,
+            },
+            {
+                "evcategory": "base",
+                "eventtype": "modified",
+                "objtype": "TestObj1_local",
+                "objpkey": 3,
+                "objattrs": {
+                    "added": {"new_attr34": "new_attr34_value"},
+                    "modified": {
+                        "name": "Object3_v2_modified",
+                    },
+                    "removed": {"description": None},
+                },
+                "step": 1,
+            },
+            "Fake error message",
+        ],
+        "18": [
+            {
+                "evcategory": "base",
+                "eventtype": "added",
+                "objtype": "TestObj1",
+                "objpkey": 5,
+                "objattrs": {
+                    "obj_id": 5,
+                    "name": "Object5 new",
+                    "description": "Test Object5 new",
+                },
+                "step": 0,
+            },
+            {
+                "evcategory": "base",
+                "eventtype": "added",
+                "objtype": "TestObj1_local",
+                "objpkey": 5,
+                "objattrs": {
+                    "obj_id": 5,
+                    "name": "Object5 new",
+                    "description": "Test Object5 new",
                 },
                 "step": 0,
             },
@@ -456,6 +642,33 @@ class TestErrorQueueClass(HermesServerTestCase):
         "5": [
             {
                 "evcategory": "base",
+                "eventtype": "added",
+                "objtype": "TestObj1",
+                "objpkey": 5,
+                "objattrs": {
+                    "obj_id": 5,
+                    "name": "Object5",
+                    "description": "Test Object5"
+                },
+                "step": 0
+            },
+            {
+                "evcategory": "base",
+                "eventtype": "added",
+                "objtype": "TestObj1_local",
+                "objpkey": 5,
+                "objattrs": {
+                    "obj_id": 5,
+                    "name": "Object5",
+                    "description": "Test Object5"
+                },
+                "step": 0
+            },
+            "Fake error message"
+        ],
+        "6": [
+            {
+                "evcategory": "base",
                 "eventtype": "removed",
                 "objtype": "TestObj1",
                 "objpkey": 1,
@@ -472,7 +685,7 @@ class TestErrorQueueClass(HermesServerTestCase):
             },
             "Fake error message"
         ],
-        "6": [
+        "7": [
             null,
             {
                 "evcategory": "base",
@@ -493,7 +706,7 @@ class TestErrorQueueClass(HermesServerTestCase):
             },
             "Fake error message"
         ],
-        "7": [
+        "8": [
             {
                 "evcategory": "base",
                 "eventtype": "modified",
@@ -534,7 +747,7 @@ class TestErrorQueueClass(HermesServerTestCase):
             },
             "Fake error message"
         ],
-        "8": [
+        "9": [
             null,
             {
                 "evcategory": "base",
@@ -556,61 +769,25 @@ class TestErrorQueueClass(HermesServerTestCase):
             },
             "Fake error message"
         ],
-        "9": [
-            {
-                "evcategory": "base",
-                "eventtype": "modified",
-                "objtype": "TestObj1",
-                "objpkey": 2,
-                "objattrs": {
-                    "added": {
-                        "new_attr20": "new_attr20_value"
-                    },
-                    "modified": {
-                        "name": "Object2_modified_final"
-                    },
-                    "removed": {
-                        "new_attr2": null
-                    }
-                },
-                "step": 0
-            },
-            {
-                "evcategory": "base",
-                "eventtype": "modified",
-                "objtype": "TestObj1_local",
-                "objpkey": 2,
-                "objattrs": {
-                    "added": {
-                        "new_attr20": "new_attr20_value"
-                    },
-                    "modified": {
-                        "name": "Object2_modified_final"
-                    },
-                    "removed": {
-                        "new_attr2": null
-                    }
-                },
-                "step": 0
-            },
-            "Fake error message"
-        ],
         "10": [
+            null,
             {
                 "evcategory": "base",
-                "eventtype": "removed",
-                "objtype": "TestObj1",
-                "objpkey": 3,
-                "objattrs": {},
-                "step": 0
-            },
-            {
-                "evcategory": "base",
-                "eventtype": "removed",
+                "eventtype": "modified",
                 "objtype": "TestObj1_local",
-                "objpkey": 3,
-                "objattrs": {},
-                "step": 0
+                "objpkey": 5,
+                "objattrs": {
+                    "added": {
+                        "new_attr5": "new_attr5_value"
+                    },
+                    "modified": {
+                        "name": "Object5_modified"
+                    },
+                    "removed": {
+                        "description": null
+                    }
+                },
+                "step": 1
             },
             "Fake error message"
         ],
@@ -619,16 +796,16 @@ class TestErrorQueueClass(HermesServerTestCase):
                 "evcategory": "base",
                 "eventtype": "modified",
                 "objtype": "TestObj1",
-                "objpkey": 4,
+                "objpkey": 2,
                 "objattrs": {
                     "added": {
-                        "new_attr41": "new_attr41_value_final"
+                        "new_attr20": "new_attr20_value"
                     },
                     "modified": {
-                        "name": "Object4_modified_final"
+                        "name": "Object2_modified_final"
                     },
                     "removed": {
-                        "description": null
+                        "new_attr2": null
                     }
                 },
                 "step": 0
@@ -637,16 +814,16 @@ class TestErrorQueueClass(HermesServerTestCase):
                 "evcategory": "base",
                 "eventtype": "modified",
                 "objtype": "TestObj1_local",
-                "objpkey": 4,
+                "objpkey": 2,
                 "objattrs": {
                     "added": {
-                        "new_attr41": "new_attr41_value_final"
+                        "new_attr20": "new_attr20_value"
                     },
                     "modified": {
-                        "name": "Object4_modified_final"
+                        "name": "Object2_modified_final"
                     },
                     "removed": {
-                        "description": null
+                        "new_attr2": null
                     }
                 },
                 "step": 0
@@ -656,6 +833,103 @@ class TestErrorQueueClass(HermesServerTestCase):
         "12": [
             {
                 "evcategory": "base",
+                "eventtype": "removed",
+                "objtype": "TestObj1",
+                "objpkey": 3,
+                "objattrs": {},
+                "step": 0
+            },
+            {
+                "evcategory": "base",
+                "eventtype": "removed",
+                "objtype": "TestObj1_local",
+                "objpkey": 3,
+                "objattrs": {},
+                "step": 0
+            },
+            "Fake error message"
+        ],
+        "13": [
+            {
+                "evcategory": "base",
+                "eventtype": "modified",
+                "objtype": "TestObj1",
+                "objpkey": 4,
+                "objattrs": {
+                    "added": {
+                        "new_attr41": "new_attr41_value_final"
+                    },
+                    "modified": {
+                        "name": "Object4_modified_final"
+                    },
+                    "removed": {
+                        "description": null
+                    }
+                },
+                "step": 0
+            },
+            {
+                "evcategory": "base",
+                "eventtype": "modified",
+                "objtype": "TestObj1_local",
+                "objpkey": 4,
+                "objattrs": {
+                    "added": {
+                        "new_attr41": "new_attr41_value_final"
+                    },
+                    "modified": {
+                        "name": "Object4_modified_final"
+                    },
+                    "removed": {
+                        "description": null
+                    }
+                },
+                "step": 0
+            },
+            "Fake error message"
+        ],
+        "14": [
+            {
+                "evcategory": "base",
+                "eventtype": "modified",
+                "objtype": "TestObj1",
+                "objpkey": 5,
+                "objattrs": {
+                    "added": {
+                        "new_attr51": "new_attr51_value_final"
+                    },
+                    "modified": {
+                        "name": "Object5_modified_final"
+                    },
+                    "removed": {
+                        "description": null
+                    }
+                },
+                "step": 0
+            },
+            {
+                "evcategory": "base",
+                "eventtype": "modified",
+                "objtype": "TestObj1_local",
+                "objpkey": 5,
+                "objattrs": {
+                    "added": {
+                        "new_attr51": "new_attr51_value_final"
+                    },
+                    "modified": {
+                        "name": "Object5_modified_final"
+                    },
+                    "removed": {
+                        "description": null
+                    }
+                },
+                "step": 0
+            },
+            "Fake error message"
+        ],
+        "15": [
+            {
+                "evcategory": "base",
                 "eventtype": "added",
                 "objtype": "TestObj1",
                 "objpkey": 3,
@@ -675,6 +949,91 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "obj_id": 3,
                     "name": "Object3_v2",
                     "description": "Test Object3_v2"
+                },
+                "step": 0
+            },
+            "Fake error message"
+        ],
+        "16": [
+            {
+                "evcategory": "base",
+                "eventtype": "removed",
+                "objtype": "TestObj1",
+                "objpkey": 5,
+                "objattrs": {},
+                "step": 0
+            },
+            {
+                "evcategory": "base",
+                "eventtype": "removed",
+                "objtype": "TestObj1_local",
+                "objpkey": 5,
+                "objattrs": {},
+                "step": 0
+            },
+            "Fake error message"
+        ],
+        "17": [
+            {
+                "evcategory": "base",
+                "eventtype": "modified",
+                "objtype": "TestObj1",
+                "objpkey": 3,
+                "objattrs": {
+                    "added": {
+                        "new_attr34": "new_attr34_value"
+                    },
+                    "modified": {
+                        "name": "Object3_v2_modified"
+                    },
+                    "removed": {
+                        "description": null
+                    }
+                },
+                "step": 1
+            },
+            {
+                "evcategory": "base",
+                "eventtype": "modified",
+                "objtype": "TestObj1_local",
+                "objpkey": 3,
+                "objattrs": {
+                    "added": {
+                        "new_attr34": "new_attr34_value"
+                    },
+                    "modified": {
+                        "name": "Object3_v2_modified"
+                    },
+                    "removed": {
+                        "description": null
+                    }
+                },
+                "step": 1
+            },
+            "Fake error message"
+        ],
+        "18": [
+            {
+                "evcategory": "base",
+                "eventtype": "added",
+                "objtype": "TestObj1",
+                "objpkey": 5,
+                "objattrs": {
+                    "obj_id": 5,
+                    "name": "Object5 new",
+                    "description": "Test Object5 new"
+                },
+                "step": 0
+            },
+            {
+                "evcategory": "base",
+                "eventtype": "added",
+                "objtype": "TestObj1_local",
+                "objpkey": 5,
+                "objattrs": {
+                    "obj_id": 5,
+                    "name": "Object5 new",
+                    "description": "Test Object5 new"
                 },
                 "step": 0
             },
@@ -824,18 +1183,26 @@ class TestErrorQueueClass(HermesServerTestCase):
         "5": [
             {
                 "evcategory": "base",
-                "eventtype": "removed",
+                "eventtype": "added",
                 "objtype": "TestObj1",
-                "objpkey": 1,
-                "objattrs": {},
+                "objpkey": 5,
+                "objattrs": {
+                    "obj_id": 5,
+                    "name": "Object5",
+                    "description": "Test Object5"
+                },
                 "step": 0
             },
             {
                 "evcategory": "base",
-                "eventtype": "removed",
+                "eventtype": "added",
                 "objtype": "TestObj1_local",
-                "objpkey": 1,
-                "objattrs": {},
+                "objpkey": 5,
+                "objattrs": {
+                    "obj_id": 5,
+                    "name": "Object5",
+                    "description": "Test Object5"
+                },
                 "step": 0
             },
             "Fake error message"
@@ -845,6 +1212,47 @@ class TestErrorQueueClass(HermesServerTestCase):
                 "evcategory": "base",
                 "eventtype": "removed",
                 "objtype": "TestObj1",
+                "objpkey": 1,
+                "objattrs": {},
+                "step": 0
+            },
+            {
+                "evcategory": "base",
+                "eventtype": "removed",
+                "objtype": "TestObj1_local",
+                "objpkey": 1,
+                "objattrs": {},
+                "step": 0
+            },
+            "Fake error message"
+        ],
+        "7": [
+            null,
+            {
+                "evcategory": "base",
+                "eventtype": "modified",
+                "objtype": "TestObj1_local",
+                "objpkey": 5,
+                "objattrs": {
+                    "added": {
+                        "new_attr5": "new_attr5_value"
+                    },
+                    "modified": {
+                        "name": "Object5_modified"
+                    },
+                    "removed": {
+                        "description": null
+                    }
+                },
+                "step": 1
+            },
+            "Fake error message"
+        ],
+        "8": [
+            {
+                "evcategory": "base",
+                "eventtype": "removed",
+                "objtype": "TestObj1",
                 "objpkey": 3,
                 "objattrs": {},
                 "step": 0
@@ -859,7 +1267,46 @@ class TestErrorQueueClass(HermesServerTestCase):
             },
             "Fake error message"
         ],
-        "7": [
+        "9": [
+            {
+                "evcategory": "base",
+                "eventtype": "modified",
+                "objtype": "TestObj1",
+                "objpkey": 5,
+                "objattrs": {
+                    "added": {
+                        "new_attr51": "new_attr51_value_final"
+                    },
+                    "modified": {
+                        "name": "Object5_modified_final"
+                    },
+                    "removed": {
+                        "description": null
+                    }
+                },
+                "step": 0
+            },
+            {
+                "evcategory": "base",
+                "eventtype": "modified",
+                "objtype": "TestObj1_local",
+                "objpkey": 5,
+                "objattrs": {
+                    "added": {
+                        "new_attr51": "new_attr51_value_final"
+                    },
+                    "modified": {
+                        "name": "Object5_modified_final"
+                    },
+                    "removed": {
+                        "description": null
+                    }
+                },
+                "step": 0
+            },
+            "Fake error message"
+        ],
+        "10": [
             {
                 "evcategory": "base",
                 "eventtype": "added",
@@ -881,6 +1328,91 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "obj_id": 3,
                     "name": "Object3_v2",
                     "description": "Test Object3_v2"
+                },
+                "step": 0
+            },
+            "Fake error message"
+        ],
+        "11": [
+            {
+                "evcategory": "base",
+                "eventtype": "removed",
+                "objtype": "TestObj1",
+                "objpkey": 5,
+                "objattrs": {},
+                "step": 0
+            },
+            {
+                "evcategory": "base",
+                "eventtype": "removed",
+                "objtype": "TestObj1_local",
+                "objpkey": 5,
+                "objattrs": {},
+                "step": 0
+            },
+            "Fake error message"
+        ],
+        "12": [
+            {
+                "evcategory": "base",
+                "eventtype": "modified",
+                "objtype": "TestObj1",
+                "objpkey": 3,
+                "objattrs": {
+                    "added": {
+                        "new_attr34": "new_attr34_value"
+                    },
+                    "modified": {
+                        "name": "Object3_v2_modified"
+                    },
+                    "removed": {
+                        "description": null
+                    }
+                },
+                "step": 1
+            },
+            {
+                "evcategory": "base",
+                "eventtype": "modified",
+                "objtype": "TestObj1_local",
+                "objpkey": 3,
+                "objattrs": {
+                    "added": {
+                        "new_attr34": "new_attr34_value"
+                    },
+                    "modified": {
+                        "name": "Object3_v2_modified"
+                    },
+                    "removed": {
+                        "description": null
+                    }
+                },
+                "step": 1
+            },
+            "Fake error message"
+        ],
+        "13": [
+            {
+                "evcategory": "base",
+                "eventtype": "added",
+                "objtype": "TestObj1",
+                "objpkey": 5,
+                "objattrs": {
+                    "obj_id": 5,
+                    "name": "Object5 new",
+                    "description": "Test Object5 new"
+                },
+                "step": 0
+            },
+            {
+                "evcategory": "base",
+                "eventtype": "added",
+                "objtype": "TestObj1_local",
+                "objpkey": 5,
+                "objattrs": {
+                    "obj_id": 5,
+                    "name": "Object5 new",
+                    "description": "Test Object5 new"
                 },
                 "step": 0
             },
@@ -1030,6 +1562,33 @@ class TestErrorQueueClass(HermesServerTestCase):
         "5": [
             {
                 "evcategory": "base",
+                "eventtype": "added",
+                "objtype": "TestObj1",
+                "objpkey": 5,
+                "objattrs": {
+                    "obj_id": 5,
+                    "name": "Object5",
+                    "description": "Test Object5"
+                },
+                "step": 0
+            },
+            {
+                "evcategory": "base",
+                "eventtype": "added",
+                "objtype": "TestObj1_local",
+                "objpkey": 5,
+                "objattrs": {
+                    "obj_id": 5,
+                    "name": "Object5",
+                    "description": "Test Object5"
+                },
+                "step": 0
+            },
+            "Fake error message"
+        ],
+        "6": [
+            {
+                "evcategory": "base",
                 "eventtype": "removed",
                 "objtype": "TestObj1",
                 "objpkey": 1,
@@ -1047,6 +1606,28 @@ class TestErrorQueueClass(HermesServerTestCase):
             "Fake error message"
         ],
         "10": [
+            null,
+            {
+                "evcategory": "base",
+                "eventtype": "modified",
+                "objtype": "TestObj1_local",
+                "objpkey": 5,
+                "objattrs": {
+                    "added": {
+                        "new_attr5": "new_attr5_value"
+                    },
+                    "modified": {
+                        "name": "Object5_modified"
+                    },
+                    "removed": {
+                        "description": null
+                    }
+                },
+                "step": 1
+            },
+            "Fake error message"
+        ],
+        "12": [
             {
                 "evcategory": "base",
                 "eventtype": "removed",
@@ -1065,7 +1646,46 @@ class TestErrorQueueClass(HermesServerTestCase):
             },
             "Fake error message"
         ],
-        "12": [
+        "14": [
+            {
+                "evcategory": "base",
+                "eventtype": "modified",
+                "objtype": "TestObj1",
+                "objpkey": 5,
+                "objattrs": {
+                    "added": {
+                        "new_attr51": "new_attr51_value_final"
+                    },
+                    "modified": {
+                        "name": "Object5_modified_final"
+                    },
+                    "removed": {
+                        "description": null
+                    }
+                },
+                "step": 0
+            },
+            {
+                "evcategory": "base",
+                "eventtype": "modified",
+                "objtype": "TestObj1_local",
+                "objpkey": 5,
+                "objattrs": {
+                    "added": {
+                        "new_attr51": "new_attr51_value_final"
+                    },
+                    "modified": {
+                        "name": "Object5_modified_final"
+                    },
+                    "removed": {
+                        "description": null
+                    }
+                },
+                "step": 0
+            },
+            "Fake error message"
+        ],
+        "15": [
             {
                 "evcategory": "base",
                 "eventtype": "added",
@@ -1087,6 +1707,91 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "obj_id": 3,
                     "name": "Object3_v2",
                     "description": "Test Object3_v2"
+                },
+                "step": 0
+            },
+            "Fake error message"
+        ],
+        "16": [
+            {
+                "evcategory": "base",
+                "eventtype": "removed",
+                "objtype": "TestObj1",
+                "objpkey": 5,
+                "objattrs": {},
+                "step": 0
+            },
+            {
+                "evcategory": "base",
+                "eventtype": "removed",
+                "objtype": "TestObj1_local",
+                "objpkey": 5,
+                "objattrs": {},
+                "step": 0
+            },
+            "Fake error message"
+        ],
+        "17": [
+            {
+                "evcategory": "base",
+                "eventtype": "modified",
+                "objtype": "TestObj1",
+                "objpkey": 3,
+                "objattrs": {
+                    "added": {
+                        "new_attr34": "new_attr34_value"
+                    },
+                    "modified": {
+                        "name": "Object3_v2_modified"
+                    },
+                    "removed": {
+                        "description": null
+                    }
+                },
+                "step": 1
+            },
+            {
+                "evcategory": "base",
+                "eventtype": "modified",
+                "objtype": "TestObj1_local",
+                "objpkey": 3,
+                "objattrs": {
+                    "added": {
+                        "new_attr34": "new_attr34_value"
+                    },
+                    "modified": {
+                        "name": "Object3_v2_modified"
+                    },
+                    "removed": {
+                        "description": null
+                    }
+                },
+                "step": 1
+            },
+            "Fake error message"
+        ],
+        "18": [
+            {
+                "evcategory": "base",
+                "eventtype": "added",
+                "objtype": "TestObj1",
+                "objpkey": 5,
+                "objattrs": {
+                    "obj_id": 5,
+                    "name": "Object5 new",
+                    "description": "Test Object5 new"
+                },
+                "step": 0
+            },
+            {
+                "evcategory": "base",
+                "eventtype": "added",
+                "objtype": "TestObj1_local",
+                "objpkey": 5,
+                "objattrs": {
+                    "obj_id": 5,
+                    "name": "Object5 new",
+                    "description": "Test Object5 new"
                 },
                 "step": 0
             },
@@ -1189,6 +1894,74 @@ class TestErrorQueueClass(HermesServerTestCase):
                 "evcategory": "base",
                 "eventtype": "added",
                 "objtype": "TestObj1",
+                "objpkey": 5,
+                "objattrs": {
+                    "obj_id": 5,
+                    "name": "Object5",
+                    "description": "Test Object5"
+                },
+                "step": 0
+            },
+            {
+                "evcategory": "base",
+                "eventtype": "added",
+                "objtype": "TestObj1_local",
+                "objpkey": 5,
+                "objattrs": {
+                    "obj_id": 5,
+                    "name": "Object5",
+                    "description": "Test Object5"
+                },
+                "step": 0
+            },
+            "Fake error message"
+        ],
+        "6": [
+            null,
+            {
+                "evcategory": "base",
+                "eventtype": "modified",
+                "objtype": "TestObj1_local",
+                "objpkey": 5,
+                "objattrs": {
+                    "added": {
+                        "new_attr5": "new_attr5_value"
+                    },
+                    "modified": {
+                        "name": "Object5_modified"
+                    },
+                    "removed": {
+                        "description": null
+                    }
+                },
+                "step": 1
+            },
+            "Fake error message"
+        ],
+        "7": [
+            {
+                "evcategory": "base",
+                "eventtype": "removed",
+                "objtype": "TestObj1",
+                "objpkey": 5,
+                "objattrs": {},
+                "step": 0
+            },
+            {
+                "evcategory": "base",
+                "eventtype": "removed",
+                "objtype": "TestObj1_local",
+                "objpkey": 5,
+                "objattrs": {},
+                "step": 0
+            },
+            "Fake error message"
+        ],
+        "8": [
+            {
+                "evcategory": "base",
+                "eventtype": "added",
+                "objtype": "TestObj1",
                 "objpkey": 3,
                 "objattrs": {
                     "obj_id": 3,
@@ -1206,6 +1979,72 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "obj_id": 3,
                     "name": "Object3_v2",
                     "description": "Test Object3_v2"
+                },
+                "step": 0
+            },
+            "Fake error message"
+        ],
+        "9": [
+            {
+                "evcategory": "base",
+                "eventtype": "modified",
+                "objtype": "TestObj1",
+                "objpkey": 3,
+                "objattrs": {
+                    "added": {
+                        "new_attr34": "new_attr34_value"
+                    },
+                    "modified": {
+                        "name": "Object3_v2_modified"
+                    },
+                    "removed": {
+                        "description": null
+                    }
+                },
+                "step": 1
+            },
+            {
+                "evcategory": "base",
+                "eventtype": "modified",
+                "objtype": "TestObj1_local",
+                "objpkey": 3,
+                "objattrs": {
+                    "added": {
+                        "new_attr34": "new_attr34_value"
+                    },
+                    "modified": {
+                        "name": "Object3_v2_modified"
+                    },
+                    "removed": {
+                        "description": null
+                    }
+                },
+                "step": 1
+            },
+            "Fake error message"
+        ],
+        "10": [
+            {
+                "evcategory": "base",
+                "eventtype": "added",
+                "objtype": "TestObj1",
+                "objpkey": 5,
+                "objattrs": {
+                    "obj_id": 5,
+                    "name": "Object5 new",
+                    "description": "Test Object5 new"
+                },
+                "step": 0
+            },
+            {
+                "evcategory": "base",
+                "eventtype": "added",
+                "objtype": "TestObj1_local",
+                "objpkey": 5,
+                "objattrs": {
+                    "obj_id": 5,
+                    "name": "Object5 new",
+                    "description": "Test Object5 new"
                 },
                 "step": 0
             },
@@ -1303,7 +2142,75 @@ class TestErrorQueueClass(HermesServerTestCase):
             },
             "Fake error message"
         ],
-        "12": [
+        "5": [
+            {
+                "evcategory": "base",
+                "eventtype": "added",
+                "objtype": "TestObj1",
+                "objpkey": 5,
+                "objattrs": {
+                    "obj_id": 5,
+                    "name": "Object5",
+                    "description": "Test Object5"
+                },
+                "step": 0
+            },
+            {
+                "evcategory": "base",
+                "eventtype": "added",
+                "objtype": "TestObj1_local",
+                "objpkey": 5,
+                "objattrs": {
+                    "obj_id": 5,
+                    "name": "Object5",
+                    "description": "Test Object5"
+                },
+                "step": 0
+            },
+            "Fake error message"
+        ],
+        "10": [
+            null,
+            {
+                "evcategory": "base",
+                "eventtype": "modified",
+                "objtype": "TestObj1_local",
+                "objpkey": 5,
+                "objattrs": {
+                    "added": {
+                        "new_attr5": "new_attr5_value"
+                    },
+                    "modified": {
+                        "name": "Object5_modified"
+                    },
+                    "removed": {
+                        "description": null
+                    }
+                },
+                "step": 1
+            },
+            "Fake error message"
+        ],
+        "14": [
+            {
+                "evcategory": "base",
+                "eventtype": "removed",
+                "objtype": "TestObj1",
+                "objpkey": 5,
+                "objattrs": {},
+                "step": 0
+            },
+            {
+                "evcategory": "base",
+                "eventtype": "removed",
+                "objtype": "TestObj1_local",
+                "objpkey": 5,
+                "objattrs": {},
+                "step": 0
+            },
+            "Fake error message"
+        ],
+        "15": [
             {
                 "evcategory": "base",
                 "eventtype": "added",
@@ -1325,6 +2232,72 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "obj_id": 3,
                     "name": "Object3_v2",
                     "description": "Test Object3_v2"
+                },
+                "step": 0
+            },
+            "Fake error message"
+        ],
+        "17": [
+            {
+                "evcategory": "base",
+                "eventtype": "modified",
+                "objtype": "TestObj1",
+                "objpkey": 3,
+                "objattrs": {
+                    "added": {
+                        "new_attr34": "new_attr34_value"
+                    },
+                    "modified": {
+                        "name": "Object3_v2_modified"
+                    },
+                    "removed": {
+                        "description": null
+                    }
+                },
+                "step": 1
+            },
+            {
+                "evcategory": "base",
+                "eventtype": "modified",
+                "objtype": "TestObj1_local",
+                "objpkey": 3,
+                "objattrs": {
+                    "added": {
+                        "new_attr34": "new_attr34_value"
+                    },
+                    "modified": {
+                        "name": "Object3_v2_modified"
+                    },
+                    "removed": {
+                        "description": null
+                    }
+                },
+                "step": 1
+            },
+            "Fake error message"
+        ],
+        "18": [
+            {
+                "evcategory": "base",
+                "eventtype": "added",
+                "objtype": "TestObj1",
+                "objpkey": 5,
+                "objattrs": {
+                    "obj_id": 5,
+                    "name": "Object5 new",
+                    "description": "Test Object5 new"
+                },
+                "step": 0
+            },
+            {
+                "evcategory": "base",
+                "eventtype": "added",
+                "objtype": "TestObj1_local",
+                "objpkey": 5,
+                "objattrs": {
+                    "obj_id": 5,
+                    "name": "Object5 new",
+                    "description": "Test Object5 new"
                 },
                 "step": 0
             },
@@ -1496,11 +2469,9 @@ class TestErrorQueueClass(HermesServerTestCase):
             )
             evlocal = Event(from_json_dict=evlocaljson)
             eq.append(evremote, evlocal, errmsg)
-        self.assertEqual(len(eq), 12)  # Queue contains 12 items
-        self.assertEqual(len(list(eq.allEvents())), 12)  # Queue contains 12 items
-        self.assertEqual(
-            len(list(iter(eq))), 4
-        )  # Only 4 different objects are in queue
+        self.assertEqual(len(eq), 18)  # Queue contains 18 items
+        self.assertEqual(len(list(eq.allEvents())), 18)  # Queue contains 18 items
+        self.assertEqual(len(list(iter(eq))), 5)  # 5 different objects are in queue
         self.assertEqual(eq.to_json(), self.queuejson)
 
     def test_fill_queue_fromjson_noremediate(self):
@@ -1509,11 +2480,9 @@ class TestErrorQueueClass(HermesServerTestCase):
             autoremediate="disabled",
             from_json_dict={"_queue": self.queue},
         )
-        self.assertEqual(len(eq), 12)  # Queue contains 12 items
-        self.assertEqual(len(list(eq.allEvents())), 12)  # Queue contains 12 items
-        self.assertEqual(
-            len(list(iter(eq))), 4
-        )  # Only 4 different objects are in queue
+        self.assertEqual(len(eq), 18)  # Queue contains 18 items
+        self.assertEqual(len(list(eq.allEvents())), 18)  # Queue contains 18 items
+        self.assertEqual(len(list(iter(eq))), 5)  # 5 different objects are in queue
         self.assertEqual(eq.to_json(), self.queuejson)
 
     def test_fill_queue_remediate_conservative(self):
@@ -1524,11 +2493,9 @@ class TestErrorQueueClass(HermesServerTestCase):
             )
             evlocal = Event(from_json_dict=evlocaljson)
             eq.append(evremote, evlocal, errmsg)
-        self.assertEqual(len(eq), 7)  # Queue contains 7 items
-        self.assertEqual(len(list(eq.allEvents())), 7)  # Queue contains 7 items
-        self.assertEqual(
-            len(list(iter(eq))), 4
-        )  # Only 4 different objects are in queue
+        self.assertEqual(len(eq), 13)  # Queue contains 13 items
+        self.assertEqual(len(list(eq.allEvents())), 13)  # Queue contains 13 items
+        self.assertEqual(len(list(iter(eq))), 5)  # 5 different objects are in queue
         self.assertEqual(eq.to_json(), self.queueremediatedconservativejson)
 
     def test_fill_queue_fromjson_remediate_conservative(self):
@@ -1537,11 +2504,9 @@ class TestErrorQueueClass(HermesServerTestCase):
             autoremediate="conservative",
             from_json_dict={"_queue": self.queue},
         )
-        self.assertEqual(len(eq), 7)  # Queue contains 7 items
-        self.assertEqual(len(list(eq.allEvents())), 7)  # Queue contains 7 items
-        self.assertEqual(
-            len(list(iter(eq))), 4
-        )  # Only 4 different objects are in queue
+        self.assertEqual(len(eq), 13)  # Queue contains 13 items
+        self.assertEqual(len(list(eq.allEvents())), 13)  # Queue contains 13 items
+        self.assertEqual(len(list(iter(eq))), 5)  # 5 different objects are in queue
         self.assertEqual(eq.to_json(), self.queueremediatedconservativeatimportjson)
 
     def test_fill_queue_remediate_maximum_with_fallback_for_obj3(self):
@@ -1556,20 +2521,26 @@ class TestErrorQueueClass(HermesServerTestCase):
                 )
                 evlocal = Event(from_json_dict=evlocaljson)
                 eq.append(evremote, evlocal, errmsg)
-        self.assertEqual(len(eq), 4)  # Queue contains 4 items
-        self.assertEqual(len(list(eq.allEvents())), 4)  # Queue contains 4 items
-        self.assertEqual(
-            len(list(iter(eq))), 3
-        )  # Only 3 different objects are in queue
+        self.assertEqual(len(eq), 9)  # Queue contains 9 items
+        self.assertEqual(len(list(eq.allEvents())), 9)  # Queue contains 9 items
+        self.assertEqual(len(list(iter(eq))), 4)  # 4 different objects are in queue
         self.assertEqual(eq.to_json(), self.queueremediatedmaximumjson)
         # Ensure fallback was used
-        self.assertEqual(
-            cm.output[-2],
+        self.assertIn(
             "INFO:hermes-unit-tests:Unable to merge removed prevEvent=<Event(TestObj1_removed[3])> with added lastEvent.objattrs={'obj_id': 3, 'name': 'Object3_v2', 'description': 'Test Object3_v2'}, as no datasource is available. Fallback to 'conservative' mode.",
+            cm.output,
         )
-        self.assertEqual(
-            cm.output[-1],
+        self.assertIn(
             "INFO:hermes-unit-tests:Unable to merge removed prevEvent=<Event(TestObj1_local_removed[3])> with added lastEvent.objattrs={'obj_id': 3, 'name': 'Object3_v2', 'description': 'Test Object3_v2'}, as no datasource is available. Fallback to 'conservative' mode.",
+            cm.output,
+        )
+        self.assertIn(
+            "INFO:hermes-unit-tests:Unable to merge removed prevEvent=<Event(TestObj1_removed[5])> with added lastEvent.objattrs={'obj_id': 5, 'name': 'Object5 new', 'description': 'Test Object5 new'}, as no datasource is available. Fallback to 'conservative' mode.",
+            cm.output,
+        )
+        self.assertIn(
+            "INFO:hermes-unit-tests:Unable to merge removed prevEvent=<Event(TestObj1_local_removed[5])> with added lastEvent.objattrs={'obj_id': 5, 'name': 'Object5 new', 'description': 'Test Object5 new'}, as no datasource is available. Fallback to 'conservative' mode.",
+            cm.output,
         )
 
     def test_fill_queue_fromjson_remediate_maximum_with_fallback_for_obj3(self):
@@ -1581,20 +2552,26 @@ class TestErrorQueueClass(HermesServerTestCase):
                 autoremediate="maximum",
                 from_json_dict={"_queue": self.queue},
             )
-        self.assertEqual(len(eq), 4)  # Queue contains 4 items
-        self.assertEqual(len(list(eq.allEvents())), 4)  # Queue contains 4 items
-        self.assertEqual(
-            len(list(iter(eq))), 3
-        )  # Only 3 different objects are in queue
+        self.assertEqual(len(eq), 9)  # Queue contains 9 items
+        self.assertEqual(len(list(eq.allEvents())), 9)  # Queue contains 9 items
+        self.assertEqual(len(list(iter(eq))), 4)  # 4 different objects are in queue
         self.assertEqual(eq.to_json(), self.queueremediatedmaximumatimportjson)
         # Ensure fallback was used
-        self.assertEqual(
-            cm.output[-2],
+        self.assertIn(
             "INFO:hermes-unit-tests:Unable to merge removed prevEvent=<Event(TestObj1_removed[3])> with added lastEvent.objattrs={'obj_id': 3, 'name': 'Object3_v2', 'description': 'Test Object3_v2'}, as no datasource is available. Fallback to 'conservative' mode.",
+            cm.output,
         )
-        self.assertEqual(
-            cm.output[-1],
+        self.assertIn(
             "INFO:hermes-unit-tests:Unable to merge removed prevEvent=<Event(TestObj1_local_removed[3])> with added lastEvent.objattrs={'obj_id': 3, 'name': 'Object3_v2', 'description': 'Test Object3_v2'}, as no datasource is available. Fallback to 'conservative' mode.",
+            cm.output,
+        )
+        self.assertIn(
+            "INFO:hermes-unit-tests:Unable to merge removed prevEvent=<Event(TestObj1_removed[5])> with added lastEvent.objattrs={'obj_id': 5, 'name': 'Object5 new', 'description': 'Test Object5 new'}, as no datasource is available. Fallback to 'conservative' mode.",
+            cm.output,
+        )
+        self.assertIn(
+            "INFO:hermes-unit-tests:Unable to merge removed prevEvent=<Event(TestObj1_local_removed[5])> with added lastEvent.objattrs={'obj_id': 5, 'name': 'Object5 new', 'description': 'Test Object5 new'}, as no datasource is available. Fallback to 'conservative' mode.",
+            cm.output,
         )
 
     def test_invalid_remediation_cases(self):
@@ -1673,18 +2650,18 @@ class TestErrorQueueClass(HermesServerTestCase):
         with self.assertLogs(__hermes__.logger, level="INFO") as cm:
             eq.append(event, event, "Fake error message")
         self.assertEqual(len(cm.output), 1)
-        self.assertRegex(
-            cm.output[0],
+        self.assertIn(
             "INFO:hermes-unit-tests:Ignore loading of remote event of unknown objtype UnknownTestObj",
+            cm.output,
         )
         self.assertEqual(len(eq), 0)  # Queue should be empty
 
         with self.assertLogs(__hermes__.logger, level="INFO") as cm:
             eq.append(None, event, "Fake error message")
         self.assertEqual(len(cm.output), 1)
-        self.assertRegex(
-            cm.output[0],
+        self.assertIn(
             "INFO:hermes-unit-tests:Ignore loading of local event of unknown objtype UnknownTestObj",
+            cm.output,
         )
         self.assertEqual(len(eq), 0)  # Queue should be empty
 
@@ -1751,18 +2728,21 @@ class TestErrorQueueClass(HermesServerTestCase):
             autoremediate="disabled",
             from_json_dict={"_queue": self.queue},
         )
-        self.assertEqual(len(eq), 12)
+        self.assertEqual(len(eq), 18)
         # 2 events
         eq.purgeAllEvents("TestObj1", 1, isLocalObjtype=False)
-        self.assertEqual(len(eq), 10)
+        self.assertEqual(len(eq), 16)
         # 3 events (1 remote, 2 local)
         eq.purgeAllEvents("TestObj1", 2, isLocalObjtype=False)
-        self.assertEqual(len(eq), 7)
-        # 4 events
+        self.assertEqual(len(eq), 13)
+        # 5 events
         eq.purgeAllEvents("TestObj1", 3, isLocalObjtype=False)
-        self.assertEqual(len(eq), 3)
+        self.assertEqual(len(eq), 8)
         # 3 events (2 remote, 1 local)
         eq.purgeAllEvents("TestObj1", 4, isLocalObjtype=False)
+        self.assertEqual(len(eq), 5)
+        # 5 events (4 remote, 1 local)
+        eq.purgeAllEvents("TestObj1", 5, isLocalObjtype=False)
         self.assertEqual(len(eq), 0)
 
         eq = ErrorQueue(
@@ -1770,10 +2750,10 @@ class TestErrorQueueClass(HermesServerTestCase):
             autoremediate="disabled",
             from_json_dict={"_queue": self.queue},
         )
-        self.assertEqual(len(eq), 12)
+        self.assertEqual(len(eq), 18)
         # 3 events (2 remote, 1 local)
         eq.purgeAllEvents("TestObj1_local", 4, isLocalObjtype=True)
-        self.assertEqual(len(eq), 9)
+        self.assertEqual(len(eq), 15)
 
     def test_iter_with_remove(self):
         eq = ErrorQueue(
@@ -1785,13 +2765,13 @@ class TestErrorQueueClass(HermesServerTestCase):
         total = 0
         for item in iter(eq):
             total += 1
-        self.assertEqual(total, 4)  # 4 different objects in queue
+        self.assertEqual(total, 5)  # 5 different objects in queue
 
         count = 0
         for item in iter(eq):
             count += 1
             eq.purgeAllEvents("TestObj1_local", 4, isLocalObjtype=True)
-        self.assertEqual(count, 3)  # 3 remaining different objects in queue
+        self.assertEqual(count, 4)  # 4 remaining different objects in queue
 
     def test_allEvents_with_remove(self):
         eq = ErrorQueue(
@@ -1803,13 +2783,13 @@ class TestErrorQueueClass(HermesServerTestCase):
         total = 0
         for item in eq.allEvents():
             total += 1
-        self.assertEqual(total, 12)  # 12 events in queue
+        self.assertEqual(total, 18)  # 18 events in queue
 
         count = 0
         for item in eq.allEvents():
             count += 1
             eq.purgeAllEvents("TestObj1_local", 4, isLocalObjtype=True)
-        self.assertEqual(count, 9)  # 9 remaining events in queue
+        self.assertEqual(count, 15)  # 15 remaining events in queue
 
     def test_containsObjectByEvent(self):
         eq = ErrorQueue(
@@ -1818,7 +2798,7 @@ class TestErrorQueueClass(HermesServerTestCase):
             from_json_dict={"_queue": self.queue},
         )
 
-        ev = Event(from_json_dict=self.queue["7"][0])
+        ev = Event(from_json_dict=self.queue["8"][0])
         self.assertTrue(eq.containsObjectByEvent(ev, isLocalEvent=False))
         eq.purgeAllEvents("TestObj1", 3, isLocalObjtype=False)
         self.assertFalse(eq.containsObjectByEvent(ev, isLocalEvent=False))

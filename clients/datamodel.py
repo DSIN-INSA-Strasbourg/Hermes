@@ -22,6 +22,7 @@
 
 from lib.config import HermesConfig
 
+from copy import deepcopy
 from datetime import datetime
 from jinja2 import StrictUndefined
 from jinja2.environment import Template
@@ -552,13 +553,37 @@ class Datamodel:
         self, objtype: str, objattrs: dict[str:Any]
     ) -> DataObject:
         """Returns instance of specified local Dataobject type from specified attributes"""
-        return self.local_schema.objectTypes[objtype](from_json_dict=objattrs)
+        return self.createDataobject(self.local_schema, objtype, objattrs)
 
     def createRemoteDataobject(
         self, objtype: str, objattrs: dict[str:Any]
     ) -> DataObject:
         """Returns instance of specified remote Dataobject type from specified attributes"""
-        return self.remote_schema.objectTypes[objtype](from_json_dict=objattrs)
+        return self.createDataobject(self.remote_schema, objtype, objattrs)
+
+    @staticmethod
+    def createDataobject(
+        schema: Dataschema, objtype: str, objattrs: dict[str:Any]
+    ) -> DataObject:
+        """Returns instance of specified Dataobject type from specified attributes"""
+        return schema.objectTypes[objtype](from_json_dict=objattrs)
+
+    @staticmethod
+    def getUpdatedObject(obj: DataObject, objattrs: dict[str, Any]) -> DataObject:
+        """Return a deepcopy of specified obj, with its attributes updated upon specified
+        objattrs dict from Event"""
+        newobj = deepcopy(obj)
+
+        # Update newobj attributes
+        for attrname, value in objattrs["added"].items():
+            setattr(newobj, attrname, value)  # Add new attributes
+        for attrname, value in objattrs["modified"].items():
+            setattr(newobj, attrname, value)  # Update existing attributes
+        for attrname, value in objattrs["removed"].items():
+            if hasattr(newobj, attrname):
+                delattr(newobj, attrname)  # Delete existing attributes
+
+        return newobj
 
     def convertDataObjectToLocal(self, obj: DataObject) -> DataObject:
         """Convert specified Dataobject (remote) to local one"""
