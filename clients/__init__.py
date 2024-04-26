@@ -1708,6 +1708,10 @@ class GenericClient:
                 _, obj = Datamodel.getObjectFromCacheOrTrashbin(
                     self.__datamodel.localdata_complete, objtype, localEvent.objpkey
                 )
+                if obj is None:
+                    _, obj = Datamodel.getObjectFromCacheOrTrashbin(
+                        self.__datamodel.localdata, objtype, localEvent.objpkey
+                    )
                 if obj is None and remoteEvent is not None:
                     _, obj = Datamodel.getObjectFromCacheOrTrashbin(
                         self.__datamodel.remotedata_complete,
