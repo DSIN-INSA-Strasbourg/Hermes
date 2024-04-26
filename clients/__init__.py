@@ -524,12 +524,12 @@ class GenericClient:
                     isFirstLoopIteration = False
                     if self.__saveRequired or self.__isStopped:
                         self.__datamodel.saveErrorQueue()
-                        self.__cache.savecachefile()
                         if self.__hasAtLeastBeganInitialization():
                             self.__datamodel.saveLocalAndRemoteData()
                         self.currentStep = 0  # Reset current step for "on_save" event
                         self.__callHandler("", "save")  # Call special event "on_save()"
                         self.__notifyQueueErrors()
+                        self.__cache.savecachefile()
 
             # Only used in functionnal tests
             if self.__numberOfLoopToProcess:
