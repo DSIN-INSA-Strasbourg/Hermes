@@ -8,7 +8,7 @@
 [Change Data Capture (CDC)](https://medium.com/event-driven-utopia/a-gentle-introduction-to-event-driven-change-data-capture-683297625f9b) tool from any source(s) to any target.
 
 > [!CAUTION]
-> :warning: **This project is still under developpement and is not ready for production use yet** :warning:
+> :warning: **The code is considered stable enough to be evaluated but needs more testing to ensure its stability** :warning:
 
 ## Features
 
@@ -36,9 +36,10 @@
   - [ ] examples
   - [x] developping a plugin
   - [ ] contributing to core
-- [ ] Extend tests
-- [ ] Implement data consistency check when initsync sequence is met on an already initialized client (clients)
-- [ ] (Maybe) Force remote primary keys in client datamodel. Requires a lot of troubleshooting to safely update "internal" attrnames and values on Dataschema primary key change: in Datasources and Errorqueue
+- [x] Write functional tests
+- [ ] Write more tests
+- [ ] (Maybe) Implement data consistency check when initsync sequence is met on an already initialized client (clients)
+- [x] (Maybe) Force remote primary keys in client datamodel. Requires a lot of troubleshooting to safely update "internal" attrnames and values on Dataschema primary key change: in Datasources and Errorqueue
 - [ ] (Maybe) Implement a check to ensure clients subclasses required types and attributes are set in datamodel
 
 ## Contributing
