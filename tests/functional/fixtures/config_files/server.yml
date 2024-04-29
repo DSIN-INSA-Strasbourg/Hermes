@@ -1,0 +1,363 @@
+# Hermes : Change Data Capture (CDC) tool from any source(s) to any target
+# Copyright (C) 2024 INSA Strasbourg
+#
+# This file is part of Hermes.
+#
+# Hermes is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Hermes is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Hermes. If not, see <https://www.gnu.org/licenses/>.
+
+hermes:
+  cache:
+    dirpath: server-cache
+    enable_compression: false
+    backup_count: 5
+  logs:
+    logfile: logs/hermes-server.log
+    backup_count: 1
+    verbosity: debug
+  cli_socket:
+    path: hermes-server.sock
+  mail:
+    server: dummy.example.com
+    from: Hermes Server <no-reply@example.com>
+    to:
+      - user@example.com
+  plugins:
+    # Attribute transform plugins (jinja filters)
+    attributes:
+      ldapPasswordHash:
+        settings:
+          default_hash_types:
+            # - MD5
+            # - SHA
+            - SMD5
+            - SSHA
+            - SSHA256
+            - SSHA512
+
+      crypto_RSA_OAEP:
+        settings:
+          keys:
+            decrypt_from_datasource:
+              hash: SHA256
+              # WARNING - THIS KEY IS WEAK AND PUBLIC, NEVER USE IT
+              rsa_key: |-
+                -----BEGIN RSA PRIVATE KEY-----
+                MIGrAgEAAiEAstltWwDzmtSSHi7lfKqtUIO4dI8aX/EAopNdR/cWXH8CAwEAAQIh
+                AKfflFjGNOJQwvJX3Io+/juxO+HFd7SRC++zBD9paZqZAhEA5OtjZQUapRrV/aC5
+                NXFsswIRAMgBtgpz+t0FxyEXdzlcTwUCEHU6WZ8M2xU7xePpH49Ps2MCEQC+78s+
+                /WvfNtXcRI+gJfyVAhAjcIWzHC5q4wzgL7psbPGy
+                -----END RSA PRIVATE KEY-----
+            encrypt_to_messagebus:
+              hash: SHA3_512
+              # WARNING - THIS KEY IS WEAK AND PUBLIC, NEVER USE IT
+              rsa_key: |-
+                -----BEGIN PUBLIC KEY-----
+                MCgCIQCy2W1bAPOa1JIeLuV8qq1Qg7h0jxpf8QCik11H9xZcfwIDAQAB
+                -----END PUBLIC KEY-----
+
+    # SERVER ONLY - Sources used to fetch data. At lease one must be defined
+
+    datasources_single:
+      db_single:
+        type: sqlite
+        settings:
+          uri: db_single.sqlite
+
+    #####################################################################
+
+    datasources_merging:
+      db_single:
+        type: sqlite
+        settings:
+          uri: db_single.sqlite
+
+      db_merging_biological:
+        type: sqlite
+        settings:
+          uri: db_merging_biological.sqlite
+
+    #####################################################################
+
+    datasources_aggregating:
+      db_aggregating_users_students_and_common:
+        type: sqlite
+        settings:
+          uri: db_aggregating_users_students_and_common.sqlite
+
+      db_aggregating_users_staff:
+        type: sqlite
+        settings:
+          uri: db_aggregating_users_staff.sqlite
+
+    messagebus:
+      sqlite:
+        settings:
+          uri: messagebus.sqlite
+          retention_in_days: 1
+
+hermes-server:
+  updateInterval: 1
+
+  #####################################################################
+
+  datamodel_single:
+    SRVGroups:
+      primarykeyattr: id
+      toString: "<Groups[{{ simpleid }}, {{ name | default('#UNDEF#') }}]>"
+      sources:
+        db_single:
+          fetch:
+            type: fetch
+            query: >-
+              SELECT {{ REMOTE_ATTRIBUTES | join(', ') }}
+              FROM GROUPS
+          attrsmapping:
+            id: id
+            name: name
+            simpleid: simpleid
+
+    SRVUsers:
+      primarykeyattr: id
+      toString: "<Users[{{ simpleid }}, {{ login | default('#UNDEF#') }}]>"
+      on_merge_conflict: use_cached_entry
+      sources:
+        db_single:
+          fetch:
+            type: fetch
+            query: >-
+              SELECT {{ REMOTE_ATTRIBUTES | join(', ') }}
+              FROM USERS_ALL
+
+          attrsmapping:
+            id: id
+            simpleid: simpleid
+            first_name: first_name
+            middle_name: middle_name
+            last_name: last_name
+            dateOfBirth: dateOfBirth
+            login: login
+            specialty: specialty
+            desired_jobs_joined: "{{ (desired_jobs_joined | default('', boolean=True)).split(';') | reject('==', '') | list }}"
+            desired_jobs_columns:
+              - desired_job_1
+              - desired_job_2
+              - desired_job_3
+              - desired_job_4
+              - desired_job_5
+              - desired_job_6
+              - desired_job_7
+              - desired_job_8
+              - desired_job_9
+
+    SRVGroupsMembers:
+      primarykeyattr: [group_id, user_id]
+      integrity_constraints:
+        - "{{ _SELF.user_id in SRVUsers_pkeys and _SELF.group_id in SRVGroups_pkeys }}"
+      sources:
+        db_single:
+          fetch:
+            type: fetch
+            query: >-
+              SELECT {{ REMOTE_ATTRIBUTES | join(', ') }}
+              FROM GROUPMEMBERS
+          attrsmapping:
+            group_id: group_id
+            group_simpleid: group_simpleid
+            group_name: group_name
+            user_id: user_id
+            user_simpleid: user_simpleid
+            user_login: user_login
+
+  #####################################################################
+
+  datamodel_merging:
+    SRVGroups:
+      primarykeyattr: id
+      toString: "<Groups[{{ simpleid }}, {{ name | default('#UNDEF#') }}]>"
+      sources:
+        db_single:
+          fetch:
+            type: fetch
+            query: >-
+              SELECT {{ REMOTE_ATTRIBUTES | join(', ') }}
+              FROM GROUPS
+          attrsmapping:
+            id: id
+            name: name
+            simpleid: simpleid
+
+    SRVUsers:
+      primarykeyattr: id
+      toString: "<Users[{{ simpleid }}, {{ login | default('#UNDEF#') }}]>"
+      on_merge_conflict: use_cached_entry
+      sources:
+        db_single:
+          fetch:
+            type: fetch
+            query: >-
+              SELECT {{ REMOTE_ATTRIBUTES | join(', ') }}
+              FROM USERS_ALL
+
+          attrsmapping:
+            id: id
+            simpleid: simpleid
+            first_name: first_name
+            middle_name: middle_name
+            last_name: last_name
+            dateOfBirth: dateOfBirth
+            login: login
+            specialty: specialty
+            desired_jobs_joined: "{{ (desired_jobs_joined | default('', boolean=True)).split(';') | reject('==', '') | list }}"
+            desired_jobs_columns:
+              - desired_job_1
+              - desired_job_2
+              - desired_job_3
+              - desired_job_4
+              - desired_job_5
+              - desired_job_6
+              - desired_job_7
+              - desired_job_8
+              - desired_job_9
+
+        db_merging_biological:
+          fetch:
+            type: fetch
+            query: >-
+              SELECT {{ REMOTE_ATTRIBUTES | join(', ') }}
+              FROM BIOLOGICALDATA
+          attrsmapping:
+            id: user_id
+            simpleid: user_simpleid
+            login: user_login
+            hair_colour: hair_colour
+            eye_colour: eye_colour
+          pkey_merge_constraint: mustExistInBoth
+
+    SRVGroupsMembers:
+      primarykeyattr: [group_id, user_id]
+      integrity_constraints:
+        - "{{ _SELF.user_id in SRVUsers_pkeys and _SELF.group_id in SRVGroups_pkeys }}"
+      sources:
+        db_single:
+          fetch:
+            type: fetch
+            query: >-
+              SELECT {{ REMOTE_ATTRIBUTES | join(', ') }}
+              FROM GROUPMEMBERS
+          attrsmapping:
+            group_id: group_id
+            group_simpleid: group_simpleid
+            group_name: group_name
+            user_id: user_id
+            user_simpleid: user_simpleid
+            user_login: user_login
+
+  #####################################################################
+
+  datamodel_aggregating:
+    SRVGroups:
+      primarykeyattr: id
+      toString: "<Groups[{{ simpleid }}, {{ name | default('#UNDEF#') }}]>"
+      sources:
+        db_aggregating_users_students_and_common:
+          fetch:
+            type: fetch
+            query: >-
+              SELECT {{ REMOTE_ATTRIBUTES | join(', ') }}
+              FROM GROUPS
+          attrsmapping:
+            id: id
+            name: name
+            simpleid: simpleid
+
+    SRVUsers:
+      primarykeyattr: id
+      toString: "<Users[{{ simpleid }}, {{ login | default('#UNDEF#') }}]>"
+      on_merge_conflict: use_cached_entry
+      sources:
+        db_aggregating_users_students_and_common:
+          fetch:
+            type: fetch
+            query: >-
+              SELECT {{ REMOTE_ATTRIBUTES | join(', ') }}
+              FROM USERS_STUDENTS
+
+          attrsmapping:
+            id: id
+            simpleid: simpleid
+            first_name: first_name
+            middle_name: middle_name
+            last_name: last_name
+            dateOfBirth: dateOfBirth
+            login: login
+            specialty: specialty
+            desired_jobs_joined: "{{ (desired_jobs_joined | default('', boolean=True)).split(';') | reject('==', '') | list }}"
+            desired_jobs_columns:
+              - desired_job_1
+              - desired_job_2
+              - desired_job_3
+              - desired_job_4
+              - desired_job_5
+              - desired_job_6
+              - desired_job_7
+              - desired_job_8
+              - desired_job_9
+
+        db_aggregating_users_staff:
+          fetch:
+            type: fetch
+            query: >-
+              SELECT {{ REMOTE_ATTRIBUTES | join(', ') }}
+              FROM USERS_STAFF
+
+          attrsmapping:
+            id: id
+            simpleid: simpleid
+            dateOfBirth: dateOfBirth
+            first_name: first_name
+            middle_name: middle_name
+            last_name: last_name
+            login: login
+            specialty: specialty
+            desired_jobs_joined: "{{ (desired_jobs_joined | default('', boolean=True)).split(';') | reject('==', '') | list }}"
+            desired_jobs_columns:
+              - desired_job_1
+              - desired_job_2
+              - desired_job_3
+              - desired_job_4
+              - desired_job_5
+              - desired_job_6
+              - desired_job_7
+              - desired_job_8
+              - desired_job_9
+          pkey_merge_constraint: mustNotExist
+
+    SRVGroupsMembers:
+      primarykeyattr: [group_id, user_id]
+      integrity_constraints:
+        - "{{ _SELF.user_id in SRVUsers_pkeys and _SELF.group_id in SRVGroups_pkeys }}"
+      sources:
+        db_aggregating_users_students_and_common:
+          fetch:
+            type: fetch
+            query: >-
+              SELECT {{ REMOTE_ATTRIBUTES | join(', ') }}
+              FROM GROUPMEMBERS
+          attrsmapping:
+            group_id: group_id
+            group_simpleid: group_simpleid
+            group_name: group_name
+            user_id: user_id
+            user_simpleid: user_simpleid
+            user_login: user_login

@@ -1,0 +1,157 @@
+[
+    {
+        "name": "students",
+        "id": "29f019d6-3c63-3ae3-9f4d-3d76f747a2ae",
+        "simpleid": 1
+    },
+    {
+        "name": "manufacturing",
+        "id": "e0f85564-01d2-36c7-bca0-6bbdc1c344d3",
+        "simpleid": 2
+    },
+    {
+        "name": "year_5",
+        "id": "1b32969b-fc20-31fd-8041-b95e58e4f501",
+        "simpleid": 3
+    },
+    {
+        "name": "staff",
+        "id": "30aab80a-31ae-384a-ad01-ef7674f58d5a",
+        "simpleid": 4
+    },
+    {
+        "name": "materials_engineering",
+        "id": "bcb44aba-7e19-302c-b09b-2a1532c22d79",
+        "simpleid": 5
+    },
+    {
+        "name": "chemical_engineering",
+        "id": "e39a6dd4-8e79-3229-bcdc-22b9c69cbe5c",
+        "simpleid": 6
+    },
+    {
+        "name": "year_4",
+        "id": "233f5937-33a0-3528-8466-c1af20a102b4",
+        "simpleid": 7
+    },
+    {
+        "name": "nanotechnology",
+        "id": "d3a2a93a-9215-3403-87de-7e5cfc2122dd",
+        "simpleid": 8
+    },
+    {
+        "name": "year_3",
+        "id": "7324ae9f-2338-37e7-b640-b782813cb162",
+        "simpleid": 9
+    },
+    {
+        "name": "biomedical_engineering",
+        "id": "5db1d199-6851-3eea-beb4-4e3724aa109c",
+        "simpleid": 10
+    },
+    {
+        "name": "year_1",
+        "id": "9a36c480-895c-3e69-8d2d-81acefa6a75f",
+        "simpleid": 11
+    },
+    {
+        "name": "electrical_engineering",
+        "id": "c105a238-3e92-351b-a74b-404b9fdf1aac",
+        "simpleid": 12
+    },
+    {
+        "name": "hydraulic_engineering",
+        "id": "ba927849-0a80-316a-9bbe-1193952efa1b",
+        "simpleid": 13
+    },
+    {
+        "name": "automotive_engineering",
+        "id": "886611d2-e81d-3fd6-b52f-4751a9f7e8ca",
+        "simpleid": 14
+    },
+    {
+        "name": "software_engineering",
+        "id": "0a7c9218-c4f3-39fc-a3b8-768d38cf15de",
+        "simpleid": 15
+    },
+    {
+        "name": "aerospace_engineering",
+        "id": "0349daa7-1467-3a02-b6d8-76c6edbdc5b7",
+        "simpleid": 16
+    },
+    {
+        "name": "geotechnical_engineering",
+        "id": "e351a099-695b-36ba-908c-4170e28d18b1",
+        "simpleid": 17
+    },
+    {
+        "name": "environmental_engineering",
+        "id": "81e2d290-ec25-349b-b0d5-d669762f5f0c",
+        "simpleid": 18
+    },
+    {
+        "name": "year_2",
+        "id": "f3a987e9-74c6-3fd1-8ca2-03fc2b2c5338",
+        "simpleid": 19
+    },
+    {
+        "name": "transportation_engineering",
+        "id": "07d31fb2-847c-3f56-a571-596bdfd96da7",
+        "simpleid": 20
+    },
+    {
+        "name": "engineering_management",
+        "id": "db2aed0a-5ef0-3878-a943-0b3595dbc578",
+        "simpleid": 21
+    },
+    {
+        "name": "mechatronics",
+        "id": "dc7814d6-ff27-3b2c-8cb3-89cd89fa0a3c",
+        "simpleid": 22
+    },
+    {
+        "name": "marine_engineering",
+        "id": "bd054bca-af06-3fef-8a9a-9b91ba6b3dd6",
+        "simpleid": 23
+    },
+    {
+        "name": "civil_engineering",
+        "id": "21044a6a-45b4-34fa-b2f6-63d35c8699d9",
+        "simpleid": 24
+    },
+    {
+        "name": "computer_engineering",
+        "id": "5fabe7d7-845a-3891-8764-cc11517a5cfd",
+        "simpleid": 25
+    },
+    {
+        "name": "petroleum_engineering",
+        "id": "d812f9be-7e91-3a72-bc5c-172b2cc550e3",
+        "simpleid": 26
+    },
+    {
+        "name": "industrial_engineering",
+        "id": "9bf8232a-d19c-3bf2-8720-9dea041b79af",
+        "simpleid": 27
+    },
+    {
+        "name": "mechanical_engineering",
+        "id": "84198678-a8fe-3a9c-90d9-7f49c335640c",
+        "simpleid": 28
+    },
+    {
+        "name": "robotics",
+        "id": "73b7dbdb-5b28-3e52-baab-753a76696e9c",
+        "simpleid": 29
+    },
+    {
+        "name": "energy",
+        "id": "d907d8ba-ea96-368b-9609-8cafc152362b",
+        "simpleid": 30
+    },
+    {
+        "name": "architectural_engineering",
+        "id": "d30fca2d-e3ba-3da8-9ac0-e4886f7f447f",
+        "simpleid": 31
+    }
+]

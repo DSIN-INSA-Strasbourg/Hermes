@@ -1,0 +1,130 @@
+hermes:
+  cache:
+    dirpath: client-cache
+    enable_compression: false
+    backup_count: 5
+  logs:
+    logfile: logs/hermes-client.log
+    backup_count: 1
+    verbosity: debug
+  cli_socket:
+    path: hermes-client.sock
+  mail:
+    server: dummy.example.com
+    from: Hermes Server <no-reply@example.com>
+    to:
+      - user@example.com
+
+  plugins:
+    messagebus:
+      sqlite:
+        settings:
+          uri: messagebus.sqlite
+
+hermes-client:
+  # Autoremediation policy to use in error queue for events concerning a same object
+  # - "disabled" : no autoremediation, events are stacked as is (default)
+  # - "conservative" :
+  #   - merge an added event with a following modified event
+  #   - merge two successive modified events
+  # - "maximum" :
+  #   - merge an added event with a following modified event
+  #   - merge two successive modified events
+  #   - delete both events when an added event is followed by a removed event
+  #   - merge a removed event followed by an added event in a modified event
+  #   - delete a modified event when it is followed by a removed event
+  autoremediation: conservative
+
+  # Number of minutes between two attempts of processing events in error
+  errorQueue_retryInterval: 1
+
+  # Number of seconds to sleep once no more events are available on message bus
+  updateInterval: 1
+
+  # If true, indicate to use the first/older initsync sequence available on message
+  # bus. If false, the latest/newer will be used
+  useFirstInitsyncSequence: true
+
+  # Number of minutes between two trashbin purge attempts
+  trashbin_purgeInterval: 1
+
+  # Number of days to keep removed data in trashbin before permanently deleting it.
+  # 0/unset disable the trashbin: data will be immediately deleted
+  trashbin_retention: 1
+
+  #####################################################################
+
+  datamodel_single:
+    Groups:
+      hermesType: SRVGroups
+      toString: "<Groups[{{ name | default('#UNDEF#') }}]>"
+      attrsmapping:
+        name: name
+
+    Users:
+      hermesType: SRVUsers
+      toString: "<Users[{{ login | default('#UNDEF#') }}]>"
+      attrsmapping:
+        first_name: first_name
+        middle_name: middle_name
+        last_name: last_name
+        dateOfBirth: dateOfBirth
+        login: login
+        specialty: specialty
+        desired_jobs_joined: desired_jobs_joined
+        desired_jobs_columns: desired_jobs_columns
+
+    GroupsMembers:
+      hermesType: SRVGroupsMembers
+
+  #####################################################################
+
+  datamodel_merging:
+    Groups:
+      hermesType: SRVGroups
+      toString: "<Groups[{{ name | default('#UNDEF#') }}]>"
+      attrsmapping:
+        name: name
+
+    Users:
+      hermesType: SRVUsers
+      toString: "<Users[{{ login | default('#UNDEF#') }}]>"
+      attrsmapping:
+        first_name: first_name
+        middle_name: middle_name
+        last_name: last_name
+        dateOfBirth: dateOfBirth
+        login: login
+        specialty: specialty
+        desired_jobs_joined: desired_jobs_joined
+        desired_jobs_columns: desired_jobs_columns
+        hair_colour: hair_colour
+        eye_colour: eye_colour
+
+    GroupsMembers:
+      hermesType: SRVGroupsMembers
+
+  #####################################################################
+
+  datamodel_aggregating:
+    Groups:
+      hermesType: SRVGroups
+      toString: "<Groups[{{ name | default('#UNDEF#') }}]>"
+      attrsmapping:
+        name: name
+
+    Users:
+      hermesType: SRVUsers
+      toString: "<Users[{{ login | default('#UNDEF#') }}]>"
+      attrsmapping:
+        first_name: first_name
+        middle_name: middle_name
+        last_name: last_name
+        dateOfBirth: dateOfBirth
+        login: login
+        specialty: specialty
+        desired_jobs_joined: desired_jobs_joined
+        desired_jobs_columns: desired_jobs_columns
+
+    GroupsMembers:
+      hermesType: SRVGroupsMembers
