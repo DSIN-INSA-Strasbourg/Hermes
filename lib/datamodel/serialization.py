@@ -30,6 +30,7 @@ if TYPE_CHECKING:  # pragma: no cover
     from typing import Callable, IO
     from lib.config import HermesConfig
 
+from lib.version import HERMES_VERSION, HERMES_VERSIONS
 from datetime import datetime
 from tempfile import NamedTemporaryFile
 import json
@@ -37,6 +38,10 @@ import os
 import os.path
 import gzip
 import re
+
+
+class HermesInvalidVersionError(Exception):
+    """Raised when one of previous of current HERMES_VERSION is missing from HERMES_VERSIONS"""
 
 
 class HermesInvalidJSONError(Exception):
@@ -117,8 +122,15 @@ class JSONSerializable:
                 " It must be one of the following types: [str, list, tuple, set]"
             )
 
-    def to_json(self) -> str:
-        data = self._get_jsondict()
+    def to_json(self, forCacheFile=False) -> str:
+        if forCacheFile:
+            data = {
+                "__HERMES_VERSION__": HERMES_VERSION,
+                "content": self._get_jsondict(),
+            }
+        else:
+            data = self._get_jsondict()
+
         try:
             if not isinstance(data, dict):
                 data = sorted(data)
@@ -127,6 +139,44 @@ class JSONSerializable:
                 f"Unsortable type {type(self)} exported as JSON. You should consider to set is sortable"
             )
         return json.dumps(data, cls=JSONEncoder, indent=4)
+
+    @classmethod
+    def __migrateData(
+        cls: type[AnyJSONSerializable],
+        from_ver: str,
+        to_ver: str,
+        jsondict: Any | dict[Any, Any],
+    ) -> Any | dict[Any, Any]:
+        try:
+            start = HERMES_VERSIONS.index(from_ver)
+        except ValueError:
+            errmsg = f"Previous version {from_ver} not found in known HERMES_VERSIONS"
+            __hermes__.logger.critical(errmsg)
+            raise HermesInvalidVersionError(errmsg)
+
+        try:
+            stop = HERMES_VERSIONS.index(to_ver, start)
+        except ValueError:
+            errmsg = f"Current version {to_ver} not found in known HERMES_VERSIONS"
+            __hermes__.logger.critical(errmsg)
+            raise HermesInvalidVersionError(errmsg)
+
+        for idx in range(start, stop):
+            from_v, to_v = HERMES_VERSIONS[idx : idx + 2]
+            methodName = f"migrate_from_v{from_v}_to_v{to_v}".replace(".", "_")
+            method = getattr(cls, methodName, None)
+            if not callable(method):
+                # __hermes__.logger.info(
+                #     f"Calling '{methodName}()': method '{methodName}()' doesn't exists"
+                # )
+                continue
+            __hermes__.logger.info(
+                f"About to migrate {cls.__name__} cache file format from "
+                f"v{from_ver} to v{to_ver} : calling '{methodName}()"
+            )
+            jsondict = method(jsondict)
+
+        return jsondict
 
     @classmethod
     def from_json(
@@ -144,6 +194,21 @@ class JSONSerializable:
         else:
             raise HermesInvalidJSONDataError(
                 f"The 'jsondata' arg must be a str or a dict. Here we have '{type(jsondata)}'"
+            )
+
+        if (
+            type(jsondict) == dict
+            and len(jsondict) == 2
+            and jsondict.keys() == set(["__HERMES_VERSION__", "content"])
+        ):
+            version = jsondict["__HERMES_VERSION__"]
+            jsondict = jsondict["content"]
+        else:
+            version = HERMES_VERSION
+
+        if version != HERMES_VERSION:
+            jsondict = cls.__migrateData(
+                from_ver=version, to_ver=HERMES_VERSION, jsondict=jsondict
             )
 
         return cls(from_json_dict=jsondict, **kwargs)
@@ -278,7 +343,7 @@ class LocalCache(JSONSerializable):
             )
 
         # Generate content before everything else to avoid cache corruption in case of failure
-        content = self.to_json()
+        content = self.to_json(forCacheFile=True)
 
         found, filepath, ext = self._getExistingFilePath(self._localCache_filename)
         if not found:

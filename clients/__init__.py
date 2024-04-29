@@ -22,6 +22,7 @@
 
 from clients.datamodel import Datamodel, InvalidDataError
 from lib.config import HermesConfig
+from lib.version import HERMES_VERSION
 from lib.datamodel.dataobject import DataObject
 from lib.datamodel.dataobjectlist import DataObjectList
 from lib.datamodel.datasource import Dataschema, Datasource
@@ -129,6 +130,8 @@ class GenericClient:
 
     def __init__(self, config: HermesConfig):
         """Instantiate a new client"""
+
+        __hermes__.logger.info(f"Starting {config['appname']} v{HERMES_VERSION}")
 
         # Setup the signals handler
         config.setSignalsHandler(self.__signalHandler)

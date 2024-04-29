@@ -21,6 +21,7 @@
 
 
 from lib.config import HermesConfig
+from lib.version import HERMES_VERSION
 from lib.datamodel.dataschema import Dataschema
 from lib.datamodel.dataobject import DataObject
 from lib.datamodel.datasource import Datasource
@@ -73,6 +74,12 @@ class HermesServerCache(LocalCache):
         """Override method only to disable backup files in cache"""
         return super().savecachefile(cacheFilename, dontKeepBackup=True)
 
+    # Example of cache migration method
+    # @classmethod
+    # def migrate_from_v0_0_3_to_v0_1_0(cls: "HermesServerCache", jsondict: Any | dict[Any, Any]) -> Any | dict[Any, Any]:
+    # jsondict["lastUpdate"] = datetime.fromisoformat(jsondict["lastUpdate"])
+    # return jsondict
+
 
 class HermesServer:
     """Hermes-server main class"""
@@ -80,6 +87,8 @@ class HermesServer:
     def __init__(self, config: HermesConfig):
         """Set up a server instance.
         The mainloop() method MUST then be called to start the service"""
+
+        __hermes__.logger.info(f"Starting {config['appname']} v{HERMES_VERSION}")
 
         # Setup the signals handler
         config.setSignalsHandler(self.signalHandler)
