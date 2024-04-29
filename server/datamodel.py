@@ -106,6 +106,30 @@ class DatamodelFragment:
             dataobjtype, datasourcename, primarykeyattr
         )
 
+        self.jinjavars_vars: set[str] = set()
+        """List of jinja vars used in fragment's fetch vars"""
+        self.jinjavars_query: set[str] = set()
+        """List of jinja vars used in fragment's query"""
+
+        # Fill self.jinjavars_vars
+        _ = Jinja.compileIfJinjaTemplate(
+            self._settings["fetch"].get("vars", {}),
+            self.jinjavars_vars,
+            self._jinjaenv,
+            self._errorcontext,
+            False,
+            False,
+        )
+        # Fill self.jinjavars_query
+        _ = Jinja.compileIfJinjaTemplate(
+            self._settings["fetch"].get("query", ""),
+            self.jinjavars_query,
+            self._jinjaenv,
+            self._errorcontext,
+            False,
+            False,
+        )
+
     def __createDataObjectsubclass(
         self, dataobjtype: str, datasourcename: str, primarykeyattr: str | tuple[str]
     ) -> type[DataObject]:
@@ -149,12 +173,12 @@ class DatamodelFragment:
         """Return DataObject subclass of current fragment"""
         return self._dataobjclass
 
-    def fetch(self, cache: DataObjectList):
+    def fetch(self, cache: DataObjectList, globalcontext: dict[str, Any]):
         """Fetch data from current fragment source"""
         cached_values: list[dict[str, Any]] = cache.toNative()
         objcls = self.getDataobjClass()
 
-        context = {
+        context = globalcontext | {
             "REMOTE_ATTRIBUTES": objcls.REMOTE_ATTRIBUTES,
             "CACHED_VALUES": cached_values,
         }
@@ -457,7 +481,50 @@ class Datamodel:
             # Fetch data
             starttime = time.time()
             for fragment in self._fragments[objtype]:
-                fragment.fetch(cache)  # Fetch fragment data from remote source
+                # Fill global context dict with objtype_pkeys and objtype if
+                # requested in fragment's fetch "query" or "vars"
+                context = {}
+                alreadyProcessed = True
+                for context_objtype in self.dataschema.objectlistTypes:
+                    if context_objtype == objtype:
+                        # Current and remaining context_objtype haven't been processed yet
+                        alreadyProcessed = False
+
+                    # Generate context only if required
+                    if (
+                        context_objtype + "_pkeys"
+                        in fragment.jinjavars_vars | fragment.jinjavars_query
+                    ):
+                        if alreadyProcessed:
+                            context[context_objtype + "_pkeys"] = self.data[
+                                context_objtype
+                            ].getPKeys()
+                        else:
+                            __hermes__.logger.warning(
+                                f"You're trying to use '{context_objtype}_pkeys' var of "
+                                f"an objtype declared after the current one ({objtype}) "
+                                "in datamodel, which has therefore not yet been "
+                                "processed. Will use an empty var."
+                            )
+                            context[context_objtype + "_pkeys"] = set()
+                    if (
+                        context_objtype
+                        in fragment.jinjavars_vars | fragment.jinjavars_query
+                    ):
+                        if alreadyProcessed:
+                            context[context_objtype] = self.data[
+                                context_objtype
+                            ].toNative()
+                        else:
+                            __hermes__.logger.warning(
+                                f"You're trying to use '{context_objtype}' var of "
+                                f"an objtype declared after the current one ({objtype}) "
+                                "in datamodel, which has therefore not yet been "
+                                "processed. Will use an empty var."
+                            )
+                            context[context_objtype] = []
+                fragment.fetch(cache, context)  # Fetch fragment data from remote source
+
             elapsedms = int(round(1000 * (time.time() - starttime)))
             __hermes__.logger.debug(
                 f"Fetched and converted all <{objtype}> data in {elapsedms} ms"
