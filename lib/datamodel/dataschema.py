@@ -70,9 +70,11 @@ class Dataschema(LocalCache):
             __hermes__.logger.critical(err)
             raise AttributeError(err)
 
-        from_dict: dict[str, Any] = from_raw_dict if from_raw_dict else from_json_dict
+        from_dict: dict[str, Any] = (
+            from_raw_dict if from_raw_dict is not None else from_json_dict
+        )
 
-        if from_json_dict:
+        if from_json_dict is not None:
             # Update data types if imported from json
             for typesettings in from_dict.values():
                 for k, v in typesettings.items():
