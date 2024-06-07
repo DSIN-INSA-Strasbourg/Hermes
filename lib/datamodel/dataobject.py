@@ -132,10 +132,11 @@ class DataObject(JSONSerializable):
                 result = remoteattr.render(jinjaContextVars | from_remote)
                 if type(result) == list:
                     result = [v for v in result if v is not None]
-                if result is not None and result != []:
+                if result is not None and result != [] and result != {}:
                     self._data[attr] = result
             elif type(remoteattr) == str:
-                if from_remote[remoteattr] is not None:
+                val = from_remote[remoteattr]
+                if val is not None and val != [] and val != {}:
                     self._data[attr] = from_remote[remoteattr]
             elif type(remoteattr) == list:
                 self._data[attr] = []
@@ -192,6 +193,25 @@ class DataObject(JSONSerializable):
         """Less than operator, used for sorting. Computed on primary key comparison"""
         return self.getPKey() < other.getPKey()
 
+    @staticmethod
+    def _complexhash(data: Any) -> int:
+        """Recursive hash of dict, list, tuple, set and standard hashable values"""
+        # hash based on attrnames and values, ignoring internal attributes
+        if isinstance(data, dict):
+            keys = tuple(sorted(set(data.keys())))
+            _hash = hash(
+                (
+                    hash(keys),
+                    hash(tuple([DataObject._complexhash(data[k]) for k in keys])),
+                )
+            )
+        elif isinstance(data, (list, set, tuple)):
+            _hash = hash(tuple([DataObject._complexhash(i) for i in data]))
+        else:
+            _hash = hash(data)
+
+        return _hash
+
     def __hash__(self) -> int:
         """Hash operator, compute hash based on attrnames and values, ignoring internal,
         local and cacheonly attributes. As the computation is slow, the value is cached
@@ -205,21 +225,10 @@ class DataObject(JSONSerializable):
                     - self.CACHEONLY_ATTRIBUTES
                 )
             )
-            self._hash = hash(
+            self._hash = self._complexhash(
                 (
-                    hash(keys),
-                    hash(
-                        tuple(
-                            [
-                                (
-                                    tuple(self._data[k])
-                                    if type(self._data[k]) == list
-                                    else self._data[k]
-                                )
-                                for k in keys
-                            ]
-                        )
-                    ),
+                    self._complexhash(keys),
+                    self._complexhash([self._data[k] for k in keys]),
                 )
             )
         return self._hash
