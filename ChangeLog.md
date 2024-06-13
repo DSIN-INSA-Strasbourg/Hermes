@@ -15,6 +15,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed an improper validation of the `from_raw_dict` and `from_json_dict` arguments of the Dataschema constructor, which treated an empty dictionary as if the argument had not been defined. Thanks to Julien Houchard for reporting and fixing this bug.
 
+### Security
+
+- Bumped python dependencies to their latest version :
+  - Jinja2
+  - cryptography (used by plugins/clients/usersgroups_adwinrm)
+  - oracledb (used by plugins/datasources/oracle)
+  - kafka-python isn't maintained anymore : replaced by kafka-python-ng (used by plugins/messagebus_consumers kafka and plugins/messagebus_producers/kafka)
+
 ## [1.0.0-alpha.1] - 2024-04-29
 
 ### Added
