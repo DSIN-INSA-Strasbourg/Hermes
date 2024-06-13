@@ -143,7 +143,7 @@ class HermesConfig(LocalCache):
         """Override method only to disable backup files in cache"""
         return super().savecachefile(cacheFilename, dontKeepBackup=True)
 
-    def load(self, loadplugins=True):
+    def load(self, loadplugins: bool = True, dontManageCacheDir: bool = False):
         """Load and validate config of current appname, and fill config dictionary.
         Setup logging, and signals handlers.
         Load plugins, and validate their config.
@@ -167,7 +167,11 @@ class HermesConfig(LocalCache):
         lib.utils.logging.setup_logger(self)
         LocalCache.setup(self)  # Update cache files settings
 
-        super().__init__(jsondataattr="_rawconfig", cachefilename="_hermesconfig")
+        super().__init__(
+            jsondataattr="_rawconfig",
+            cachefilename="_hermesconfig",
+            dontManageCacheDir=dontManageCacheDir,
+        )
 
         if not self._allowMultipleInstances:
             # Ensure no other instance is already running

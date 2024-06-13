@@ -305,31 +305,33 @@ class LocalCache(JSONSerializable):
         self,
         jsondataattr: str | list[str] | tuple[str] | set[str],
         cachefilename: str | None = None,
+        dontManageCacheDir: bool = False,
     ):
         super().__init__(jsondataattr)
         self.setCacheFilename(cachefilename)
 
-        if not os.path.exists(LocalCache._cachedir()):
-            __hermes__.logger.info(
-                f"Local cache dir '{LocalCache._cachedir()}' doesn't exists: create it"
-            )
-            try:
-                os.makedirs(LocalCache._cachedir(), 0o770)
-            except Exception as e:
-                __hermes__.logger.fatal(
-                    f"Unable to create local cache dir '{LocalCache._cachedir()}': {str(e)}"
+        if not dontManageCacheDir:
+            if not os.path.exists(LocalCache._cachedir()):
+                __hermes__.logger.info(
+                    f"Local cache dir '{LocalCache._cachedir()}' doesn't exists: create it"
                 )
-                raise
+                try:
+                    os.makedirs(LocalCache._cachedir(), 0o770)
+                except Exception as e:
+                    __hermes__.logger.fatal(
+                        f"Unable to create local cache dir '{LocalCache._cachedir()}': {str(e)}"
+                    )
+                    raise
 
-        if not os.path.isdir(LocalCache._cachedir()):
-            err = f"Local cache dir '{LocalCache._cachedir()}' exists and is not a directory"
-            __hermes__.logger.fatal(err)
-            raise HermesInvalidCacheDirError(err)
+            if not os.path.isdir(LocalCache._cachedir()):
+                err = f"Local cache dir '{LocalCache._cachedir()}' exists and is not a directory"
+                __hermes__.logger.fatal(err)
+                raise HermesInvalidCacheDirError(err)
 
-        if not os.access(LocalCache._cachedir(), os.W_OK):
-            err = f"Local cache dir '{LocalCache._cachedir()}' exists but is not writeable"
-            __hermes__.logger.fatal(err)
-            raise HermesInvalidCacheDirError(err)
+            if not os.access(LocalCache._cachedir(), os.W_OK):
+                err = f"Local cache dir '{LocalCache._cachedir()}' exists but is not writeable"
+                __hermes__.logger.fatal(err)
+                raise HermesInvalidCacheDirError(err)
 
     def savecachefile(
         self, cacheFilename: str | None = None, dontKeepBackup: bool = False
