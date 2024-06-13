@@ -182,6 +182,9 @@ class GenericClient:
                 group=self.__config["hermes"]["cli_socket"]["group"],
                 mode=self.__config["hermes"]["cli_socket"]["mode"],
                 processHdlr=self.__processSocketMessage,
+                dontManageSockfile=config["hermes"]["cli_socket"][
+                    "dont_manage_sockfile"
+                ],
             )
             self.__setupSocketParser()
 

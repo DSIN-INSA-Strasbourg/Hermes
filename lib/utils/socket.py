@@ -44,6 +44,10 @@ class SocketNotFoundError(Exception):
     """Raised when a client attempt to connect to a non-existent socket file"""
 
 
+class SystemdSocketError(Exception):
+    """Raised when an error was met when trying to use a socket bound by systemd"""
+
+
 class SocketParsingError(Exception):
     """Raised when argparse failed. Converting exception to string will provide argparse
     message"""
@@ -177,44 +181,66 @@ class SockServer:
         owner: str | None = None,
         group: str | None = None,
         mode: int = 0o0700,
+        dontManageSockfile: bool = False,
     ):
         """Create a new server, and its Unix socket on sockpath, with specified mode.
         All received messages will be send to specified processHdlr"""
         atexit.register(self._cleanup)  # Do our best to delete sock file at exit
+        self._manageSockFile: bool = not dontManageSockfile
         self._sockpath: str = path
         self._processHdlr: Callable[[SocketMessageToServer], SocketMessageToClient] = (
             processHdlr
         )
         self._sock = None
 
-        self._removeSocket()  # Try to remove the socket if it already exist
+        if not self._manageSockFile:
+            # Ensure one and only one socket was attached by systemd
+            listen_fds = os.environ.get("LISTEN_FDS")
 
-        # Create a non blocking unix stream socket
-        self._sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        self._sock.setblocking(False)
+            if listen_fds == "1":
+                errmsg = None
+            elif listen_fds is None:
+                errmsg = "No env var 'LISTEN_FDS' found. Unable to use sockfile bound by systemd"
+            elif listen_fds == "0":
+                errmsg = "'LISTEN_FDS' env var is '0', indicating that no sockfile was bound by systemd. Check your socket unit file"
+            else:
+                errmsg = f"'LISTEN_FDS' env var is '{listen_fds}', indicating that more than one sockfile was bound by systemd. Only one is supported. Check your socket unit file"
 
-        # Bind the socket to the specified path
-        self._sock.bind(self._sockpath)
+            if errmsg is not None:
+                raise SystemdSocketError(errmsg) from None
 
-        # Set socket rights as requested
-        try:
-            uid = pwd.getpwnam(owner).pw_uid if owner else -1
-        except KeyError:
-            raise InvalidOwnerError(
-                f"Specified socket {owner=} doesn't exists"
-            ) from None
+            # Attach to existing unix stream socket
+            self._sock = socket.socket(fileno=3)
+            self._sock.setblocking(False)
+        else:
+            self._removeSocket()  # Try to remove the socket if it already exist
 
-        try:
-            gid = grp.getgrnam(group).gr_gid if group else -1
-        except KeyError:
-            raise InvalidGroupError(
-                f"Specified socket {group=} doesn't exists"
-            ) from None
+            # Create a non blocking unix stream socket
+            self._sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            self._sock.setblocking(False)
 
-        if uid != -1 or gid != -1:
-            os.chown(self._sockpath, uid, gid)
+            # Bind the socket to the specified path
+            self._sock.bind(self._sockpath)
 
-        os.chmod(self._sockpath, mode)
+            # Set socket rights as requested
+            try:
+                uid = pwd.getpwnam(owner).pw_uid if owner else -1
+            except KeyError:
+                raise InvalidOwnerError(
+                    f"Specified socket {owner=} doesn't exists"
+                ) from None
+
+            try:
+                gid = grp.getgrnam(group).gr_gid if group else -1
+            except KeyError:
+                raise InvalidGroupError(
+                    f"Specified socket {group=} doesn't exists"
+                ) from None
+
+            if uid != -1 or gid != -1:
+                os.chown(self._sockpath, uid, gid)
+
+            os.chmod(self._sockpath, mode)
 
         self._sock.listen()  # Listen for incoming connections
 
@@ -242,7 +268,9 @@ class SockServer:
         """Close the socket and try to remove the socket file"""
         if self._sock:
             self._sock.close()  # Close the socket
-        self._removeSocket()  # Try to remove the socket file
+
+        if self._manageSockFile:
+            self._removeSocket()  # Try to remove the socket file
 
     def processMessagesInQueue(self):
         """Process every message waiting on socket and send them to handler

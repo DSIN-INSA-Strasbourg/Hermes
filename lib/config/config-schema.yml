@@ -76,6 +76,11 @@ hermes:
           min: 0
           max: 07777
           default: 00600
+        dont_manage_sockfile:
+          type: boolean
+          required: false
+          empty: false
+          default: false
     logs:
       type: dict
       required: true
