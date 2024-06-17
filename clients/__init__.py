@@ -175,14 +175,17 @@ class GenericClient:
 
         self.__sock: SockServer | None = None
         """Facultative socket to allow cli communication"""
-        if self.__config["hermes"]["cli_socket"]["path"] is not None:
+        if (
+            self.__config["hermes"]["cli_socket"]["path"] is not None
+            or self.__config["hermes"]["cli_socket"]["dont_manage_sockfile"] is not None
+        ):
             self.__sock = SockServer(
                 path=self.__config["hermes"]["cli_socket"]["path"],
                 owner=self.__config["hermes"]["cli_socket"]["owner"],
                 group=self.__config["hermes"]["cli_socket"]["group"],
                 mode=self.__config["hermes"]["cli_socket"]["mode"],
                 processHdlr=self.__processSocketMessage,
-                dontManageSockfile=config["hermes"]["cli_socket"][
+                dontManageSockfile=self.__config["hermes"]["cli_socket"][
                     "dont_manage_sockfile"
                 ],
             )

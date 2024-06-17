@@ -136,14 +136,19 @@ class HermesServer:
         """Datetime when mainloop was started"""
 
         self._sock: SockServer | None = None
-        if config["hermes"]["cli_socket"]["path"] is not None:
+        if (
+            config["hermes"]["cli_socket"]["path"] is not None
+            or config["hermes"]["cli_socket"]["dont_manage_sockfile"] is not None
+        ):
             self._sock = SockServer(
                 path=config["hermes"]["cli_socket"]["path"],
                 owner=config["hermes"]["cli_socket"]["owner"],
                 group=config["hermes"]["cli_socket"]["group"],
                 mode=config["hermes"]["cli_socket"]["mode"],
                 processHdlr=self._processSocketMessage,
-                dontManageSockfile=config["hermes"]["cli_socket"]["dont_manage_sockfile"]
+                dontManageSockfile=config["hermes"]["cli_socket"][
+                    "dont_manage_sockfile"
+                ],
             )
             self.__setupSocketParser()
 
