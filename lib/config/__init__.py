@@ -163,9 +163,9 @@ class HermesConfig(LocalCache):
         self._config |= validator.normalized(config)
         self._rawconfig = deepcopy(self._config)
 
-        # Setup logging
-        lib.utils.logging.setup_logger(self)
-        LocalCache.setup(self)  # Update cache files settings
+        if not dontManageCacheDir:
+            lib.utils.logging.setup_logger(self)  # Setup logging
+            LocalCache.setup(self)  # Update cache files settings
 
         super().__init__(
             jsondataattr="_rawconfig",

@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fixed an improper validation of the `from_raw_dict` and `from_json_dict` arguments of the Dataschema constructor, which treated an empty dictionary as if the argument had not been defined. Thanks to Julien Houchard for reporting and fixing this bug.
-- Removed unnecessary cache directory checks in CLI tools that could have caused failure in case of missing directory or missing write permissions.
+- Removed unnecessary cache and logs directories checks in CLI tools that could have caused failure in case of missing directory or missing write permissions.
 
 ### Security
 
