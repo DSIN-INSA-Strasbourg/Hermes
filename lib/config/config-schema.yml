@@ -23,6 +23,13 @@ hermes:
   required: true
   empty: false
   schema:
+    umask:
+      type: integer
+      required: false
+      empty: false
+      min: 0
+      max: 0777
+      default: 0027
     cache:
       type: dict
       required: true

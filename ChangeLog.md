@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added the ability to fetch dictionnaries values for attributes : the dictionnaries can contain any supported value type : int, float, str, datetime, list, dict. No filtering of dict values is made : None, empty sub-dict, or empty list are left as provided.
 - Added a new setting `hermes.cli_socket.dont_manage_sockfile` that allow to delegate the CLI server sockfile creation to SystemD.
 - Added a facultative configuration file named ***APPNAME*-cli-config.yml** for CLI tools to allow certain users to use the CLI without granting them read access to the configuration file.
+- Added a new setting `hermes.umask` allowing to set up the default umask for each file or directory created by the application : cache dirs, cache files and log files.
 
 ### Fixed
 

@@ -174,6 +174,7 @@ class HermesConfig(LocalCache):
         self._rawconfig = deepcopy(self._config)
 
         if not isCLI:
+            os.umask(self._config["hermes"]["umask"])
             lib.utils.logging.setup_logger(self)  # Setup logging
             LocalCache.setup(self)  # Update cache files settings
 

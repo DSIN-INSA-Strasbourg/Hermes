@@ -291,6 +291,15 @@ class LocalCache(JSONSerializable):
         ]
 
     @staticmethod
+    def _umask() -> int:
+        """Umask currently set"""
+        if __hermes__.appname not in LocalCache._settingsbyappname:
+            raise HermesLocalCacheNotSetupError(
+                "LocalCache.setup() has never be called : unable to use the LocalCache"
+            )
+        return LocalCache._settingsbyappname[__hermes__.appname]["_umask"]
+
+    @staticmethod
     def setup(config: "HermesConfig"):
         LocalCache._settingsbyappname[__hermes__.appname] = {
             "_backupCount": config["hermes"]["cache"]["backup_count"],
@@ -299,6 +308,7 @@ class LocalCache(JSONSerializable):
             "_extension": LocalCache._extensions[
                 config["hermes"]["cache"]["enable_compression"]
             ],
+            "_umask": config["hermes"]["umask"],
         }
 
     def __init__(
@@ -316,7 +326,7 @@ class LocalCache(JSONSerializable):
                     f"Local cache dir '{LocalCache._cachedir()}' doesn't exists: create it"
                 )
                 try:
-                    os.makedirs(LocalCache._cachedir(), 0o770)
+                    os.makedirs(LocalCache._cachedir(), 0o777 & ~LocalCache._umask())
                 except Exception as e:
                     __hermes__.logger.fatal(
                         f"Unable to create local cache dir '{LocalCache._cachedir()}': {str(e)}"
@@ -375,6 +385,7 @@ class LocalCache(JSONSerializable):
 
             with self._open(tmpfilepath, "wt") as f:
                 f.write(content)
+                os.chmod(f.name, 0o666 & ~LocalCache._umask())
 
             if not dontKeepBackup:
                 self._rotatecachefile(self._localCache_filename)
