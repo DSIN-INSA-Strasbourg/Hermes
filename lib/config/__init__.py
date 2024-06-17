@@ -143,34 +143,44 @@ class HermesConfig(LocalCache):
         """Override method only to disable backup files in cache"""
         return super().savecachefile(cacheFilename, dontKeepBackup=True)
 
-    def load(self, loadplugins: bool = True, dontManageCacheDir: bool = False):
+    def load(self, loadplugins: bool = True, isCLI: bool = False):
         """Load and validate config of current appname, and fill config dictionary.
         Setup logging, and signals handlers.
         Load plugins, and validate their config.
         """
         self._config = {}
         self._setAppname()
-        schemas = self._getRequiredSchemas()
+        schemas = self._getRequiredSchemas(isCLI=isCLI)
         schema = self._mergeSchemas(schemas)
 
-        with open(f"""{self._config["appname"]}-config.yml""") as f:
-            config = yaml.load(f, Loader=YAMLUniqueKeyCSafeLoader)
+        config = None
+        if isCLI:
+            try:
+                with open(f"""{self._config["appname"]}-cli-config.yml""") as f:
+                    config = yaml.load(f, Loader=YAMLUniqueKeyCSafeLoader)
+            except Exception:
+                pass
 
-        validator = Validator(schema)
+        if config is None:
+            # Not CLI or cli-config not found
+            with open(f"""{self._config["appname"]}-config.yml""") as f:
+                config = yaml.load(f, Loader=YAMLUniqueKeyCSafeLoader)
+
+        validator = Validator(schema, purge_unknown=isCLI)
         if not validator.validate(config):
             raise HermesConfigError(validator.errors)
 
         self._config |= validator.normalized(config)
         self._rawconfig = deepcopy(self._config)
 
-        if not dontManageCacheDir:
+        if not isCLI:
             lib.utils.logging.setup_logger(self)  # Setup logging
             LocalCache.setup(self)  # Update cache files settings
 
         super().__init__(
             jsondataattr="_rawconfig",
             cachefilename="_hermesconfig",
-            dontManageCacheDir=dontManageCacheDir,
+            dontManageCacheDir=isCLI,
         )
 
         if not self._allowMultipleInstances:
@@ -262,7 +272,7 @@ class HermesConfig(LocalCache):
             f"The specified name '{name}' doesn't respect app naming scheme. Please refer to the documentation"
         )
 
-    def _getRequiredSchemas(self) -> dict[str, str]:
+    def _getRequiredSchemas(self, isCLI: bool = False) -> dict[str, str]:
         """Fill a dict containing main config key and absolute path of config schemas required by current appname.
         Those values will be used to build Cerberus validation schema in order to validate config file.
         """
@@ -270,6 +280,9 @@ class HermesConfig(LocalCache):
 
         # Retrieve absolute path of hermes source directory
         appdir = os.path.realpath(os.path.dirname(__file__) + "/../../")
+
+        if isCLI:
+            return {"hermes": f"{appdir}/lib/config/config-schema-cli.yml"}
 
         schemas = {
             # Global config

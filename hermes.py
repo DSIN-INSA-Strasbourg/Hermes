@@ -71,7 +71,7 @@ if __name__ == "__main__":
                 len("hermes-") : -len("-cli")
             ]  # Hack to force app context
             config = HermesConfig(autoload=False, allowMultipleInstances=True)
-            config.load(loadplugins=False, dontManageCacheDir=True)
+            config.load(loadplugins=False, isCLI=True)
 
             if config["hermes"]["cli_socket"]["path"] is None:
                 print(
