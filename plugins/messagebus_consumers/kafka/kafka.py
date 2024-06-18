@@ -40,31 +40,29 @@ class KafkaConsumerPlugin(AbstractMessageBusConsumerPlugin):
         """Instantiate new plugin and store a copy of its settings dict in self._settings"""
         super().__init__(settings)
         self._kafka: KafkaConsumer | None = None
+        self._kafkaconfig: dict[str, Any] = {
+            "bootstrap_servers": self._settings["servers"],
+            "security_protocol": "PLAINTEXT",
+            "enable_auto_commit": False,
+            "auto_offset_reset": "earliest",
+            "consumer_timeout_ms": 1000,
+            "group_id": self._settings["group_id"],
+        }
+
+        if "ssl" in self._settings:
+            self._kafkaconfig.update(
+                {
+                    "security_protocol": "SSL",
+                    "ssl_check_hostname": True,
+                    "ssl_certfile": self._settings["ssl"]["certfile"],
+                    "ssl_keyfile": self._settings["ssl"]["keyfile"],
+                    "ssl_cafile": self._settings["ssl"]["cafile"],
+                }
+            )
 
     def open(self) -> Any:
         """Establish connection with messagebus"""
-        if "ssl" in self._settings:
-            self._kafka = KafkaConsumer(
-                bootstrap_servers=self._settings["servers"],
-                security_protocol="SSL",
-                ssl_check_hostname=True,
-                ssl_certfile=self._settings["ssl"]["certfile"],
-                ssl_keyfile=self._settings["ssl"]["keyfile"],
-                ssl_cafile=self._settings["ssl"]["cafile"],
-                enable_auto_commit=False,
-                auto_offset_reset="earliest",
-                consumer_timeout_ms=1000,
-                group_id=self._settings["group_id"],
-            )
-        else:
-            self._kafka = KafkaConsumer(
-                bootstrap_servers=self._settings["servers"],
-                security_protocol="PLAINTEXT",
-                enable_auto_commit=False,
-                auto_offset_reset="earliest",
-                consumer_timeout_ms=1000,
-                group_id=self._settings["group_id"],
-            )
+        self._kafka = KafkaConsumer(**self._kafkaconfig)
         self.__kafkapartition = TopicPartition(
             self._settings["topic"],
             self._kafka.partitions_for_topic(self._settings["topic"]).pop(),
@@ -89,9 +87,9 @@ class KafkaConsumerPlugin(AbstractMessageBusConsumerPlugin):
         """Set timeout (in milliseconds) before aborting when waiting for next event.
         If None, wait forever"""
         if timeout_ms is None:
-            self._kafka.config["consumer_timeout_ms"] = float("inf")
+            self._kafkaconfig["consumer_timeout_ms"] = float("inf")
         else:
-            self._kafka.config["consumer_timeout_ms"] = timeout_ms
+            self._kafkaconfig["consumer_timeout_ms"] = timeout_ms
 
     def findNextEventOfCategory(self, category: str) -> Event | None:
         """Lookup for first message with specified category and returns it,
