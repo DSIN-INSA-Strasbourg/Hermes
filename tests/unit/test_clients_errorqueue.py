@@ -2416,15 +2416,6 @@ class TestErrorQueueClass(HermesServerTestCase):
             from_json_dict={"queue": self.queue},  # key should be "_queue"
         )
 
-    def test_init_from_invalid_json(self):
-        self.assertRaises(
-            HermesInvalidErrorQueueJSONError,
-            ErrorQueue,
-            typesMapping=self.typesMapping,
-            autoremediate="disabled",
-            from_json_dict={"queue": self.queue},  # key should be "_queue"
-        )
-
     def test_fill_queue_twice_with_same_eventnumber(self):
         eq = ErrorQueue(typesMapping=self.typesMapping, autoremediate="disabled")
 

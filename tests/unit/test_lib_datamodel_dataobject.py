@@ -232,14 +232,6 @@ class TestDataobjectClass(HermesServerTestCase):
             from_remote=dict(),
         )
 
-    def test_init_fromRemote_fails_if_empty(self):
-        self.assertRaisesRegex(
-            AttributeError,
-            "^Required attributes are missing from specified from_remote dict: ",
-            self.TestUsersSource1,
-            from_remote=dict(),
-        )
-
     def test_init_fromRemote_fails_if_invalid_type_in_value_of_HERMES_TO_REMOTE_MAPPING(
         self,
     ):
