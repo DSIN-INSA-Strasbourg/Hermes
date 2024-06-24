@@ -85,26 +85,26 @@ class TestEventClass(HermesServerTestCase):
         o = self.getObj()
         e = Event(evcategory="base", eventtype="added", obj=o, objattrs=o.toEvent())
         self.assertRegex(
-            e.toString(set()), "^<Event\(TestUsers_added\[<TestUsers\[1\]>\], .*\)>"
+            e.toString(set()), r"^<Event\(TestUsers_added\[<TestUsers\[1\]>\], .*\)>"
         )
 
     def test_init_from_json(self):
         e = Event(from_json_dict=self.getJson())
-        self.assertRegex(e.toString(set()), "^<Event\(TestUsers_added\[1\], .*\)>")
+        self.assertRegex(e.toString(set()), r"^<Event\(TestUsers_added\[1\], .*\)>")
 
     def test_init_from_objattrs_withoutobj(self):
         o = self.getObj()
         e = Event(evcategory="base", eventtype="added", objattrs=o.toEvent())
-        self.assertRegex(e.toString(set()), "^<Event\(added, .*\)>")
+        self.assertRegex(e.toString(set()), r"^<Event\(added, .*\)>")
 
     def test_init_from_objattrs_initsync(self):
         o = self.getObj()
         e = Event(evcategory="initsync", eventtype="added", obj=o, objattrs=o.toEvent())
         self.assertRegex(
             e.toString(set()),
-            "^<Event\(initsync_TestUsers_added\[<TestUsers\[1\]>\], .*\)>",
+            r"^<Event\(initsync_TestUsers_added\[<TestUsers\[1\]>\], .*\)>",
         )
 
     def test_init_from_objattrs_initstart(self):
         e = Event(evcategory="initsync", eventtype="init-start", obj=None, objattrs={})
-        self.assertRegex(e.toString(set()), "^<Event\(initsync_init-start, .*\)>")
+        self.assertRegex(e.toString(set()), r"^<Event\(initsync_init-start, .*\)>")

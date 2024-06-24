@@ -120,7 +120,7 @@ class TestDataschemaClass(HermesServerTestCase):
         self.base_schema["Users"]["CACHEONLY_ATTRIBUTES"] = "string"
         self.assertRaisesRegex(
             HermesInvalidDataschemaError,
-            """'Users.CACHEONLY_ATTRIBUTES' has wrong type in received json Dataschema \('<class 'str'>' instead of '\[<class 'list'>, <class 'tuple'>, <class 'set'>\]'\)""",
+            r"""'Users.CACHEONLY_ATTRIBUTES' has wrong type in received json Dataschema \('<class 'str'>' instead of '\[<class 'list'>, <class 'tuple'>, <class 'set'>\]'\)""",
             Dataschema,
             from_raw_dict=self.base_schema,
         )

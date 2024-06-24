@@ -319,7 +319,7 @@ class TestLocalCacheClass(HermesServerTestCase):
         )
         self.assertRaisesRegex(
             HermesUnspecifiedCacheFilename,
-            "Unable to save cache file without having specified the cacheFilename with setCacheFilename\(\)",
+            r"Unable to save cache file without having specified the cacheFilename with setCacheFilename\(\)",
             o1.savecachefile,
         )
 

@@ -90,7 +90,7 @@ class TestJinjaClass(unittest.TestCase):
         }
         self.assertRaisesRegex(
             HermesTooManyJinjaVarsError,
-            "2 variables found in Jinja template '''{{ VAR3 ~ '\+' ~ VAR4 }}'''. Only one Jinja var is allowed to ensure data consistency",
+            r"2 variables found in Jinja template '''{{ VAR3 ~ '\+' ~ VAR4 }}'''. Only one Jinja var is allowed to ensure data consistency",
             Jinja.compileIfJinjaTemplate,
             var=vars,
             flatvars_set=flatvars,
@@ -250,7 +250,7 @@ class TestJinjaClass(unittest.TestCase):
 
         self.assertRaisesRegex(
             HermesTooManyJinjaVarsError,
-            "Error context: 2 variables found in Jinja template '''{{ \(VAR1 \| upper\) ~ ' ' ~ VAR2 }}'''. Only one Jinja var is allowed to ensure data consistency",
+            r"Error context: 2 variables found in Jinja template '''{{ \(VAR1 \| upper\) ~ ' ' ~ VAR2 }}'''. Only one Jinja var is allowed to ensure data consistency",
             Jinja.compileIfJinjaTemplate,
             var=vars,
             flatvars_set=None,

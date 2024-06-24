@@ -158,7 +158,7 @@ class TestConfig_Server(HermesServerTestCase):
 
         self.assertRaisesRegex(
             HermesConfigError,
-            "{'hermes': \[{'plugins': \[{'messagebus': \['required field'\]}\]}\]}",
+            r"{'hermes': \[{'plugins': \[{'messagebus': \['required field'\]}\]}\]}",
             config.load,
         )
 

@@ -215,7 +215,7 @@ class TestDatamodelClass(HermesServerTestCase):
 
         self.assertRaisesRegex(
             HermesDataModelMissingPrimarykeyError,
-            "The primary key '\('user_id', 'login'\)' must be fetched from each datasource",
+            r"The primary key '\('user_id', 'login'\)' must be fetched from each datasource",
             Datamodel,
             config,
         )

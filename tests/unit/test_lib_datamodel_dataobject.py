@@ -265,7 +265,7 @@ class TestDataobjectClass(HermesServerTestCase):
         self.TestUsersSource1.HERMES_TO_REMOTE_MAPPING["cn"] = 1
         self.assertRaisesRegex(
             AttributeError,
-            "^Invalid type met in HERMES_TO_REMOTE_MAPPING\['cn'\]: <class 'int'>",
+            r"^Invalid type met in HERMES_TO_REMOTE_MAPPING\['cn'\]: <class 'int'>",
             self.TestUsersSource1,
             from_remote=data,
         )
@@ -273,7 +273,7 @@ class TestDataobjectClass(HermesServerTestCase):
         self.TestUsersSource1.HERMES_TO_REMOTE_MAPPING["cn"] = {"a": 1}
         self.assertRaisesRegex(
             AttributeError,
-            "^Invalid type met in HERMES_TO_REMOTE_MAPPING\['cn'\]: <class 'dict'>",
+            r"^Invalid type met in HERMES_TO_REMOTE_MAPPING\['cn'\]: <class 'dict'>",
             self.TestUsersSource1,
             from_remote=data,
         )
@@ -532,7 +532,7 @@ class TestDataobjectClass(HermesServerTestCase):
         user1.cn = "Other User"
         self.assertRaisesRegex(
             HermesMergingConflictError,
-            "Merging conflict. Attribute 'cn' exist on both objects with differents values \(<TestUsersSource1\[42\]>: 'Other User' / <TestUsersSource2\[42\]>: 'Test User'\)",
+            r"Merging conflict. Attribute 'cn' exist on both objects with differents values \(<TestUsersSource1\[42\]>: 'Other User' / <TestUsersSource2\[42\]>: 'Test User'\)",
             user1.mergeWith,
             other=user2,
             raiseExceptionOnConflict=True,
