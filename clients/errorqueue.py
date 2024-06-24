@@ -62,12 +62,13 @@ class ErrorQueue(LocalCache):
 
         self._index: dict[str, dict[Any, set[int]]] = {}
         """Index table of events.
-        The keys are 
+        The keys are
             1. the local event object type (str)
             2. the event object primary key (Any)
         The value is a set containing all eventNumber in queue for the keys
-        
-        self._index[localevent.objtype][localevent.objpkey] = set([eventNumber1, eventNumber2, ...])
+
+        self._index[localevent.objtype][localevent.objpkey] =
+        set([eventNumber1, eventNumber2, ...])
         """
 
         self._typesMapping = {
@@ -75,8 +76,10 @@ class ErrorQueue(LocalCache):
             "remote": {k: v for k, v in typesMapping.items()},
         }
         """Mapping between local and remote objects types
-            - self._typesMapping["local"]["local_type"] return the corresponding remote type
-            - self._typesMapping["remote"]["remote_type"] return the corresponding local type
+            - self._typesMapping["local"]["local_type"] return the corresponding remote
+              type
+            - self._typesMapping["remote"]["remote_type"] return the corresponding
+              local type
         """
 
         super().__init__(jsondataattr=["_queue"])
@@ -141,7 +144,8 @@ class ErrorQueue(LocalCache):
             and remoteEvent.objtype not in self._typesMapping["remote"]
         ):
             __hermes__.logger.info(
-                f"Ignore loading of remote event of unknown objtype {remoteEvent.objtype}"
+                "Ignore loading of remote event of unknown objtype"
+                f" {remoteEvent.objtype}"
             )
             return
 
@@ -166,25 +170,30 @@ class ErrorQueue(LocalCache):
         previousEvents: list[Event],
     ) -> tuple[bool, Event | None]:
         """Merge two events for remediation, and returns the result as a tuple with
-        - wasMerged : a boolean indicating that the merge was done, meaning that the last event must be removed. If False, the values of removeBothEvents and newEvent in tuple must be ignored
-        - removeBothEvents: a boolean indicating that the merge consists of both events removal. If True, the value of newEvent must be ignored
+        - wasMerged : a boolean indicating that the merge was done, meaning that the
+          last event must be removed. If False, the values of removeBothEvents and
+          newEvent in tuple must be ignored
+        - removeBothEvents: a boolean indicating that the merge consists of both events
+          removal. If True, the value of newEvent must be ignored
         - newEvent: the merged Event
         """
         # Handle None values, that may only occurs for remote events
         if lastEvent is None and prevEvent is None:
             # No data : merging is easy
-            __hermes__.logger.info(f"Merging two None events, result is None")
+            __hermes__.logger.info("Merging two None events, result is None")
             return (True, False, None)
         elif lastEvent is None:
             # Keep prevEvent values
             __hermes__.logger.info(
-                f"Merging {prevEvent.objattrs=} with lastEvent=None, result is {prevEvent=}"
+                f"Merging {prevEvent.objattrs=} with lastEvent=None,"
+                f" result is {prevEvent=}"
             )
             return (True, False, prevEvent)
         elif prevEvent is None:
             # Keep lastEvent values
             __hermes__.logger.info(
-                f"Merging prevEvent=None with {lastEvent.objattrs=}, result is {lastEvent=}"
+                f"Merging prevEvent=None with {lastEvent.objattrs=},"
+                f" result is {lastEvent=}"
             )
             return (True, False, lastEvent)
 
@@ -214,7 +223,8 @@ class ErrorQueue(LocalCache):
                 del objattrs[key]
 
             __hermes__.logger.info(
-                f"Merging added {prevEvent.objattrs=} with modified {lastEvent.objattrs=}, result is added {objattrs=}"
+                f"Merging added {prevEvent.objattrs=} with modified"
+                f" {lastEvent.objattrs=}, result is added {objattrs=}"
             )
             return (True, False, mergedEvent)
         elif prevEvent.eventtype == "added" and lastEvent.eventtype == "removed":
@@ -264,8 +274,10 @@ class ErrorQueue(LocalCache):
                                 if currentObj is None:
                                     # Should never occur
                                     errmsg = (
-                                        "BUG : unexpected object status met when trying to merge two events "
-                                        f"{lastEvent=} {lastEvent.eventtype=} ; {prevEvent=} {prevEvent.eventtype=}"
+                                        "BUG : unexpected object status met when trying"
+                                        f" to merge two events {lastEvent=}"
+                                        f" {lastEvent.eventtype=} ; {prevEvent=}"
+                                        f" {prevEvent.eventtype=}"
                                     )
                                     __hermes__.logger.critical(errmsg)
                                     raise AssertionError(errmsg)
@@ -283,7 +295,8 @@ class ErrorQueue(LocalCache):
                             f"in caches. {currentObj=} {newObj=}"
                         )
                     else:
-                        # Diff the desired object with current one to generate a modified event
+                        # Diff the desired object with current one to generate a
+                        # modified event
                         mergedEvent, _ = Event.fromDiffItem(
                             newObj.diffFrom(currentObj), "base", "modified"
                         )
@@ -294,14 +307,16 @@ class ErrorQueue(LocalCache):
                             or mergedEvent.objattrs["removed"]
                         ):
                             __hermes__.logger.info(
-                                f"Merging removed {prevEvent=} with added {lastEvent.objattrs=}, "
-                                f"result is modified {mergedEvent=} {mergedEvent.objattrs=}"
+                                f"Merging removed {prevEvent=} with added"
+                                f" {lastEvent.objattrs=}, result is modified"
+                                f" {mergedEvent=} {mergedEvent.objattrs=}"
                             )
                             return (True, False, mergedEvent)
                         else:
                             __hermes__.logger.info(
-                                f"Merging removed {prevEvent=} with added {lastEvent.objattrs=}, "
-                                f"result is an empty modified event (without any change). Ignoring it"
+                                f"Merging removed {prevEvent=} with added "
+                                f"{lastEvent.objattrs=}, result is an empty modified"
+                                " event (without any change). Ignoring it"
                             )
                             return (True, True, mergedEvent)
 
@@ -336,14 +351,16 @@ class ErrorQueue(LocalCache):
                     del objattrs[prevAction][key]
 
             __hermes__.logger.info(
-                f"Merging modified {prevEvent.objattrs=} with modified {lastEvent.objattrs=}, result is modified {objattrs=}"
+                f"Merging modified {prevEvent.objattrs=} with modified"
+                f" {lastEvent.objattrs=}, result is modified {objattrs=}"
             )
             return (True, False, mergedEvent)
         elif prevEvent.eventtype == "modified" and lastEvent.eventtype == "removed":
             if self._autoremediate == "maximum":
                 # Remove prevEvent
                 __hermes__.logger.info(
-                    f"Merging modified {prevEvent.objattrs=} with removed {lastEvent.objattrs=}, result is removed {lastEvent=}"
+                    f"Merging modified {prevEvent.objattrs=} with removed"
+                    f" {lastEvent.objattrs=}, result is removed {lastEvent=}"
                 )
                 return (True, False, lastEvent)
             # Use "conservative" as fallback : don't merge the events
@@ -351,7 +368,8 @@ class ErrorQueue(LocalCache):
         else:
             errmsg = (
                 "BUG : unexpected eventtype met when trying to merge two events "
-                f"{lastEvent=} {lastEvent.eventtype=} ; {prevEvent=} {prevEvent.eventtype=}"
+                f"{lastEvent=} {lastEvent.eventtype=}"
+                f" ; {prevEvent=} {prevEvent.eventtype=}"
             )
             __hermes__.logger.critical(errmsg)
             raise AssertionError(errmsg)
@@ -415,7 +433,13 @@ class ErrorQueue(LocalCache):
         )
 
         if remotedWasMerged != localWasMerged:
-            errmsg = f"BUG : inconsistency between remote and local merge results : {remotedWasMerged=}, {localWasMerged=}. {prevEventNumber=}, {lastEventNumber=} {prevRemoteEvent.toString(set())=} {lastRemoteEvent.toString(set())=}, {prevLocalEvent.toString(set())=}, {lastLocalEvent.toString(set())=}"
+            errmsg = (
+                "BUG : inconsistency between remote and local merge results :"
+                f" {remotedWasMerged=}, {localWasMerged=}. {prevEventNumber=},"
+                f" {lastEventNumber=} {prevRemoteEvent.toString(set())=}"
+                f" {lastRemoteEvent.toString(set())=},"
+                f" {prevLocalEvent.toString(set())=}, {lastLocalEvent.toString(set())=}"
+            )
             __hermes__.logger.critical(errmsg)
             raise AssertionError(errmsg)
 
@@ -428,7 +452,8 @@ class ErrorQueue(LocalCache):
             self.remove(lastEventNumber)
             self.remove(prevEventNumber)
         else:
-            # Last event was merged into previous, update previous and remove last from queue
+            # Last event was merged into previous, update previous and remove last from
+            # queue
             self._queue[prevEventNumber] = (newRemoteEvent, newLocalEvent, prevErrorMsg)
             self.remove(lastEventNumber)
 
@@ -604,13 +629,15 @@ class ErrorQueue(LocalCache):
         new_local_pkeys: dict[str, str],
         local_data: Datasource,
     ):
-        """Will update primary keys. new_remote_pkeys is a dict with remote objtype as key,
-        and the new remote primary key attribute name as value. new_local_pkeys is a dict
-        with local objtype as key, and the new local primary key attribute name as value.
-        The specified datasources must not have their primary keys updated yet, to allow conversion.
+        """Will update primary keys. new_remote_pkeys is a dict with remote objtype as
+        key, and the new remote primary key attribute name as value. new_local_pkeys is
+        a dict with local objtype as key, and the new local primary key attribute name
+        as value.
+        The specified datasources must not have their primary keys updated yet, to
+        allow conversion.
 
-        The ErrorQueue MUST immediately be saved and re-instantiated from cache by caller to reflect
-        data changes.
+        The ErrorQueue MUST immediately be saved and re-instantiated from cache by
+        caller to reflect data changes.
         """
         newqueue = {}
         for eventNumber, (remoteEvent, localEvent, errorMsg) in self._queue.items():
@@ -623,7 +650,7 @@ class ErrorQueue(LocalCache):
                     newRemoteEvent = remoteEvent
                 else:
                     oldobj = remote_data[remoteEvent.objtype][remoteEvent.objpkey]
-                    if type(new_remote_pkeys[remoteEvent.objtype]) == tuple:
+                    if type(new_remote_pkeys[remoteEvent.objtype]) is tuple:
                         # New pkey is a tuple, loop over each attr
                         newpkey = []
                         for pkattr in new_remote_pkeys[remoteEvent.objtype]:
@@ -642,7 +669,7 @@ class ErrorQueue(LocalCache):
                 newLocalEvent = localEvent
             else:
                 oldobj = local_data[localEvent.objtype][localEvent.objpkey]
-                if type(new_local_pkeys[localEvent.objtype]) == tuple:
+                if type(new_local_pkeys[localEvent.objtype]) is tuple:
                     # New pkey is a tuple, loop over each attr
                     newpkey = []
                     for pkattr in new_local_pkeys[localEvent.objtype]:
@@ -662,7 +689,7 @@ class ErrorQueue(LocalCache):
                         if attr.startswith("_pkey_"):
                             del newLocalEvent.objattrs[attr]
                     # Add new pkey attributes
-                    if type(new_local_pkeys[localEvent.objtype]) == tuple:
+                    if type(new_local_pkeys[localEvent.objtype]) is tuple:
                         for i in range(len(newpkey)):
                             newLocalEvent.objattrs[
                                 new_local_pkeys[localEvent.objtype][i]

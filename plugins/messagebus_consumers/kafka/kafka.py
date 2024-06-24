@@ -37,7 +37,8 @@ class KafkaConsumerPlugin(AbstractMessageBusConsumerPlugin):
     from Apache Kafka."""
 
     def __init__(self, settings: dict[str, Any]):
-        """Instantiate new plugin and store a copy of its settings dict in self._settings"""
+        """Instantiate new plugin and store a copy of its settings dict in
+        self._settings"""
         super().__init__(settings)
         self._kafka: KafkaConsumer | None = None
         self._kafkaconfig: dict[str, Any] = {

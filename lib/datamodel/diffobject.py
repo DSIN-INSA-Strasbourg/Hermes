@@ -30,8 +30,9 @@ class DiffObject:
         - modified
         - removed
     The sets should contain object properties names when objnew and objold are specified
-    in constructor (e.g. when comparing two DataObject), or some objects otherwise (e.g. when
-    comparing two DataObjectList). Objects added MUST not be tuple, list, set or frozenset.
+    in constructor (e.g. when comparing two DataObject), or some objects otherwise
+    (e.g. when comparing two DataObjectList).
+    Objects added MUST not be tuple, list, set or frozenset.
 
     When tested with 'if instance', DiffObject instance returns False if no
     difference was found, True otherwise.
@@ -76,11 +77,12 @@ class DiffObject:
     def dict(self) -> dict[str, Any]:
         """Returns a diff dict always containing three keys: 'added', 'modified' and
         'removed'.
-        The values differs depending on whether objnew has been set on constructor or not.
+        The values differs depending on whether objnew has been set on constructor or
+        not :
         - If objnew has been set:
-            - 'added' and 'modified' will be a dict with attrname as key, and objnew's value
-               of 'attrname'
-            - 'removed' will be a dict with attrname as key, and None as value
+          - 'added' and 'modified' will be a dict with attrname as key, and objnew's
+            value of 'attrname'
+          - 'removed' will be a dict with attrname as key, and None as value
         - If objnew hasn't been set, 'added', 'modified' and 'removed' will be a list of
           objects, sorted when possible
         """
@@ -115,8 +117,8 @@ class DiffObject:
         self._append("_removed", value)
 
     def _append(self, attrname: str, value: Any):
-        """Mark specified value as specified attrname. Multiple values can be specified at
-        once by encapsulating them in tuple, list, set, or frozenset"""
+        """Mark specified value as specified attrname. Multiple values can be specified
+        at once by encapsulating them in tuple, list, set, or frozenset"""
         attr: set = getattr(self, attrname)
         if isinstance(value, (tuple, list, set, frozenset)):
             attr |= set(value)
@@ -124,6 +126,6 @@ class DiffObject:
             attr.add(value)
 
     def __bool__(self) -> bool:
-        """Allow to test current instance and return False if there's no difference, True
-        otherwise"""
+        """Allow to test current instance and return False if there's no difference,
+        True otherwise"""
         return len(self._removed) + len(self._added) + len(self._modified) > 0

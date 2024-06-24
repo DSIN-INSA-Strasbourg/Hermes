@@ -62,7 +62,8 @@ class Attribute_Crypto_RSA_OAEP_Plugin(AbstractAttributePlugin):
     }
 
     def __init__(self, settings: dict[str, any]) -> None:
-        """Instantiate new plugin and store a copy of its settings dict in self._settings"""
+        """Instantiate new plugin and store a copy of its settings dict in
+        self._settings"""
         super().__init__(settings)
 
         self.__keys: dict[str, tuple[str, PKCS1OAEP_Cipher]] = {}
@@ -115,7 +116,7 @@ class Attribute_Crypto_RSA_OAEP_Plugin(AbstractAttributePlugin):
     def encrypt(self, value: bytes | str, cipherinst: PKCS1OAEP_Cipher) -> str:
         """Encrypt the specified value, and returns the resulting byte-array
         encoded in a base64 string"""
-        if type(value) == bytes:
+        if type(value) is bytes:
             # Raw binary encoded byte array
             value_bytes = value
         else:
@@ -126,7 +127,7 @@ class Attribute_Crypto_RSA_OAEP_Plugin(AbstractAttributePlugin):
 
     def decrypt(self, value: bytes | str, cipherinst: PKCS1OAEP_Cipher) -> str:
         """Decrypt the specified value, and returns the result as a string"""
-        if type(value) == bytes:
+        if type(value) is bytes:
             # Raw binary encoded byte array
             value_bytes = value
         else:

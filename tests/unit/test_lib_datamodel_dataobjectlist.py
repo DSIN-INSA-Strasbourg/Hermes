@@ -116,54 +116,54 @@ class TestDataobjectlistClass(HermesServerTestCase):
         )
 
     def test_init_from_objlist(self):
-        l = self.TestUsersList(objlist=self.getObjList(start=1, stop=3))
-        self.assertEqual(len(l._data), 3)
+        users = self.TestUsersList(objlist=self.getObjList(start=1, stop=3))
+        self.assertEqual(len(users._data), 3)
 
     def test_init_from_json(self):
-        l = self.TestUsersList(from_json_dict=self.getJson())
-        self.assertEqual(len(l._data), 3)
+        users = self.TestUsersList(from_json_dict=self.getJson())
+        self.assertEqual(len(users._data), 3)
 
     def test_iter(self):
-        l = self.TestUsersList(objlist=self.getObjList(start=1, stop=3))
-        for index, item in enumerate(l, start=1):
+        users = self.TestUsersList(objlist=self.getObjList(start=1, stop=3))
+        for index, item in enumerate(users, start=1):
             self.assertEqual(repr(item), f"<TestUsers[{index}]>")
 
     def test_getitem(self):
-        l = self.TestUsersList(objlist=self.getObjList(start=1, stop=3))
-        self.assertEqual(repr(l[2]), f"<TestUsers[2]>")
-        self.assertRaises(KeyError, l.__getitem__, 4)
+        users = self.TestUsersList(objlist=self.getObjList(start=1, stop=3))
+        self.assertEqual(repr(users[2]), "<TestUsers[2]>")
+        self.assertRaises(KeyError, users.__getitem__, 4)
 
     def test_get(self):
-        l = self.TestUsersList(objlist=self.getObjList(start=1, stop=3))
-        self.assertEqual(repr(l.get(2)), f"<TestUsers[2]>")
-        self.assertIsNone(l.get(4))
+        users = self.TestUsersList(objlist=self.getObjList(start=1, stop=3))
+        self.assertEqual(repr(users.get(2)), "<TestUsers[2]>")
+        self.assertIsNone(users.get(4))
 
     def test_getPKeys(self):
-        l = self.TestUsersList(objlist=self.getObjList(start=1, stop=3))
-        self.assertSetEqual(l.getPKeys(), set([1, 2, 3]))
+        users = self.TestUsersList(objlist=self.getObjList(start=1, stop=3))
+        self.assertSetEqual(users.getPKeys(), set([1, 2, 3]))
 
     def test_append(self):
-        l = self.TestUsersList(objlist=self.getObjList(start=1, stop=3))
+        users = self.TestUsersList(objlist=self.getObjList(start=1, stop=3))
 
         # Append pkeys 4 to 6
         for o in self.getObjList(4, 6):
-            l.append(o)
+            users.append(o)
 
-        self.assertSetEqual(l.getPKeys(), set([1, 2, 3, 4, 5, 6]))
-        self.assertSetEqual(l.inconsistencies, set())  # Must be empty
+        self.assertSetEqual(users.getPKeys(), set([1, 2, 3, 4, 5, 6]))
+        self.assertSetEqual(users.inconsistencies, set())  # Must be empty
 
-        l.append(o)  # Append again pkey 6 -> should go to inconsistencies
-        self.assertSetEqual(l.getPKeys(), set([1, 2, 3, 4, 5]))
-        self.assertSetEqual(l.inconsistencies, set([6]))
+        users.append(o)  # Append again pkey 6 -> should go to inconsistencies
+        self.assertSetEqual(users.getPKeys(), set([1, 2, 3, 4, 5]))
+        self.assertSetEqual(users.inconsistencies, set([6]))
 
         # Append again pkey 6 -> should change nothing, as already in inconsistencies
-        l.append(o)
-        self.assertSetEqual(l.getPKeys(), set([1, 2, 3, 4, 5]))
-        self.assertSetEqual(l.inconsistencies, set([6]))
+        users.append(o)
+        self.assertSetEqual(users.getPKeys(), set([1, 2, 3, 4, 5]))
+        self.assertSetEqual(users.inconsistencies, set([6]))
 
     def test_replace(self):
-        l = self.TestUsersList(objlist=self.getObjList(start=1, stop=3))
-        self.assertEqual(l[2].login, "user_2")
+        users = self.TestUsersList(objlist=self.getObjList(start=1, stop=3))
+        self.assertEqual(users[2].login, "user_2")
 
         # Replace existing
         d = {
@@ -172,8 +172,8 @@ class TestDataobjectlistClass(HermesServerTestCase):
             "edupersonaffiliation": ["employee", "member", "staff"],
         }
         newobj2 = self.TestUsers(from_json_dict=d)
-        l.replace(newobj2)
-        self.assertEqual(l[2].login, "user_2_new")
+        users.replace(newobj2)
+        self.assertEqual(users[2].login, "user_2_new")
 
         # Replace missing -> fail
         d = {
@@ -185,18 +185,18 @@ class TestDataobjectlistClass(HermesServerTestCase):
         self.assertRaisesRegex(
             IndexError,
             "Cannot replace object with pkey 4 as previous doesn't exist",
-            l.replace,
+            users.replace,
             newobj4,
         )
 
     def test_removeByPkey(self):
-        l = self.TestUsersList(objlist=self.getObjList(start=1, stop=3))
+        users = self.TestUsersList(objlist=self.getObjList(start=1, stop=3))
         # self.assertSetEqual(l.getPKeys(), set([1, 2, 3]))
-        l.removeByPkey(2)
-        self.assertSetEqual(l.getPKeys(), set([1, 3]))
+        users.removeByPkey(2)
+        self.assertSetEqual(users.getPKeys(), set([1, 3]))
 
     def test_remove(self):
-        l = self.TestUsersList(objlist=self.getObjList(start=1, stop=3))
+        users = self.TestUsersList(objlist=self.getObjList(start=1, stop=3))
         # self.assertSetEqual(l.getPKeys(), set([1, 2, 3]))
 
         d = {
@@ -205,11 +205,11 @@ class TestDataobjectlistClass(HermesServerTestCase):
             "edupersonaffiliation": ["employee", "member", "staff"],
         }
         obj = self.TestUsers(from_json_dict=d)
-        l.remove(obj)
-        self.assertSetEqual(l.getPKeys(), set([1, 3]))
+        users.remove(obj)
+        self.assertSetEqual(users.getPKeys(), set([1, 3]))
 
     def test_toNative(self):
-        l = self.TestUsersList(objlist=self.getObjList(start=1, stop=3))
+        users = self.TestUsersList(objlist=self.getObjList(start=1, stop=3))
         native = [
             {
                 "edupersonaffiliation": ["employee", "member", "staff"],
@@ -227,93 +227,93 @@ class TestDataobjectlistClass(HermesServerTestCase):
                 "user_id": 3,
             },
         ]
-        self.assertListEqual(l.toNative(), native)
+        self.assertListEqual(users.toNative(), native)
 
     def test_mergeWith_invalid_pkeyMergeConstraint(self):
-        l = self.TestUsersList(objlist=self.getObjList(start=1, stop=3))
+        users = self.TestUsersList(objlist=self.getObjList(start=1, stop=3))
         self.assertRaises(
-            AttributeError, l.mergeWith, self.getObjList(start=1, stop=3), "invalid"
+            AttributeError, users.mergeWith, self.getObjList(start=1, stop=3), "invalid"
         )
 
     def test_mergeWith_noConstraint(self):
-        l = self.TestUsersList(objlist=self.getObjList(start=1, stop=6))
+        users = self.TestUsersList(objlist=self.getObjList(start=1, stop=6))
         other = self.getObjList(start=3, stop=8)
         other[1].login = "user_4_new"
         other[2].login = "user_5_new"
-        res = l.mergeWith(other, "noConstraint", dontMergeOnConflict=False)
+        res = users.mergeWith(other, "noConstraint", dontMergeOnConflict=False)
         self.assertSetEqual(res, set())
-        self.assertSetEqual(l.mergeConflicts, set())
-        self.assertSetEqual(l.getPKeys(), set([1, 2, 3, 4, 5, 6, 7, 8]))
+        self.assertSetEqual(users.mergeConflicts, set())
+        self.assertSetEqual(users.getPKeys(), set([1, 2, 3, 4, 5, 6, 7, 8]))
 
     def test_mergeWith_noConstraint_mergeconflict(self):
-        l = self.TestUsersList(objlist=self.getObjList(start=1, stop=6))
+        users = self.TestUsersList(objlist=self.getObjList(start=1, stop=6))
         other = self.getObjList(start=3, stop=8)
         other[1].login = "user_4_new"
         other[2].login = "user_5_new"
-        res = l.mergeWith(other, "noConstraint", dontMergeOnConflict=True)
+        res = users.mergeWith(other, "noConstraint", dontMergeOnConflict=True)
         self.assertSetEqual(res, set())
-        self.assertSetEqual(l.mergeConflicts, set([4, 5]))
-        self.assertSetEqual(l.getPKeys(), set([1, 2, 3, 6, 7, 8]))
+        self.assertSetEqual(users.mergeConflicts, set([4, 5]))
+        self.assertSetEqual(users.getPKeys(), set([1, 2, 3, 6, 7, 8]))
 
     def test_mergeWith_mustNotExist(self):
-        l = self.TestUsersList(objlist=self.getObjList(start=1, stop=6))
+        users = self.TestUsersList(objlist=self.getObjList(start=1, stop=6))
         other = self.getObjList(start=3, stop=8)
         other[1].login = "user_4_new"
         other[2].login = "user_5_new"
-        res = l.mergeWith(other, "mustNotExist", dontMergeOnConflict=False)
+        res = users.mergeWith(other, "mustNotExist", dontMergeOnConflict=False)
         self.assertSetEqual(res, set([3, 4, 5, 6]))
-        self.assertSetEqual(l.mergeConflicts, set())
-        self.assertSetEqual(l.getPKeys(), set([1, 2, 7, 8]))
+        self.assertSetEqual(users.mergeConflicts, set())
+        self.assertSetEqual(users.getPKeys(), set([1, 2, 7, 8]))
 
     def test_mergeWith_mustNotExist_mergeconflict(self):
-        l = self.TestUsersList(objlist=self.getObjList(start=1, stop=6))
+        users = self.TestUsersList(objlist=self.getObjList(start=1, stop=6))
         other = self.getObjList(start=3, stop=8)
         other[1].login = "user_4_new"
         other[2].login = "user_5_new"
-        res = l.mergeWith(other, "mustNotExist", dontMergeOnConflict=True)
+        res = users.mergeWith(other, "mustNotExist", dontMergeOnConflict=True)
         self.assertSetEqual(res, set([3, 4, 5, 6]))
-        self.assertSetEqual(l.mergeConflicts, set([]))
-        self.assertSetEqual(l.getPKeys(), set([1, 2, 7, 8]))
+        self.assertSetEqual(users.mergeConflicts, set([]))
+        self.assertSetEqual(users.getPKeys(), set([1, 2, 7, 8]))
 
     def test_mergeWith_mustAlreadyExist(self):
-        l = self.TestUsersList(objlist=self.getObjList(start=1, stop=6))
+        users = self.TestUsersList(objlist=self.getObjList(start=1, stop=6))
         other = self.getObjList(start=3, stop=8)
         other[1].login = "user_4_new"
         other[2].login = "user_5_new"
-        res = l.mergeWith(other, "mustAlreadyExist", dontMergeOnConflict=False)
+        res = users.mergeWith(other, "mustAlreadyExist", dontMergeOnConflict=False)
         self.assertSetEqual(res, set([7, 8]))
-        self.assertSetEqual(l.mergeConflicts, set())
-        self.assertSetEqual(l.getPKeys(), set([1, 2, 3, 4, 5, 6]))
+        self.assertSetEqual(users.mergeConflicts, set())
+        self.assertSetEqual(users.getPKeys(), set([1, 2, 3, 4, 5, 6]))
 
     def test_mergeWith_mustAlreadyExist_mergeconflict(self):
-        l = self.TestUsersList(objlist=self.getObjList(start=1, stop=6))
+        users = self.TestUsersList(objlist=self.getObjList(start=1, stop=6))
         other = self.getObjList(start=3, stop=8)
         other[1].login = "user_4_new"
         other[2].login = "user_5_new"
-        res = l.mergeWith(other, "mustAlreadyExist", dontMergeOnConflict=True)
+        res = users.mergeWith(other, "mustAlreadyExist", dontMergeOnConflict=True)
         self.assertSetEqual(res, set([7, 8]))
-        self.assertSetEqual(l.mergeConflicts, set([4, 5]))
-        self.assertSetEqual(l.getPKeys(), set([1, 2, 3, 6]))
+        self.assertSetEqual(users.mergeConflicts, set([4, 5]))
+        self.assertSetEqual(users.getPKeys(), set([1, 2, 3, 6]))
 
     def test_mergeWith_mustExistInBoth(self):
-        l = self.TestUsersList(objlist=self.getObjList(start=1, stop=6))
+        users = self.TestUsersList(objlist=self.getObjList(start=1, stop=6))
         other = self.getObjList(start=3, stop=8)
         other[1].login = "user_4_new"
         other[2].login = "user_5_new"
-        res = l.mergeWith(other, "mustExistInBoth", dontMergeOnConflict=False)
+        res = users.mergeWith(other, "mustExistInBoth", dontMergeOnConflict=False)
         self.assertSetEqual(res, set([1, 2, 7, 8]))
-        self.assertSetEqual(l.mergeConflicts, set())
-        self.assertSetEqual(l.getPKeys(), set([3, 4, 5, 6]))
+        self.assertSetEqual(users.mergeConflicts, set())
+        self.assertSetEqual(users.getPKeys(), set([3, 4, 5, 6]))
 
     def test_mergeWith_mustExistInBoth_mergeconflict(self):
-        l = self.TestUsersList(objlist=self.getObjList(start=1, stop=6))
+        users = self.TestUsersList(objlist=self.getObjList(start=1, stop=6))
         other = self.getObjList(start=3, stop=8)
         other[1].login = "user_4_new"
         other[2].login = "user_5_new"
-        res = l.mergeWith(other, "mustExistInBoth", dontMergeOnConflict=True)
+        res = users.mergeWith(other, "mustExistInBoth", dontMergeOnConflict=True)
         self.assertSetEqual(res, set([1, 2, 7, 8]))
-        self.assertSetEqual(l.mergeConflicts, set([4, 5]))
-        self.assertSetEqual(l.getPKeys(), set([3, 6]))
+        self.assertSetEqual(users.mergeConflicts, set([4, 5]))
+        self.assertSetEqual(users.getPKeys(), set([3, 6]))
 
     def test_diffFrom(self):
         lst_prev = self.getObjList(start=1, stop=6)

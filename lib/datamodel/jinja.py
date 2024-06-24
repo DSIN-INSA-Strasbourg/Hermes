@@ -132,31 +132,36 @@ class Jinja:
         elif len(ast.body) > 1:
             if allowOnlyOneTemplate:
                 raise HermesDataModelAttrsmappingError(
-                    f"{errorcontext}: Multiple jinja templates found in '''{tpl}''', only one is allowed"
+                    f"{errorcontext}: Multiple jinja templates found in '''{tpl}''',"
+                    " only one is allowed"
                 )
         else:
             if not isinstance(ast.body[0], Output):
                 raise HermesNotAJinjaExpression(
-                    f"{errorcontext}: Only Jinja expressions '{{{{ ... }}}}' are allowed. Another type of Jinja data was found in '''{tpl}'''"
+                    f"{errorcontext}: Only Jinja expressions '{{{{ ... }}}}' are"
+                    f" allowed. Another type of Jinja data was found in '''{tpl}'''"
                 )
 
-            if (
-                len(ast.body[0].nodes) == 1
-                and type(ast.body[0].nodes[0]) == TemplateData
+            if len(ast.body[0].nodes) == 1 and isinstance(
+                ast.body[0].nodes[0], TemplateData
             ):
                 # tpl is not a Jinja template, return it as is
                 return (tpl, [tpl])
 
             for item in ast.body[0].nodes:
-                if allowOnlyOneTemplate and type(item) == TemplateData:
+                if allowOnlyOneTemplate and isinstance(item, TemplateData):
                     raise HermesDataModelAttrsmappingError(
-                        f"{errorcontext}: A mix between jinja templates and raw data was found in '''{tpl}''', with this configuration it's impossible to determine source attribute name"
+                        f"{errorcontext}: A mix between jinja templates and raw data"
+                        f" was found in '''{tpl}''', with this configuration it's"
+                        " impossible to determine source attribute name"
                     )
 
         # tpl is a Jinja template, return each var name it contains
         if allowOnlyOneVar and len(vars) > 1:
             raise HermesTooManyJinjaVarsError(
-                f"{errorcontext}: {len(vars)} variables found in Jinja template '''{tpl}'''. Only one Jinja var is allowed to ensure data consistency"
+                f"{errorcontext}: {len(vars)} variables found in Jinja template"
+                f" '''{tpl}'''. Only one Jinja var is allowed to ensure data"
+                " consistency"
             )
 
         return (jinjaenv.from_string(tpl), vars)
@@ -189,14 +194,14 @@ class Jinja:
         allowOnlyOneVar: if True, if tpl contains more than one variable, an
             HermesTooManyJinjaVarsError will be raised
         """
-        if type(var) == str:
+        if type(var) is str:
             template, varlist = cls._compileIfJinjaTemplate(
                 var, jinjaenv, errorcontext, allowOnlyOneTemplate, allowOnlyOneVar
             )
-            if type(flatvars_set) == set:
+            if type(flatvars_set) is set:
                 flatvars_set.update(set(varlist) - excludeFlatVars)
             return template
-        elif type(var) == dict:
+        elif type(var) is dict:
             res = {}
             for k, v in var.items():
                 res[k] = cls.compileIfJinjaTemplate(
@@ -209,7 +214,7 @@ class Jinja:
                     excludeFlatVars,
                 )
             return res
-        elif type(var) == list:
+        elif type(var) is list:
             return [
                 cls.compileIfJinjaTemplate(
                     v,
@@ -227,12 +232,13 @@ class Jinja:
 
     @classmethod
     def renderQueryVars(cls, queryvars: Any, context: dict[str, Any]) -> Any:
-        """Render Jinja queryvars templates with specified context dict, and returns rendered dict"""
+        """Render Jinja queryvars templates with specified context dict, and returns
+        rendered dict"""
         if isinstance(queryvars, Template):
             return queryvars.render(context)
-        elif type(queryvars) == dict:
+        elif type(queryvars) is dict:
             return {k: cls.renderQueryVars(v, context) for k, v in queryvars.items()}
-        elif type(queryvars) == list:
+        elif type(queryvars) is list:
             return [cls.renderQueryVars(v, context) for v in queryvars]
         else:
             return queryvars

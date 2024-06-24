@@ -48,13 +48,16 @@ class InvalidDataError(Exception):
 
 
 class Datamodel:
-    """Load and build the Datamodel from config, and validates it according to remote Dataschema.
+    """Load and build the Datamodel from config, and validates it according to remote
+    Dataschema.
 
     In charge of:
         - handling updates of Datamodel (hermes-client.datamodel changes in config file)
-        - handling updates of remote Dataschema (hermes-server.datamodel in server config file)
+        - handling updates of remote Dataschema (hermes-server.datamodel in server
+          config file)
         - converting a remote Event to a local one
-        - handling remote and local data caches (remotedata and localdata attributes, each of Datasource type)
+        - handling remote and local data caches (remotedata and localdata attributes,
+          each of Datasource type)
     """
 
     def __init__(
@@ -64,7 +67,8 @@ class Datamodel:
         """Build the datamodel from config"""
 
         self.unknownRemoteTypes: set[str] = set()
-        """List remote types set in client Datamodel, but missing in remote Dataschema"""
+        """List remote types set in client Datamodel, but missing in remote
+        Dataschema"""
         self.unknownRemoteAttributes: dict[str, set[str]] = set()
         """List remote attributes set in client Datamodel, but missing in remote
         Dataschema. The dict key contains the remote type, the set contains the missing
@@ -105,10 +109,11 @@ class Datamodel:
         """Queue of Events in error"""
 
         self.typesmapping: dict[str, str]
-        """Mapping of datamodel types: hermes-server type as key, hermes-client type as value"""
+        """Mapping of datamodel types: hermes-server type as key, hermes-client type as
+        value"""
         self._remote2local: dict[str, dict[str, list[str]]]
-        """Mapping with remote type name as key, and dict containing remote attrname as key
-        and local attrname as value. Example:
+        """Mapping with remote type name as key, and dict containing remote attrname as
+        key and local attrname as value. Example:
         {
             remote_type_name: {
                 remote_attrname1: client_attrname1,
@@ -126,8 +131,8 @@ class Datamodel:
         return len(self.remote_schema.schema) != 0
 
     def diffFrom(self, other: "Datamodel") -> DiffObject:
-        """Return DiffObject with differences (attributes names) of current instance from
-        another"""
+        """Return DiffObject with differences (attributes names) of current instance
+        from another"""
         diff = DiffObject()
 
         s = self._rawdatamodel.keys()
@@ -238,7 +243,7 @@ class Datamodel:
 
         # Update pkeys when necessary
         if new_remote_pkeys:
-            __hermes__.logger.info(f"Updating local cache primary keys")
+            __hermes__.logger.info("Updating local cache primary keys")
 
             self.saveLocalAndRemoteData()
             self.saveErrorQueue()
@@ -260,9 +265,9 @@ class Datamodel:
                 # Compute local pkeys to add and to remove for each local data type
                 r_prev_pkeys = prev_remote_pkeys[r_objtype]
                 r_new_pkeys = new_remote_pkeys[r_objtype]
-                if type(r_prev_pkeys) == str:
+                if type(r_prev_pkeys) is str:
                     r_prev_pkeys = (r_prev_pkeys,)
-                if type(r_new_pkeys) == str:
+                if type(r_new_pkeys) is str:
                     r_new_pkeys = (r_new_pkeys,)
                 l_prev_pkeys = set([f"_pkey_{pkey}" for pkey in r_prev_pkeys])
                 l_new_pkeys = set([f"_pkey_{pkey}" for pkey in r_new_pkeys])
@@ -285,7 +290,11 @@ class Datamodel:
                             )
                             if r_obj is None:
                                 # Should never happen : if so, it's a bug
-                                msg = f"BUG ! No matching of local object {repr(obj)} found in remotedata_complete cache. The client is probably broken"
+                                msg = (
+                                    f"BUG ! No matching of local object {repr(obj)}"
+                                    " found in remotedata_complete cache. The client is"
+                                    " probably broken"
+                                )
                                 __hermes__.logger.critical(msg)
                                 raise InvalidDataError(msg)
 
@@ -295,7 +304,11 @@ class Datamodel:
                                     value = getattr(r_obj, pkey)
                                 except AttributeError:
                                     # Should never happen : if so, it's a bug
-                                    msg = f"BUG ! No value exist in remote cache for attribute '{pkey}' of object {r_obj}. The client is probably broken"
+                                    msg = (
+                                        "BUG ! No value exist in remote cache for"
+                                        f" attribute '{pkey}' of object {r_obj}. The"
+                                        " client is probably broken"
+                                    )
                                     __hermes__.logger.critical(msg)
                                     raise InvalidDataError(msg)
                                 # Store pkey value to local object
@@ -306,7 +319,8 @@ class Datamodel:
                     for l_type in l_types:
                         l_type.PRIMARYKEY_ATTRIBUTE = new_local_pkeys[l_objtype]
 
-                # Remove previous pkey attributes that are not used anymore from localdata objects
+                # Remove previous pkey attributes that are not used anymore from
+                # localdata objects
                 for src in (self.localdata, self.localdata_complete):
                     for type_prefix in ("", "trashbin_"):
                         obj: DataObject
@@ -317,14 +331,15 @@ class Datamodel:
                                 except AttributeError:
                                     pass
 
-                # Remove previous pkey attributes that are not used anymore from HERMES_ATTRIBUTES of each local type
+                # Remove previous pkey attributes that are not used anymore from
+                # HERMES_ATTRIBUTES of each local type
                 for l_objtype, l_types in local_types.items():
                     for l_type in l_types:
                         l_type.HERMES_ATTRIBUTES -= l_pkeys_to_remove[l_objtype]
 
             self.saveLocalData()
 
-            __hermes__.logger.info(f"Updating changed primary keys in error queue")
+            __hermes__.logger.info("Updating changed primary keys in error queue")
             self.errorqueue.updatePrimaryKeys(
                 new_remote_pkeys,
                 self.remotedata_complete,
@@ -345,16 +360,17 @@ class Datamodel:
         will be saved and reloaded to be updated according to new schema.
         Remote and local schemas caches will be saved.
         """
-        self.saveLocalAndRemoteData()  # Save current data before updating schema and reloading them
+        # Save current data before updating schema and reloading them
+        self.saveLocalAndRemoteData()
         self._mergeWithSchema(remote_schema)
         self.remote_schema.savecachefile()
 
     def forcePurgeOfTrashedObjectsWithoutNewPkeys(
         self, oldschema: Dataschema | None, newschema: Dataschema
     ) -> dict[str, set[Any]]:
-        """On schema update, when primary key have changed, the trashed objects may not contain
-        the value of the new primary key attribute(s). This function will change the trashbin
-        timestamp of all those objects to force their removal.
+        """On schema update, when primary key have changed, the trashed objects may not
+        contain the value of the new primary key attribute(s). This function will
+        change the trashbin timestamp of all those objects to force their removal.
         Returns True if a trashbin purge is required, False otherwise
         """
         isTrashbinPurgeRequired: bool = False
@@ -375,13 +391,14 @@ class Datamodel:
             opkey = old[objtype]["PRIMARYKEY_ATTRIBUTE"]
             if not DataObject.isDifferent(npkey, opkey):
                 continue
-            npkeys = (npkey,) if type(npkey) == str else npkey
+            npkeys = (npkey,) if type(npkey) is str else npkey
             obj: DataObject
             for obj in self.remotedata[f"trashbin_{objtype}"]:
                 for pkey in npkeys:
                     if not hasattr(obj, pkey):
                         __hermes__.logger.warning(
-                            f"Object {repr(obj)} of type '{objtype}' in trashbin will be purged, as it doesn't have the new primary key value"
+                            f"Object {repr(obj)} of type '{objtype}' in trashbin will"
+                            " be purged, as it doesn't have the new primary key value"
                         )
                         isTrashbinPurgeRequired = True
                         obj._trashbin_timestamp = datetime(year=1, month=1, day=1)
@@ -392,8 +409,10 @@ class Datamodel:
         self, oldschema: Dataschema | None, newschema: Dataschema
     ) -> tuple[dict[str, str | tuple[str]], dict[str, str | tuple[str]]]:
         """Returns a tuple of two dicts :
-        - first dict with remote types as key, and previous remote primary key attribute as value
-        - second dict with remote types as key, and new remote primary key attribute as value
+        - first dict with remote types as key, and previous remote primary key
+          attribute as value
+        - second dict with remote types as key, and new remote primary key attribute as
+          value
         """
         previouspkeys = {}
         newpkeys = {}
@@ -411,7 +430,8 @@ class Datamodel:
 
             if diff.removed:
                 __hermes__.logger.info(
-                    f"Types removed from Dataschema: {diff.removed}, purging cache files"
+                    f"Types removed from Dataschema: {diff.removed},"
+                    " purging cache files"
                 )
                 self.purgeOldCacheFiles(diff.removed)
 
@@ -428,7 +448,8 @@ class Datamodel:
                         )
                     if removed:
                         __hermes__.logger.info(
-                            f"Removed attributes from dataschema type '{objtype}': {removed}"
+                            f"Removed attributes from dataschema type '{objtype}':"
+                            f" {removed}"
                         )
 
                     # SECRETS_ATTRIBUTES
@@ -436,17 +457,19 @@ class Datamodel:
                     removed = o["SECRETS_ATTRIBUTES"] - n["SECRETS_ATTRIBUTES"]
                     if added:
                         __hermes__.logger.info(
-                            f"New secrets attributes in dataschema type '{objtype}': {added}"
+                            f"New secrets attributes in dataschema type '{objtype}':"
+                            f" {added}"
                         )
                         # We need to purge attribute from cache: as cache is loaded with
-                        # attribute set up as SECRET, we just have to save the cache (attr
-                        # won't be saved anymore, as it's SECRET) and reload cache to
-                        # "forget" values loaded from previous cache
+                        # attribute set up as SECRET, we just have to save the cache
+                        # (attr won't be saved anymore, as it's SECRET) and reload
+                        # cache to "forget" values loaded from previous cache
                         self.saveRemoteData()
                         self.loadRemoteData()
                     if removed:
                         __hermes__.logger.info(
-                            f"Removed secrets attributes from dataschema type '{objtype}': {removed}"
+                            "Removed secrets attributes from dataschema type"
+                            f" '{objtype}': {removed}"
                         )
 
                     # PRIMARYKEY_ATTRIBUTE
@@ -456,7 +479,8 @@ class Datamodel:
                         previouspkeys[objtype] = opkey
                         newpkeys[objtype] = npkey
                         __hermes__.logger.info(
-                            f"New primary key attribute in dataschema type '{objtype}': {npkey}"
+                            "New primary key attribute in dataschema type"
+                            f" '{objtype}': {npkey}"
                         )
 
         return (previouspkeys, newpkeys)
@@ -520,7 +544,7 @@ class Datamodel:
                                 # case.
                                 val = remoteattr.render(new_obj.toNative())
 
-                            if type(val) == list:
+                            if type(val) is list:
                                 val = [v for v in val if v is not None]
 
                             if source == "removed" or (val is not None and val != []):
@@ -552,13 +576,15 @@ class Datamodel:
     def createLocalDataobject(
         self, objtype: str, objattrs: dict[str:Any]
     ) -> DataObject:
-        """Returns instance of specified local Dataobject type from specified attributes"""
+        """Returns instance of specified local Dataobject type from specified
+        attributes"""
         return self.createDataobject(self.local_schema, objtype, objattrs)
 
     def createRemoteDataobject(
         self, objtype: str, objattrs: dict[str:Any]
     ) -> DataObject:
-        """Returns instance of specified remote Dataobject type from specified attributes"""
+        """Returns instance of specified remote Dataobject type from specified
+        attributes"""
         return self.createDataobject(self.remote_schema, objtype, objattrs)
 
     @staticmethod
@@ -570,8 +596,8 @@ class Datamodel:
 
     @staticmethod
     def getUpdatedObject(obj: DataObject, objattrs: dict[str, Any]) -> DataObject:
-        """Return a deepcopy of specified obj, with its attributes updated upon specified
-        objattrs dict from Event"""
+        """Return a deepcopy of specified obj, with its attributes updated upon
+        specified objattrs dict from Event"""
         newobj = deepcopy(obj)
 
         # Update newobj attributes
@@ -652,7 +678,8 @@ class Datamodel:
                     )
                     if unknownattrs:
                         raise HermesUnknownVarsInJinjaTemplateError(
-                            f"Unknown attributes met in 'hermes-client.datamodel.{objtype}.toString' jinja template: {unknownattrs}"
+                            "Unknown attributes met in 'hermes-client.datamodel"
+                            f".{objtype}.toString' jinja template: {unknownattrs}"
                         )
                 else:
                     self._datamodel[objtype][k] = v
@@ -702,7 +729,8 @@ class Datamodel:
                     remote_vars.add(None)
 
                 for remote_var in remote_vars:
-                    # As many local attrs can be mapped on a same remote attr, store the mapping in a list
+                    # As many local attrs can be mapped on a same remote attr,
+                    # store the mapping in a list
                     self._remote2local[remote_objtype].setdefault(
                         remote_var, []
                     ).append(local_attr)

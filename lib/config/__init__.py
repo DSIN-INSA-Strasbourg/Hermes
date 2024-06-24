@@ -71,7 +71,8 @@ class HermesPluginClassNotFoundError(Exception):
 
 class YAMLUniqueKeyCSafeLoader(yaml.CSafeLoader):
     """Override yaml load to raise an error when some duplicated keys are found
-    Tweak found on https://gist.github.com/pypt/94d747fe5180851196eb?permalink_comment_id=4015118#gistcomment-4015118
+    Tweak found on
+    https://gist.github.com/pypt/94d747fe5180851196eb?permalink_comment_id=4015118#gistcomment-4015118
     """
 
     def construct_mapping(self, node, deep=False) -> dict[Hashable, Any]:
@@ -85,7 +86,7 @@ class YAMLUniqueKeyCSafeLoader(yaml.CSafeLoader):
 
 
 class HermesConfig(LocalCache):
-    """Load, validate config from config file, and expose config dict via current instance
+    """Load, validate config from config file, and expose config dict
 
     config always contains the following keys:
     - appname: the current app name (hermes-server, hermes-client-ldap, ...)
@@ -95,8 +96,10 @@ class HermesConfig(LocalCache):
     - hermes-server: config for server
 
     For clients, it will contains too:
-    - hermes-client: global config for client, for options defined in GenericClient (e.g. trashbinRetentionInDays)
-    - hermes-client-CLIENTNAME: specific config for client. e.g. LDAP connection settings for hermes-client-ldap
+    - hermes-client: global config for client, for options defined in GenericClient
+        (e.g. trashbinRetentionInDays)
+    - hermes-client-CLIENTNAME: specific config for client.
+        e.g. LDAP connection settings for hermes-client-ldap
 
     The instance contains the method setSignalsHandler() that can be called to define a
     handler for SIGINT and SIGTERM
@@ -112,7 +115,8 @@ class HermesConfig(LocalCache):
         self._config: dict[str, Any] = {}
         """ Configuration dictionary """
         self._rawconfig: dict[str, Any] = {}
-        """ Raw configuration dictionary (merges config files, without plugins instances) """
+        """ Raw configuration dictionary (merges config files, without plugins
+        instances) """
         self._allowMultipleInstances: bool = allowMultipleInstances
         """Indicate if we must abort if another instance is already running"""
 
@@ -123,7 +127,10 @@ class HermesConfig(LocalCache):
         )
         warnings.filterwarnings(
             "ignore",
-            "_SixMetaPathImporter.exec_module.. not found; falling back to load_module..",
+            (
+                "_SixMetaPathImporter.exec_module.. not found;"
+                " falling back to load_module.."
+            ),
             ImportWarning,
         )
 
@@ -258,7 +265,7 @@ class HermesConfig(LocalCache):
 
         Raise HermesInvalidAppname if name is invalid
         """
-        if type(name) != str:
+        if type(name) is not str:
             raise HermesInvalidAppname(
                 f"The specified name is of type '{type(name)}' instead of 'str'"
             )
@@ -270,12 +277,15 @@ class HermesConfig(LocalCache):
             return
 
         raise HermesInvalidAppname(
-            f"The specified name '{name}' doesn't respect app naming scheme. Please refer to the documentation"
+            f"The specified name '{name}' doesn't respect app naming scheme."
+            " Please refer to the documentation"
         )
 
     def _getRequiredSchemas(self, isCLI: bool = False) -> dict[str, str]:
-        """Fill a dict containing main config key and absolute path of config schemas required by current appname.
-        Those values will be used to build Cerberus validation schema in order to validate config file.
+        """Fill a dict containing main config key and absolute path of config schemas
+        required by current appname.
+        Those values will be used to build Cerberus validation schema in order to
+        validate config file.
         """
         main = self._config["appname"]
 
@@ -300,7 +310,10 @@ class HermesConfig(LocalCache):
                 # Global client config
                 "hermes-client": f"{appdir}/clients/config-schema-client.yml",
                 # Client plugin config
-                f"hermes-client-{clientname}": f"{appdir}/plugins/clients/{clientname}/config-schema-client-{clientname}.yml",
+                f"hermes-client-{clientname}": (
+                    f"{appdir}/plugins/clients/{clientname}"
+                    f"/config-schema-client-{clientname}.yml"
+                ),
             }
 
         return schemas
@@ -318,8 +331,9 @@ class HermesConfig(LocalCache):
 
             if len(curschema) > 1 or list(curschema.keys())[0] != name:
                 raise HermesInvalidConfigSchemaKey(
-                    f"The schema defined in '{path}' must define only the schema of key '{name}'. "
-                    f"It currently defines { list(set(curschema.keys()) - set([name])) }"
+                    f"The schema defined in '{path}' must define only the schema of "
+                    f"key '{name}'. It currently defines"
+                    f" {list(set(curschema.keys()) - set([name]))}"
                 )
             schema |= curschema
 
@@ -342,18 +356,24 @@ class HermesConfig(LocalCache):
             module = importlib.import_module(modulepath)
         except ModuleNotFoundError as e:
             raise HermesPluginNotFoundError(
-                f"Unable to load plugin '{pluginName}' of type '{pluginFamilyDir}': {str(e)}"
+                f"Unable to load plugin '{pluginName}' of type "
+                f"'{pluginFamilyDir}': {str(e)}"
             )
         except Exception as e:
             raise HermesPluginError(
-                f"Unable to load plugin '{pluginName}' of type '{pluginFamilyDir}', probably due to a syntax error in plugin code: {str(e)}"
+                f"Unable to load plugin '{pluginName}' of type '{pluginFamilyDir}',"
+                f" probably due to a syntax error in plugin code: {str(e)}"
             )
 
         try:
             plugin_cls = getattr(module, module.HERMES_PLUGIN_CLASSNAME)
         except AttributeError as e:
             raise HermesPluginClassNotFoundError(str(e))
-        path = f"{appdir}/plugins/{pluginFamilyDir}/{pluginName}/config-schema-plugin-{pluginName}.yml"
+
+        path = (
+            f"{appdir}/plugins/{pluginFamilyDir}/{pluginName}"
+            f"/config-schema-plugin-{pluginName}.yml"
+        )
 
         with open(path) as f:
             schema = yaml.load(f, Loader=YAMLUniqueKeyCSafeLoader)
@@ -370,7 +390,8 @@ class HermesConfig(LocalCache):
         )
         if not isinstance(pluginSubDictInConf["plugininstance"], pluginSuperClass):
             raise TypeError(
-                f"Plugin <{pluginName}> is not a subclass of '{pluginSuperClass.__name__}'"
+                f"Plugin <{pluginName}> is not a subclass of"
+                f" '{pluginSuperClass.__name__}'"
             )
         __hermes__.logger.info(f"Loaded plugin {pluginFamilyDir}/{pluginName}")
 
@@ -404,7 +425,9 @@ class HermesConfig(LocalCache):
                 pluginName=pluginname,
                 pluginSuperClass=superclass,
                 pluginSubDictInConf=source,
-                pluginSettingsDotPath=f"hermes.plugins.messagebus.{pluginname}.settings",
+                pluginSettingsDotPath=(
+                    f"hermes.plugins.messagebus.{pluginname}.settings"
+                ),
             )
         # As only one can be registered, put instance one level upper
         self["hermes"]["plugins"]["messagebus"]["plugininstance"] = source[
@@ -421,7 +444,9 @@ class HermesConfig(LocalCache):
                 pluginName=pluginname,
                 pluginSuperClass=AbstractAttributePlugin,
                 pluginSubDictInConf=source,
-                pluginSettingsDotPath=f"hermes.plugins.attributes.{pluginname}.settings",
+                pluginSettingsDotPath=(
+                    f"hermes.plugins.attributes.{pluginname}.settings"
+                ),
             )
 
             jinjafilters[pluginname] = source["plugininstance"].filter

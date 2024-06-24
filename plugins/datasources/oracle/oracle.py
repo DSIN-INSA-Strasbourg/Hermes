@@ -33,7 +33,8 @@ class DatasourceOracle(AbstractDataSourcePlugin):
     """Remote Data Source for Oracle database"""
 
     def __init__(self, settings: dict[str, Any]):
-        """Instantiate new plugin and store a copy of its settings dict in self._settings"""
+        """Instantiate new plugin and store a copy of its settings dict in
+        self._settings"""
         super().__init__(settings)
         self._dbcon: oracledb.connection.Connection | None = None
 

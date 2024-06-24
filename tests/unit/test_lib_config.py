@@ -57,7 +57,8 @@ class TestConfigClass(unittest.TestCase):
         for name in ["other", "client-"]:
             self.assertRaisesRegex(
                 HermesInvalidAppname,
-                "The specified name '[^']+' doesn't respect app naming scheme. Please refer to the documentation",
+                "The specified name '[^']+' doesn't respect app naming scheme."
+                " Please refer to the documentation",
                 config._validateAppname,
                 name,
             )

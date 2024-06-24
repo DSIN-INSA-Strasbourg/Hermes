@@ -54,8 +54,8 @@ class SocketParsingError(Exception):
 
 
 class SocketParsingMessage(Exception):
-    """Raised when argparse try to print a message. Pass the message in exception content
-    instead of printing it"""
+    """Raised when argparse try to print a message. Pass the message in exception
+    content instead of printing it"""
 
 
 class InvalidOwnerError(Exception):
@@ -67,16 +67,16 @@ class InvalidGroupError(Exception):
 
 
 class SocketArgumentParser(argparse.ArgumentParser):
-    """Subclass of argument parser to avoid exiting on error. Will parse arguments received
-    on server socket"""
+    """Subclass of argument parser to avoid exiting on error. Will parse arguments
+    received on server socket"""
 
     def format_error(self, message: str) -> str:
         """Format error message"""
         return self.format_help() + "\n" + message
 
     def _print_message(self, message: str, file: IO[str] | None = None):
-        """Override print message to store message in SocketParsingMessage exception instead
-        of printing it"""
+        """Override print message to store message in SocketParsingMessage exception
+        instead of printing it"""
         if message:
             raise SocketParsingMessage(message)
 
@@ -98,16 +98,20 @@ class SocketMessageToServer(JSONSerializable):
         argv: list[str] | None = None,
         from_json_dict: dict[str, Any] | None = None,
     ):
-        """Create a new message with specified argv list or from deserialized json dict"""
+        """Create a new message with specified argv list or from deserialized json
+        dict"""
         super().__init__(jsondataattr=["argv"])
 
         if argv is None and from_json_dict is None:
-            err = f"Cannot instantiante object from nothing: you must specify one data source"
+            err = (
+                "Cannot instantiante object from nothing:"
+                " you must specify one data source"
+            )
             __hermes__.logger.critical(err)
             raise AttributeError(err)
 
         if argv is not None and from_json_dict is not None:
-            err = f"Cannot instantiante object from multiple data sources at once"
+            err = "Cannot instantiante object from multiple data sources at once"
             __hermes__.logger.critical(err)
             raise AttributeError(err)
 
@@ -116,13 +120,13 @@ class SocketMessageToServer(JSONSerializable):
         else:
             self.argv = from_json_dict["argv"]
 
-        if type(self.argv) != list:
+        if type(self.argv) is not list:
             err = f"Invalid type for argv: {type(self.argv)} instead of list"
             __hermes__.logger.warning(err)
             raise InvalidSocketMessageError(err)
 
         for item in self.argv:
-            if type(item) != str:
+            if type(item) is not str:
                 err = f"Invalid type in argv: {type(item)} instead of str"
                 __hermes__.logger.warning(err)
                 raise InvalidSocketMessageError(err)
@@ -139,16 +143,20 @@ class SocketMessageToClient(JSONSerializable):
         retmsg: str | None = None,
         from_json_dict: dict[str, Any] | None = None,
     ):
-        """Create a new message with specified retcode and retmsg, or from deserialized json dict"""
+        """Create a new message with specified retcode and retmsg,
+        or from deserialized json dict"""
         super().__init__(jsondataattr=["retcode", "retmsg"])
 
         if (retcode is None or retmsg is None) and from_json_dict is None:
-            err = f"Cannot instantiante object from nothing: you must specify one data source"
+            err = (
+                "Cannot instantiante object from nothing:"
+                " you must specify one data source"
+            )
             __hermes__.logger.critical(err)
             raise AttributeError(err)
 
         if (retcode is not None or retmsg is not None) and from_json_dict is not None:
-            err = f"Cannot instantiante object from multiple data sources at once"
+            err = "Cannot instantiante object from multiple data sources at once"
             __hermes__.logger.critical(err)
             raise AttributeError(err)
 
@@ -159,12 +167,12 @@ class SocketMessageToClient(JSONSerializable):
             self.retcode = from_json_dict["retcode"]
             self.retmsg = from_json_dict["retmsg"]
 
-        if type(self.retcode) != int:
+        if type(self.retcode) is not int:
             err = f"Invalid type for retcode: {type(self.retcode)} instead of int"
             __hermes__.logger.warning(err)
             raise InvalidSocketMessageError(err)
 
-        if type(self.retmsg) != str:
+        if type(self.retmsg) is not str:
             err = f"Invalid type for retmsg: {type(self.retmsg)} instead of str"
             __hermes__.logger.warning(err)
             raise InvalidSocketMessageError(err)
@@ -200,11 +208,21 @@ class SockServer:
             if listen_fds == "1":
                 errmsg = None
             elif listen_fds is None:
-                errmsg = "No env var 'LISTEN_FDS' found. Unable to use sockfile bound by systemd"
+                errmsg = (
+                    "No env var 'LISTEN_FDS' found."
+                    " Unable to use sockfile bound by systemd"
+                )
             elif listen_fds == "0":
-                errmsg = "'LISTEN_FDS' env var is '0', indicating that no sockfile was bound by systemd. Check your socket unit file"
+                errmsg = (
+                    "'LISTEN_FDS' env var is '0', indicating that no sockfile was bound"
+                    " by systemd. Check your socket unit file"
+                )
             else:
-                errmsg = f"'LISTEN_FDS' env var is '{listen_fds}', indicating that more than one sockfile was bound by systemd. Only one is supported. Check your socket unit file"
+                errmsg = (
+                    f"'LISTEN_FDS' env var is '{listen_fds}', indicating that more than"
+                    " one sockfile was bound by systemd. Only one is supported."
+                    " Check your socket unit file"
+                )
 
             if errmsg is not None:
                 raise SystemdSocketError(errmsg) from None
@@ -287,7 +305,7 @@ class SockServer:
             # doesn't close its sending pipe
             connection.settimeout(1)
 
-            __hermes__.logger.debug(f"New CLI connection")
+            __hermes__.logger.debug("New CLI connection")
             # Receive the data
             msg = b""
             try:
@@ -357,8 +375,8 @@ class SockClient:
     def send(
         cls, sockpath: str, message: SocketMessageToServer
     ) -> SocketMessageToClient:
-        """Send specified message to server via specified unix sockpath, block until result
-        is received, and returns it"""
+        """Send specified message to server via specified unix sockpath, block until
+        result is received, and returns it"""
         # Create a blocking unix stream socket
         with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as sock:
             try:

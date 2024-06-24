@@ -76,9 +76,11 @@ class HermesServerCache(LocalCache):
 
     # Example of cache migration method
     # @classmethod
-    # def migrate_from_v0_0_3_to_v0_1_0(cls: "HermesServerCache", jsondict: Any | dict[Any, Any]) -> Any | dict[Any, Any]:
-    # jsondict["lastUpdate"] = datetime.fromisoformat(jsondict["lastUpdate"])
-    # return jsondict
+    # def migrate_from_v0_0_3_to_v0_1_0(
+    #     cls: "HermesServerCache", jsondict: Any | dict[Any, Any]
+    # ) -> Any | dict[Any, Any]:
+    #     jsondict["lastUpdate"] = datetime.fromisoformat(jsondict["lastUpdate"])
+    #     return jsondict
 
 
 class HermesServer:
@@ -165,7 +167,10 @@ class HermesServer:
         # Initsync
         sp_initsync = subparsers.add_parser(
             "initsync",
-            help="Send specific init message containing all data but passwords. Useful to fill new client",
+            help=(
+                "Send specific init message containing all data but passwords."
+                " Useful to fill new client"
+            ),
         )
         sp_initsync.set_defaults(func=self.sock_initsync)
 
@@ -222,8 +227,8 @@ class HermesServer:
     def _processSocketMessage(
         self, msg: SocketMessageToServer
     ) -> SocketMessageToClient:
-        """Handler that process specified msg received on unix socket and returns the answer
-        to send"""
+        """Handler that process specified msg received on unix socket and returns the
+        answer to send"""
         reply: SocketMessageToClient | None = None
 
         try:
@@ -249,7 +254,8 @@ class HermesServer:
         return reply
 
     def sock_initsync(self, args: argparse.Namespace) -> SocketMessageToClient:
-        """Handler called when a valid initsync subcommand is requested on unix socket"""
+        """Handler called when a valid initsync subcommand is requested on unix
+        socket"""
         self._initSyncRequested = True
         return SocketMessageToClient(retcode=0, retmsg="")
 
@@ -323,7 +329,10 @@ class HermesServer:
                     msg += f"  * {category.capitalize()}{nl}"
                     for infoname, infodata in infos[category].items():
                         indentedinfodata = str(infodata).replace("\n", "\n      ")
-                        msg += f"    - {info2printable.get(infoname, infoname)}: {indentedinfodata}{nl}"
+                        msg += (
+                            f"    - {info2printable.get(infoname, infoname)}:"
+                            f" {indentedinfodata}{nl}"
+                        )
             msg = msg.rstrip()
 
         return SocketMessageToClient(retcode=0, retmsg=msg)
@@ -346,10 +355,12 @@ class HermesServer:
 
             if diff.removed:
                 __hermes__.logger.info(
-                    f"Types removed from Dataschema: {diff.removed}, generate events to mark data as deleted"
+                    f"Types removed from Dataschema: {diff.removed},"
+                    " generate events to mark data as deleted"
                 )
 
-                # Create a datasource with same content as cache, minus the types to remove
+                # Create a datasource with same content as cache, minus the types to
+                # remove
                 olddata: Datasource = Datasource(
                     schema=oldschema, enableTrashbin=False, enableCache=False
                 )
@@ -374,7 +385,8 @@ class HermesServer:
                 )
 
                 __hermes__.logger.info(
-                    f"Types removed from Dataschema: {diff.removed}, purging cache files"
+                    f"Types removed from Dataschema: {diff.removed},"
+                    " purging cache files"
                 )
                 for objtype in diff.removed:
                     LocalCache.deleteAllCacheFiles(objtype)
@@ -392,7 +404,8 @@ class HermesServer:
                         )
                     if removed:
                         __hermes__.logger.info(
-                            f"Removed attributes from dataschema type '{objtype}': {removed}"
+                            f"Removed attributes from dataschema type '{objtype}':"
+                            f" {removed}"
                         )
 
                     # SECRETS_ATTRIBUTES
@@ -400,17 +413,19 @@ class HermesServer:
                     removed = o["SECRETS_ATTRIBUTES"] - n["SECRETS_ATTRIBUTES"]
                     if added:
                         __hermes__.logger.info(
-                            f"New secrets attributes in dataschema type '{objtype}': {added}"
+                            f"New secrets attributes in dataschema type '{objtype}':"
+                            f" {added}"
                         )
                         # We need to purge attribute from cache: as cache is loaded with
-                        # attribute set up as SECRET, we just have to save the cache (attr
-                        # won't be saved anymore, as it's SECRET) and reload cache to
-                        # "forget" values loaded from previous cache
+                        # attribute set up as SECRET, we just have to save the cache
+                        # (attr won't be saved anymore, as it's SECRET) and reload
+                        # cache to "forget" values loaded from previous cache
                         self.dm.data.cache.save()
                         self.dm.data.cache.loadFromCache()
                     if removed:
                         __hermes__.logger.info(
-                            f"Removed secrets attributes from dataschema type '{objtype}': {removed}"
+                            "Removed secrets attributes from dataschema type"
+                            f" '{objtype}': {removed}"
                         )
 
             if old:
@@ -515,7 +530,8 @@ class HermesServer:
         """
         if level not in ("information", "warning", "error"):
             raise AttributeError(
-                f"""Specified level '{level}' is invalid. Possible values are ("information", "warning", "error"):"""
+                f"Specified level '{level}' is invalid."
+                """ Possible values are ("information", "warning", "error"):"""
             )
 
         if level == "error":

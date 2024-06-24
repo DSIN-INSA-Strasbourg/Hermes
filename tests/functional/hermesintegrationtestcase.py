@@ -70,7 +70,7 @@ class NullClientFixture:
     ):
         if (
             hasattr(newobj, "middle_name")
-            and type(newobj.middle_name) == str
+            and type(newobj.middle_name) is str
             and "error" in newobj.middle_name
         ):
             if "error_on_second_step" in newobj.middle_name:
@@ -86,7 +86,7 @@ class NullClientFixture:
     ):
         if (
             hasattr(newobj, "middle_name")
-            and type(newobj.middle_name) == str
+            and type(newobj.middle_name) is str
             and "error" in newobj.middle_name
         ):
             if "error_on_second_step" in newobj.middle_name:
@@ -98,7 +98,7 @@ class NullClientFixture:
     ):
         if (
             hasattr(cachedobj, "middle_name")
-            and type(cachedobj.middle_name) == str
+            and type(cachedobj.middle_name) is str
             and "fail_on_remove" in cachedobj.middle_name
         ):
             if "fail_on_remove_second_step" in cachedobj.middle_name:
@@ -110,7 +110,7 @@ class NullClientFixture:
     ):
         if (
             hasattr(newobj, "name")
-            and type(newobj.name) == str
+            and type(newobj.name) is str
             and "error" in newobj.name
         ):
             if "error_on_second_step" in newobj.name:
@@ -126,7 +126,7 @@ class NullClientFixture:
     ):
         if (
             hasattr(newobj, "name")
-            and type(newobj.name) == str
+            and type(newobj.name) is str
             and "error" in newobj.name
         ):
             if "error_on_second_step" in newobj.name:
@@ -250,11 +250,13 @@ class HermeClientThread:
             year=1, month=1, day=1
         )
         timeoutlimit = datetime.now() + timedelta(seconds=timeout)
-        # Client will process its update. A change of its lastupdate value will indicate it's done
+        # Client will process its update.
+        # A change of its lastupdate value will indicate it's done
         while self.client._GenericClient__numberOfLoopToProcess > 0:
             if datetime.now() > timeoutlimit:
                 raise TimeoutError(
-                    "hermes-client hasn't ended its update operation, timeout delay was reached"
+                    "hermes-client hasn't ended its update operation,"
+                    " timeout delay was reached"
                 )
             time.sleep(0.2)
 
@@ -346,11 +348,13 @@ class HermeServerThread:
         self.__serverstatus = None
         self.server._numberOfLoopToProcess = numberOfLoopToProcess
         timeoutlimit = datetime.now() + timedelta(seconds=timeout)
-        # Server will process its update. A change of its lastupdate value will indicate it's done
+        # Server will process its update.
+        # A change of its lastupdate value will indicate it's done
         while self.server._numberOfLoopToProcess > 0:
             if datetime.now() > timeoutlimit:
                 raise TimeoutError(
-                    "hermes-server hasn't ended its update operation, timeout delay was reached"
+                    "hermes-server hasn't ended its update operation,"
+                    " timeout delay was reached"
                 )
             time.sleep(0.2)
 
@@ -362,7 +366,8 @@ class HermeServerThread:
             raise RuntimeError("hermes-server is not running")
         self.__serverstatus = None
         self.server._initSyncRequested = True
-        # Server will process its initsync. A change of its _initSyncRequested value will indicate it's done
+        # Server will process its initsync.
+        # A change of its _initSyncRequested value will indicate it's done
         while self.server._initSyncRequested:
             time.sleep(0.2)
 
@@ -503,7 +508,11 @@ class HermesIntegrationTestCase(unittest.TestCase):
 
     @classmethod
     def insertEntry(cls, db: sqlite3.Connection, tablename: str, entry: dict[str, Any]):
-        sql = f"""INSERT INTO {tablename} ({', '.join(entry.keys())}) VALUES (:{', :'.join(entry.keys())})"""
+        sql = (
+            f"INSERT INTO {tablename}"
+            f" ({', '.join(entry.keys())})"
+            f" VALUES (:{', :'.join(entry.keys())})"
+        )
         db.execute(sql, entry)
         db.commit()
 
@@ -516,7 +525,11 @@ class HermesIntegrationTestCase(unittest.TestCase):
         entry: dict[str, Any],
     ):
         whereclause = " AND ".join([f"{idattr} = :{idattr}" for idattr in idattrsname])
-        sql = f"""UPDATE {tablename} SET {', '.join(f"{k} = :{k}" for k in entry)} WHERE {whereclause}"""
+        sql = (
+            f"UPDATE {tablename}"
+            f""" SET {', '.join(f"{k} = :{k}" for k in entry)}"""
+            f" WHERE {whereclause}"
+        )
         db.execute(sql, entry)
         db.commit()
 
@@ -574,7 +587,8 @@ class HermesIntegrationTestCase(unittest.TestCase):
         __hermes__.appname = appname
         __hermes__.logger = logging.getLogger(appname)
 
-        # Serialization need to be setup by instanciating an HermesConfig, even if it won't be used
+        # Serialization need to be setup by instanciating an HermesConfig,
+        # even if it won't be used
         orig_argv = sys.argv
         sys.argv = ["hermes", "server"]
         HermeServerThread.generate_config_file(cls.loadYamlServer("single"))
@@ -652,9 +666,9 @@ class HermesIntegrationTestCase(unittest.TestCase):
             if logger is not None:
                 logger.info(
                     f"{NL}"
-                    f"{NL}****{'*'*len(test_name)}"
+                    f"{NL}****{'*' * len(test_name)}"
                     f"{NL}* {test_name} *"
-                    f"{NL}****{'*'*len(test_name)}"
+                    f"{NL}****{'*' * len(test_name)}"
                 )
 
     @property
@@ -720,7 +734,10 @@ class HermesIntegrationTestCase(unittest.TestCase):
 
                 with self.assertRaises(
                     KeyError,
-                    msg=f"Expected {arg} was missing, but it is present : {arg}={curval}",
+                    msg=(
+                        f"Expected {arg} was missing, but it is present :"
+                        f" {arg}={curval}"
+                    ),
                 ):
                     datasrc(arg)
                 self.assertRaises(KeyError, datasrc, val)

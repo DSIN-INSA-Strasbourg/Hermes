@@ -47,7 +47,7 @@ class TestEventClass(HermesServerTestCase):
     def getObj(self):
         d = {
             "user_id": 1,
-            "login": f"user_1",
+            "login": "user_1",
             "edupersonaffiliation": ["employee", "member", "staff"],
         }
         return self.TestUsers(from_json_dict=d)

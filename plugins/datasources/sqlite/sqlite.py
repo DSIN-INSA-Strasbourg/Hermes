@@ -34,7 +34,8 @@ class DatasourceSqlite(AbstractDataSourcePlugin):
     """Remote Data Source for SQLite database"""
 
     def __init__(self, settings: dict[str, Any]):
-        """Instantiate new plugin and store a copy of its settings dict in self._settings"""
+        """Instantiate new plugin and store a copy of its settings dict in
+        self._settings"""
         super().__init__(settings)
         self._dbcon: sqlite3.Connection | None = None
         sqlite3.register_adapter(datetime, self.adapt_datetime_iso)

@@ -82,7 +82,8 @@ class TestDataobjectClass(HermesServerTestCase):
                 "cn": "CN",
                 "displayname": "DISPLAYNAME",
                 "edupersonaffiliation": jinjaenv.from_string(
-                    "{{ EDUPERSONAFFILIATION if EDUPERSONAFFILIATION is none else EDUPERSONAFFILIATION.split(';') }}"
+                    "{{ EDUPERSONAFFILIATION if EDUPERSONAFFILIATION is none else"
+                    " EDUPERSONAFFILIATION.split(';') }}"
                 ),
                 "edupersonaffiliationSplitted": [
                     "EDUPERSONPRIMARYAFFILIATION",
@@ -219,7 +220,8 @@ class TestDataobjectClass(HermesServerTestCase):
     def test_init_fromRemote_fails_if_REMOTE_ATTRIBUTES_is_none(self):
         self.assertRaisesRegex(
             AttributeError,
-            "Current class TestUsers can't be instantiated with 'from_remote' args as TestUsers.REMOTE_ATTRIBUTES is not defined",
+            "Current class TestUsers can't be instantiated with 'from_remote' args as"
+            " TestUsers.REMOTE_ATTRIBUTES is not defined",
             self.TestUsers,
             from_remote=dict(),
         )
@@ -424,8 +426,6 @@ class TestDataobjectClass(HermesServerTestCase):
         self.assertDictEqual(awaited_data, user._jsondata)
 
     def test_diffFrom_equals(self):
-        from lib.datamodel.diffobject import DiffObject
-
         user1 = self.TestUsersSource2(from_json_dict=self.validjson_src2)
         user2 = self.TestUsersSource2(from_json_dict=self.validjson_src2)
 
@@ -442,7 +442,7 @@ class TestDataobjectClass(HermesServerTestCase):
             {"added": {"cn": "Test User"}, "modified": {}, "removed": {}}, d.dict
         )
 
-    def test_diffFrom_added(self):
+    def test_diffFrom_added_and_modified(self):
         user1 = self.TestUsersSource2(from_json_dict=self.validjson_src2)
         user2 = self.TestUsersSource2(from_json_dict=self.validjson_src2)
         user1.cn = ["Other User and type"]
@@ -524,7 +524,9 @@ class TestDataobjectClass(HermesServerTestCase):
         user1.cn = "Other User"
         self.assertRaisesRegex(
             HermesMergingConflictError,
-            r"Merging conflict. Attribute 'cn' exist on both objects with differents values \(<TestUsersSource1\[42\]>: 'Other User' / <TestUsersSource2\[42\]>: 'Test User'\)",
+            r"Merging conflict. Attribute 'cn' exist on both objects with differents"
+            r" values \(<TestUsersSource1\[42\]>: 'Other User' /"
+            r" <TestUsersSource2\[42\]>: 'Test User'\)",
             user1.mergeWith,
             other=user2,
             raiseExceptionOnConflict=True,
@@ -546,7 +548,9 @@ class TestDataobjectClass(HermesServerTestCase):
         self.assertEqual(
             cm.output,
             [
-                "DEBUG:hermes-unit-tests:Merging conflict. Attribute 'cn' exist on both objects with differents values (<TestUsers[42]>: 'Other User' / <TestUsersSource2[42]>: 'Test User'). The first one is kept"
+                "DEBUG:hermes-unit-tests:Merging conflict. Attribute 'cn' exist on both"
+                " objects with differents values (<TestUsers[42]>: 'Other User' /"
+                " <TestUsersSource2[42]>: 'Test User'). The first one is kept"
             ],
         )
 

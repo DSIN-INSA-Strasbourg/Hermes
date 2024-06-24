@@ -155,9 +155,9 @@ class PypsrpADClient(GenericClient):
         ps.invoke()
 
         if ps.had_errors:
-            newline = "\n"
+            NL = "\n"
             stderr = "  \n".join([str(i) for i in ps.streams.error])
-            raise RemoteCommandFailed(f"Powershell script failed.{newline}  {stderr=}")
+            raise RemoteCommandFailed(f"Powershell script failed.{NL}  {stderr=}")
 
     @ensureIsConnected
     def changePasswordSecure(self, userdn: str, password: str):
@@ -179,19 +179,20 @@ class PypsrpADClient(GenericClient):
 
         ps.invoke()
         if ps.had_errors:
-            newline = "\n"
+            NL = "\n"
             stderr = "  \n".join([str(i) for i in ps.streams.error])
-            raise RemoteCommandFailed(f"Powershell script failed.{newline}  {stderr=}")
+            raise RemoteCommandFailed(f"Powershell script failed.{NL}  {stderr=}")
 
     def changePassword(self, userdn: str, password: str):
         """Will change the password of the specified userdn to the specified
         password value"""
         cmd = [
-            f"Set-ADAccountPassword",
+            "Set-ADAccountPassword",
             f"-Identity '{self.escape(userdn)}'",
-            f"-NewPassword (ConvertTo-SecureString '{self.escape(password)}' -AsPlainText -force)",
-            f"-Reset",
-            f"-Confirm:$False",
+            f"-NewPassword (ConvertTo-SecureString '{self.escape(password)}'"
+            " -AsPlainText -force)",
+            "-Reset",
+            "-Confirm:$False",
         ]
         self.run_ps(" `\n  ".join(cmd))
 
@@ -203,19 +204,21 @@ class PypsrpADClient(GenericClient):
 
         match attrType:
             case "<Boolean[]>":
-                if type(value) in [list, tuple, set]:
+                if isinstance(value, (list, tuple, set)):
                     values = value
-                elif type(value) == bool:
+                elif type(value) is bool:
                     values = [value]
                 else:
                     raise TypeError(
-                        f"Invalid type for attribute '{attrname}'. Must be a boolean or a list of boolean, but received a {type(value)}"
+                        f"Invalid type for attribute '{attrname}'. Must be a boolean or"
+                        f" a list of boolean, but received a {type(value)}"
                     )
                 res = []
                 for v in values:
-                    if type(v) != bool:
+                    if type(v) is not bool:
                         raise TypeError(
-                            f"Invalid type for a value of list attribute '{attrname}'. Must be a boolean, but received a {type(v)}"
+                            f"Invalid type for a value of list attribute '{attrname}'."
+                            f" Must be a boolean, but received a {type(v)}"
                         )
                     if v:
                         res.append("$True")
@@ -224,9 +227,10 @@ class PypsrpADClient(GenericClient):
                 return ",".join(res)
 
             case "<Boolean>":
-                if type(value) != bool:
+                if type(value) is not bool:
                     raise TypeError(
-                        f"Invalid type for attribute '{attrname}'. Must be a boolean, but received a {type(value)}"
+                        f"Invalid type for attribute '{attrname}'. Must be a boolean,"
+                        f" but received a {type(value)}"
                     )
                 if value:
                     return "$True"
@@ -245,7 +249,8 @@ class PypsrpADClient(GenericClient):
             case _:  # Treat all other types as strings
                 if type(value) in [list, tuple, set, dict]:
                     raise TypeError(
-                        f"Invalid type for attribute '{attrname}'. Must be a string, but received a {type(value)}"
+                        f"Invalid type for attribute '{attrname}'. Must be a string,"
+                        f" but received a {type(value)}"
                     )
                 return f"'{self.escape(str(value))}'"
 
@@ -255,21 +260,28 @@ class PypsrpADClient(GenericClient):
         std_attrs = eventattrs.keys() & self.standardAttrs["Users"].keys()
         other_attrs = eventattrs.keys() & self.otherAttrs["Users"].keys()
         cmd = [
-            f"New-ADUser",
+            "New-ADUser",
             f"-Path '{self.users_ou}'",
             f"-Name '{self.escape(newobj.SamAccountName)}'",
-            f"-AccountPassword (ConvertTo-SecureString '{self.escape(self.generateRandomPassword())}' -AsPlainText -force)",
-            f"-Confirm:$False",
+            (
+                f"-AccountPassword (ConvertTo-SecureString"
+                f" '{self.escape(self.generateRandomPassword())}' -AsPlainText -force)"
+            ),
+            "-Confirm:$False",
         ]
         cmd += [
-            f"-{k} {self.convertAttrToPS(k, eventattrs[k], self.standardAttrs['Users'])}"
+            f"-{k} {
+                self.convertAttrToPS(k, eventattrs[k], self.standardAttrs['Users'])
+            }"
             for k in std_attrs
         ]
 
         if other_attrs:
             other_attrs_str = "; ".join(
                 [
-                    f"'{k}'={self.convertAttrToPS(k, eventattrs[k], self.otherAttrs['Users'])}"
+                    f"'{k}'={
+                        self.convertAttrToPS(k, eventattrs[k], self.otherAttrs['Users'])
+                    }"
                     for k in other_attrs
                 ]
             )
@@ -281,9 +293,9 @@ class PypsrpADClient(GenericClient):
         self, objkey: Any, eventattrs: "dict[str, Any]", newobj: DataObject
     ):
         cmd = [
-            f"Enable-ADAccount",
+            "Enable-ADAccount",
             f"-Identity 'CN={self.escape(newobj.SamAccountName)},{self.users_ou}'",
-            f"-Confirm:$False",
+            "-Confirm:$False",
         ]
         self.run_ps(" `\n  ".join(cmd))
 
@@ -308,7 +320,8 @@ class PypsrpADClient(GenericClient):
 
         if "SamAccountName" in eventattrs["added"]:
             raise InconsistentActionRequested(
-                f"Cannot add login to an existing AD account ! {cachedobj.SamAccountName=}"
+                "Cannot add login to an existing AD account !"
+                f" {cachedobj.SamAccountName=}"
             )
         if "SamAccountName" in eventattrs["removed"]:
             raise InconsistentActionRequested(
@@ -318,19 +331,22 @@ class PypsrpADClient(GenericClient):
         if self.currentStep == 0:
             if "SamAccountName" in eventattrs["modified"]:
                 cmd = [
-                    f"Rename-ADObject",
-                    f"-Identity 'CN={self.escape(cachedobj.SamAccountName)},{self.users_ou}'",
+                    "Rename-ADObject",
+                    (
+                        f"-Identity "
+                        f"'CN={self.escape(cachedobj.SamAccountName)},{self.users_ou}'"
+                    ),
                     f"-NewName '{self.escape(newobj.SamAccountName)}'",
-                    f"-Confirm:$False",
+                    "-Confirm:$False",
                 ]
                 self.run_ps(" `\n  ".join(cmd))
             self.currentStep += 1
 
         if self.currentStep == 1:
             cmd = [
-                f"Set-ADUser",
+                "Set-ADUser",
                 f"-Identity 'CN={self.escape(newobj.SamAccountName)},{self.users_ou}'",
-                f"-Confirm:$False",
+                "-Confirm:$False",
             ]
 
             # added/modified attributes
@@ -338,7 +354,13 @@ class PypsrpADClient(GenericClient):
                 eventattrs["added"].keys() | eventattrs["modified"].keys()
             ) & self.standardAttrs["Users"].keys()
             cmd += [
-                f"-{k} {self.convertAttrToPS(k, getattr(newobj, k), self.standardAttrs['Users'])}"
+                f"-{k} {
+                    self.convertAttrToPS(
+                        k,
+                        getattr(newobj, k),
+                        self.standardAttrs['Users']
+                    )
+                }"
                 for k in std_attrs
             ]
 
@@ -348,7 +370,13 @@ class PypsrpADClient(GenericClient):
             if other_attrs:
                 other_attrs_str = "; ".join(
                     [
-                        f"'{k}'={self.convertAttrToPS(k, getattr(newobj, k), self.otherAttrs['Users'])}"
+                        f"'{k}'={
+                            self.convertAttrToPS(
+                                k,
+                                getattr(newobj, k),
+                                self.otherAttrs['Users']
+                            )
+                        }"
                         for k in other_attrs
                     ]
                 )
@@ -371,9 +399,9 @@ class PypsrpADClient(GenericClient):
         self, objkey: Any, eventattrs: "dict[str, Any]", cachedobj: DataObject
     ):
         cmd = [
-            f"Disable-ADAccount",
+            "Disable-ADAccount",
             f"-Identity 'CN={self.escape(cachedobj.SamAccountName)},{self.users_ou}'",
-            f"-Confirm:$False",
+            "-Confirm:$False",
         ]
         self.run_ps(" `\n  ".join(cmd))
 
@@ -381,9 +409,9 @@ class PypsrpADClient(GenericClient):
         self, objkey: Any, eventattrs: "dict[str, Any]", cachedobj: DataObject
     ):
         cmd = [
-            f"Remove-ADUser",
+            "Remove-ADUser",
             f"-Identity 'CN={self.escape(cachedobj.SamAccountName)},{self.users_ou}'",
-            f"-Confirm:$False",
+            "-Confirm:$False",
         ]
         self.run_ps(" `\n  ".join(cmd))
 
@@ -394,20 +422,28 @@ class PypsrpADClient(GenericClient):
         other_attrs = eventattrs.keys() & self.otherAttrs["Groups"].keys()
 
         cmd = [
-            f"New-ADGroup",
+            "New-ADGroup",
             f"-Path '{self.groups_ou}'",
             f"-Name '{self.escape(newobj.SamAccountName)}'",
-            f"-Confirm:$False",
+            "-Confirm:$False",
         ]
         cmd += [
-            f"-{k} {self.convertAttrToPS(k, eventattrs[k], self.standardAttrs['Groups'])}"
+            f"-{k} {
+                self.convertAttrToPS(k, eventattrs[k], self.standardAttrs['Groups'])
+            }"
             for k in std_attrs
         ]
 
         if other_attrs:
             other_attrs_str = "; ".join(
                 [
-                    f"'{k}'={self.convertAttrToPS(k, eventattrs[k], self.otherAttrs['Groups'])}"
+                    f"'{k}'={
+                        self.convertAttrToPS(
+                            k,
+                            eventattrs[k],
+                            self.otherAttrs['Groups']
+                        )
+                    }"
                     for k in other_attrs
                 ]
             )
@@ -444,19 +480,20 @@ class PypsrpADClient(GenericClient):
         if self.currentStep == 0:
             if "SamAccountName" in eventattrs["modified"]:
                 cmd = [
-                    f"Rename-ADObject",
-                    f"-Identity 'CN={self.escape(cachedobj.SamAccountName)},{self.groups_ou}'",
+                    "Rename-ADObject",
+                    "-Identity"
+                    f" 'CN={self.escape(cachedobj.SamAccountName)},{self.groups_ou}'",
                     f"-NewName '{self.escape(newobj.SamAccountName)}'",
-                    f"-Confirm:$False",
+                    "-Confirm:$False",
                 ]
                 self.run_ps(" `\n  ".join(cmd))
             self.currentStep += 1
 
         if self.currentStep == 1:
             cmd = [
-                f"Set-ADGroup",
+                "Set-ADGroup",
                 f"-Identity 'CN={self.escape(newobj.SamAccountName)},{self.groups_ou}'",
-                f"-Confirm:$False",
+                "-Confirm:$False",
             ]
 
             # added/modified attributes
@@ -464,7 +501,13 @@ class PypsrpADClient(GenericClient):
                 eventattrs["added"].keys() | eventattrs["modified"].keys()
             ) & self.standardAttrs["Groups"].keys()
             cmd += [
-                f"-{k} {self.convertAttrToPS(k, getattr(newobj, k), self.standardAttrs['Groups'])}"
+                f"-{k} {
+                    self.convertAttrToPS(
+                        k,
+                        getattr(newobj, k),
+                        self.standardAttrs['Groups']
+                    )
+                }"
                 for k in std_attrs
             ]
 
@@ -474,7 +517,13 @@ class PypsrpADClient(GenericClient):
             if other_attrs:
                 other_attrs_str = "; ".join(
                     [
-                        f"'{k}'={self.convertAttrToPS(k, getattr(newobj, k), self.otherAttrs['Groups'])}"
+                        f"'{k}'={
+                            self.convertAttrToPS(
+                                k,
+                                getattr(newobj, k),
+                                self.otherAttrs['Groups']
+                            )
+                        }"
                         for k in other_attrs
                     ]
                 )
@@ -499,9 +548,9 @@ class PypsrpADClient(GenericClient):
         self, objkey: Any, eventattrs: "dict[str, Any]", cachedobj: DataObject
     ):
         cmd = [
-            f"Remove-ADGroup",
+            "Remove-ADGroup",
             f"-Identity 'CN={self.escape(cachedobj.SamAccountName)},{self.groups_ou}'",
-            f"-Confirm:$False",
+            "-Confirm:$False",
         ]
         self.run_ps(" `\n  ".join(cmd))
 
@@ -512,11 +561,12 @@ class PypsrpADClient(GenericClient):
         cacheduser = self.getObjectFromCache("Users", newobj.user_pkey)
 
         cmd = [
-            f"Add-ADGroupMember",
-            f"-Identity 'CN={self.escape(cachedgroup.SamAccountName)},{self.groups_ou}'",
+            "Add-ADGroupMember",
+            "-Identity"
+            f" 'CN={self.escape(cachedgroup.SamAccountName)},{self.groups_ou}'",
             f"-Members 'CN={self.escape(cacheduser.SamAccountName)},{self.users_ou}'",
-            f"-DisablePermissiveModify:$False",
-            f"-Confirm:$False",
+            "-DisablePermissiveModify:$False",
+            "-Confirm:$False",
         ]
         self.run_ps(" `\n  ".join(cmd))
 
@@ -539,11 +589,11 @@ class PypsrpADClient(GenericClient):
         cacheduser = self.getObjectFromCache("Users", cachedobj.user_pkey)
 
         cmd = [
-            f"Remove-ADGroupMember",
+            "Remove-ADGroupMember",
             f"-Identity 'CN={cachedgroup.SamAccountName},{self.groups_ou}'",
             f"-Members 'CN={cacheduser.SamAccountName},{self.users_ou}'",
-            f"-DisablePermissiveModify:$False",
-            f"-Confirm:$False",
+            "-DisablePermissiveModify:$False",
+            "-Confirm:$False",
         ]
         self.run_ps(" `\n  ".join(cmd))
 
@@ -584,6 +634,6 @@ class PypsrpADClient(GenericClient):
         )
 
     def on_save(self):
-        # As an idle pypsrp session may quickly become invalid, close it on processing end
-        # to avoid errors
+        # As an idle pypsrp session may quickly become invalid, close it on processing
+        # end to avoid errors
         self.__disconnect()

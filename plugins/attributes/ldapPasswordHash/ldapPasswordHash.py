@@ -57,7 +57,8 @@ class LdapPasswordHashPlugin(AbstractAttributePlugin):
     }
 
     def __init__(self, settings: dict[str, any]) -> None:
-        """Instantiate new plugin and store a copy of its settings dict in self._settings"""
+        """Instantiate new plugin and store a copy of its settings dict in
+        self._settings"""
         super().__init__(settings)
         self._defaulthashtypes: set[str] = set(self._settings["default_hash_types"])
 
@@ -72,7 +73,7 @@ class LdapPasswordHashPlugin(AbstractAttributePlugin):
         if isinstance(password, Undefined):
             return password
 
-        if type(password) != str:
+        if type(password) is not str:
             raise TypeError(
                 f"Invalid type for password: {type(password)=}."
                 " Password must be a string"
@@ -84,9 +85,9 @@ class LdapPasswordHashPlugin(AbstractAttributePlugin):
         else:
             # Use specified type(s), and ensure to store values in a set to filter
             # duplicates
-            if type(hashtypes) == str:
+            if type(hashtypes) is str:
                 _hashtypes = set([hashtypes])
-            elif type(hashtypes) == list:
+            elif type(hashtypes) is list:
                 _hashtypes = set(hashtypes)
             else:
                 raise TypeError(

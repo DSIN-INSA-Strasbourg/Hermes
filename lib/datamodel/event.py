@@ -43,21 +43,25 @@ class Event(JSONSerializable):
         from_json_dict: dict[str, Any] | None = None,
     ):
         """Create Event message
-         - of specified category (base/initsync)
-         - of specified type (init-start, init-stop, added, modified, removed)
-         - with facultative Dataobject instance obj that will be used to store it type and pkey
-         - with specified objattrs that should contains a dict with useful attributes in
-           current context defined by evcategory and eventtype
-        or a from_json_dict to deserialize an Event instance
+        - of specified category (base/initsync)
+        - of specified type (init-start, init-stop, added, modified, removed)
+        - with facultative Dataobject instance obj that will be used to store it type
+          and pkey
+        - with specified objattrs that should contains a dict with useful attributes in
+          current context defined by evcategory and eventtype
+          or a from_json_dict to deserialize an Event instance
         """
 
         if objattrs is None and from_json_dict is None:
-            err = f"Cannot instantiate object from nothing: you must specify one data source"
+            err = (
+                "Cannot instantiate object from nothing: you must specify one data"
+                " source"
+            )
             __hermes__.logger.critical(err)
             raise AttributeError(err)
 
         if objattrs is not None and from_json_dict is not None:
-            err = f"Cannot instantiate object from multiple data sources at once"
+            err = "Cannot instantiate object from multiple data sources at once"
             __hermes__.logger.critical(err)
             raise AttributeError(err)
 
@@ -77,7 +81,7 @@ class Event(JSONSerializable):
             for attr in __jsondataattrs:
                 if attr in from_json_dict:
                     setattr(self, attr, from_json_dict[attr])
-                    if attr == "objpkey" and type(self.objpkey) == list:
+                    if attr == "objpkey" and type(self.objpkey) is list:
                         self.objpkey = tuple(self.objpkey)
             # As obj instance isn't available, use pkey as default repr
             self.objrepr = str(self.objpkey)
@@ -112,7 +116,10 @@ class Event(JSONSerializable):
         if self.objtype is None:
             s = f"<Event({category}{self.eventtype}, {objattrs})>"
         else:
-            s = f"<Event({category}{self.objtype}_{self.eventtype}[{self.objrepr}], {objattrs})>"
+            s = (
+                f"<Event({category}{self.objtype}_{self.eventtype}[{self.objrepr}],"
+                f" {objattrs})>"
+            )
         return s
 
     @staticmethod
@@ -121,7 +128,7 @@ class Event(JSONSerializable):
         secret attributes filtered"""
         res = {}
         for k, v in objattrs.items():
-            if type(v) == dict:
+            if type(v) is dict:
                 res[k] = Event.objattrsToString(v, secretattrs)
                 continue
 
@@ -156,7 +163,8 @@ class Event(JSONSerializable):
                 objattrs = {}
             case "_":
                 raise AttributeError(
-                    f"Invalid {changeType=} specified: valid values are ['added', 'modified', 'removed']"
+                    f"Invalid {changeType=} specified: valid values are"
+                    " ['added', 'modified', 'removed']"
                 )
 
         return (

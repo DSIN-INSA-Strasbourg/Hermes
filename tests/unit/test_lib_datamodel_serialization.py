@@ -75,7 +75,7 @@ class TestJSONEncoderClass(HermesServerTestCase):
         super().setUpClass()
         logging.disable(logging.NOTSET)
         confdata = cls.loadYaml()
-        config = cls.saveYamlAndLoadConfig(confdata)
+        cls.saveYamlAndLoadConfig(confdata)
 
         class SerializationObjByAttrs(JSONSerializable):
             def __init__(self, from_json_dict=None, from_raw_dict=None):
@@ -110,7 +110,7 @@ class TestJSONEncoderClass(HermesServerTestCase):
         o1 = self.SerializationObjByAttrs.from_json(jsondata=TestJSONEncoderClass.dict)
         o2 = self.SerializationObjByAttrs.from_json(jsondata=TestJSONEncoderClass.dict)
 
-        ### SerializationObjByAttrs
+        # ### SerializationObjByAttrs
         # Build a new obj merging two test objs
         dict = {"obj1": o1, "obj2": o2}
         o = self.SerializationObjByAttrs.from_json(dict)
@@ -123,7 +123,7 @@ class TestJSONEncoderClass(HermesServerTestCase):
         json = f"""{{{nl}    "obj1": {reindented},{nl}    "obj2": {reindented}{nl}}}"""
         self.assertEqual(o.to_json(), json)
 
-        ### SerializationObjByDict
+        # ### SerializationObjByDict
         # Build a new obj merging two test objs
         dict = {"obj1": o1, "obj2": o2}
         o = self.SerializationObjByDict.from_json(dict)
@@ -153,9 +153,9 @@ class TestJSONEncoderClass(HermesServerTestCase):
         o1 = self.SerializationObjByAttrs(from_raw_dict=TestJSONEncoderClass.dict)
         o2 = self.SerializationObjByAttrs.from_json(o1.to_json())
         for k, v in TestJSONEncoderClass.dict.items():
-            if type(v) == list:
+            if type(v) is list:
                 self.assertListEqual(getattr(o1, k), getattr(o2, k))
-            elif type(v) == dict:
+            elif type(v) is dict:
                 self.assertDictEqual(getattr(o1, k), getattr(o2, k))
             else:
                 self.assertEqual(getattr(o1, k), getattr(o2, k))
@@ -205,7 +205,10 @@ class TestJSONEncoderClass(HermesServerTestCase):
         self.assertEqual(
             cm.output,
             [
-                "WARNING:hermes-unit-tests:Unsortable type <class 'unit.test_lib_datamodel_serialization.TestJSONEncoderClass.test_tojson_withunsortable.<locals>.SerializationObj2'> exported as JSON. You should consider to set is sortable"
+                "WARNING:hermes-unit-tests:Unsortable type <class 'unit."
+                "test_lib_datamodel_serialization.TestJSONEncoderClass."
+                "test_tojson_withunsortable.<locals>.SerializationObj2'> exported as"
+                " JSON. You should consider to set is sortable"
             ],
         )
 
@@ -229,7 +232,8 @@ class TestJSONEncoderClass(HermesServerTestCase):
 
         self.assertRaisesRegex(
             HermesInvalidJSONDataattrTypeError,
-            "Invalid jsondataattr type '<class 'int'>'. It must be one of the following types: \\[str, list, tuple, set\\]",
+            "Invalid jsondataattr type '<class 'int'>'. It must be one of the following"
+            " types: \\[str, list, tuple, set\\]",
             InvalidSerializationObj,
         )
 
@@ -239,7 +243,8 @@ class TestJSONEncoderClass(HermesServerTestCase):
 
         self.assertRaisesRegex(
             HermesInvalidJSONDataattrTypeError,
-            "Invalid jsondataattr type '<class 'dict'>'. It must be one of the following types: \\[str, list, tuple, set\\]",
+            "Invalid jsondataattr type '<class 'dict'>'. It must be one of the"
+            " following types: \\[str, list, tuple, set\\]",
             InvalidSerializationObj2,
         )
 
@@ -252,7 +257,8 @@ class TestJSONEncoderClass(HermesServerTestCase):
 
         self.assertRaisesRegex(
             HermesInvalidJSONDataattrTypeError,
-            "Invalid _jsondataattr type '<class 'int'>'. It must be one of the following types: \\[str, list, tuple, set\\]",
+            "Invalid _jsondataattr type '<class 'int'>'. It must be one of the"
+            " following types: \\[str, list, tuple, set\\]",
             obj.to_json,
         )
 
@@ -319,7 +325,8 @@ class TestLocalCacheClass(HermesServerTestCase):
         )
         self.assertRaisesRegex(
             HermesUnspecifiedCacheFilename,
-            r"Unable to save cache file without having specified the cacheFilename with setCacheFilename\(\)",
+            r"Unable to save cache file without having specified the cacheFilename with"
+            r" setCacheFilename\(\)",
             o1.savecachefile,
         )
 
@@ -390,17 +397,19 @@ class TestLocalCacheClass(HermesServerTestCase):
         self.assertEqual(len(cm.output), 1)
         self.assertRegex(
             cm.output[0],
-            "INFO:hermes-unit-tests:Specified cache file '.+' doesn't exists, returning empty data",
+            "INFO:hermes-unit-tests:Specified cache file '.+' doesn't exists,"
+            " returning empty data",
         )
 
     def test_createcachedir(self):
         LocalCache._settingsbyappname[__hermes__.appname]["_cachedir"] += "/hermes-test"
         with self.assertLogs(__hermes__.logger, level="INFO") as cm:
-            o = self.SerializationObj(from_raw_dict=TestJSONEncoderClass.dict)
+            self.SerializationObj(from_raw_dict=TestJSONEncoderClass.dict)
 
         self.assertRegex(
             cm.output[0],
-            f"INFO:hermes-unit-tests:Local cache dir '{LocalCache._cachedir()}' doesn't exists: create it",
+            f"INFO:hermes-unit-tests:Local cache dir '{LocalCache._cachedir()}'"
+            " doesn't exists: create it",
         )
 
     def test_unabletocreatecachedir(self):

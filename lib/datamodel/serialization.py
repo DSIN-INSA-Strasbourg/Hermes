@@ -22,9 +22,6 @@
 
 from typing import TypeVar, Any, TYPE_CHECKING
 
-AnyJSONSerializable = TypeVar("AnyJSONSerializable", bound="JSONSerializable")
-AnyLocalCache = TypeVar("AnyLocalCache", bound="LocalCache")
-
 if TYPE_CHECKING:  # pragma: no cover
     # Only for type hints, won't import at runtime
     from typing import Callable, IO
@@ -39,9 +36,13 @@ import os.path
 import gzip
 import re
 
+AnyJSONSerializable = TypeVar("AnyJSONSerializable", bound="JSONSerializable")
+AnyLocalCache = TypeVar("AnyLocalCache", bound="LocalCache")
+
 
 class HermesInvalidVersionError(Exception):
-    """Raised when one of previous of current HERMES_VERSION is missing from HERMES_VERSIONS"""
+    """Raised when one of previous of current HERMES_VERSION is missing from
+    HERMES_VERSIONS"""
 
 
 class HermesInvalidJSONError(Exception):
@@ -66,7 +67,8 @@ class HermesUnspecifiedCacheFilename(Exception):
 
 
 class HermesLocalCacheNotSetupError(Exception):
-    """Raised when trying to use LocalCache without having called LocalCache.setup() before"""
+    """Raised when trying to use LocalCache without having called LocalCache.setup()
+    before"""
 
 
 class JSONEncoder(json.JSONEncoder):
@@ -88,12 +90,12 @@ class JSONSerializable:
 
     Children classes have to:
     - offer a constructor that must be callable with the named parameter
-        'from_json_dict' only
+      'from_json_dict' only
     - specify the jsondatattr, with a different behavior function of its type:
-        - str: name of their instance attribute (dict) containing the data to
-                serialize
-        - list | tuple | set: name of the instance attributes to serialize. The json
-                will have each attr name as key, and their content as values
+      - str: name of their instance attribute (dict) containing the data to
+        serialize
+      - list | tuple | set: name of the instance attributes to serialize. The json
+        will have each attr name as key, and their content as values
     """
 
     def __init__(self, jsondataattr: str | list[str] | tuple[str] | set[str]):
@@ -105,14 +107,13 @@ class JSONSerializable:
         self._jsondataattr: str | list[str] | tuple[str] | set[str] = jsondataattr
         """Name of instance attribute containing the data to serialize, with a
         different behavior function of its type:
-            - str: name of their instance attribute (dict) containing the data to
-                    serialize
-            - list | tuple | set: name of the instance attributes to serialize. The
-                    json will have each attr name as key, and their content as values
+        - str: name of their instance attribute (dict) containing the data to serialize
+        - list | tuple | set: name of the instance attributes to serialize. The json
+          will have each attr name as key, and their content as values
         """
 
     def _get_jsondict(self) -> dict[str, Any]:
-        if type(self._jsondataattr) == str:
+        if type(self._jsondataattr) is str:
             return getattr(self, self._jsondataattr)
         elif type(self._jsondataattr) in (list, tuple, set):
             return {attr: getattr(self, attr) for attr in self._jsondataattr}
@@ -136,7 +137,8 @@ class JSONSerializable:
                 data = sorted(data)
         except TypeError:
             __hermes__.logger.warning(
-                f"Unsortable type {type(self)} exported as JSON. You should consider to set is sortable"
+                f"Unsortable type {type(self)} exported as JSON."
+                " You should consider to set is sortable"
             )
         return json.dumps(data, cls=JSONEncoder, indent=4)
 
@@ -167,7 +169,8 @@ class JSONSerializable:
             method = getattr(cls, methodName, None)
             if not callable(method):
                 # __hermes__.logger.info(
-                #     f"Calling '{methodName}()': method '{methodName}()' doesn't exists"
+                #     f"Calling '{methodName}()':"
+                #     f" method '{methodName}()' doesn't exists"
                 # )
                 continue
             __hermes__.logger.info(
@@ -184,7 +187,7 @@ class JSONSerializable:
         jsondata: str | dict[Any, Any],
         **kwargs: None | Any,
     ) -> AnyJSONSerializable:
-        if type(jsondata) == str:
+        if type(jsondata) is str:
             try:
                 jsondict = json.loads(jsondata, object_hook=cls._json_parser)
             except json.decoder.JSONDecodeError as e:
@@ -193,11 +196,12 @@ class JSONSerializable:
             jsondict = jsondata
         else:
             raise HermesInvalidJSONDataError(
-                f"The 'jsondata' arg must be a str or a dict. Here we have '{type(jsondata)}'"
+                f"The 'jsondata' arg must be a str or a dict."
+                f" Here we have '{type(jsondata)}'"
             )
 
         if (
-            type(jsondict) == dict
+            type(jsondict) is dict
             and len(jsondict) == 2
             and jsondict.keys() == set(["__HERMES_VERSION__", "content"])
         ):
@@ -281,7 +285,8 @@ class LocalCache(JSONSerializable):
 
     @staticmethod
     def _extension() -> str:
-        """Default cache files extension according to LocalCache._compressCache() value"""
+        """Default cache files extension according to LocalCache._compressCache()
+        value"""
         if __hermes__.appname not in LocalCache._settingsbyappname:
             raise HermesLocalCacheNotSetupError(
                 "LocalCache.setup() has never be called : unable to use the LocalCache"
@@ -323,23 +328,31 @@ class LocalCache(JSONSerializable):
         if not dontManageCacheDir:
             if not os.path.exists(LocalCache._cachedir()):
                 __hermes__.logger.info(
-                    f"Local cache dir '{LocalCache._cachedir()}' doesn't exists: create it"
+                    f"Local cache dir '{LocalCache._cachedir()}' doesn't exists:"
+                    " create it"
                 )
                 try:
                     os.makedirs(LocalCache._cachedir(), 0o777 & ~LocalCache._umask())
                 except Exception as e:
                     __hermes__.logger.fatal(
-                        f"Unable to create local cache dir '{LocalCache._cachedir()}': {str(e)}"
+                        f"Unable to create local cache dir '{LocalCache._cachedir()}':"
+                        f" {str(e)}"
                     )
                     raise
 
             if not os.path.isdir(LocalCache._cachedir()):
-                err = f"Local cache dir '{LocalCache._cachedir()}' exists and is not a directory"
+                err = (
+                    f"Local cache dir '{LocalCache._cachedir()}'"
+                    " exists and is not a directory"
+                )
                 __hermes__.logger.fatal(err)
                 raise HermesInvalidCacheDirError(err)
 
             if not os.access(LocalCache._cachedir(), os.W_OK):
-                err = f"Local cache dir '{LocalCache._cachedir()}' exists but is not writeable"
+                err = (
+                    f"Local cache dir '{LocalCache._cachedir()}'"
+                    " exists but is not writeable"
+                )
                 __hermes__.logger.fatal(err)
                 raise HermesInvalidCacheDirError(err)
 
@@ -351,10 +364,12 @@ class LocalCache(JSONSerializable):
 
         if self._localCache_filename is None:
             raise HermesUnspecifiedCacheFilename(
-                "Unable to save cache file without having specified the cacheFilename with setCacheFilename()"
+                "Unable to save cache file without having specified the cacheFilename"
+                " with setCacheFilename()"
             )
 
-        # Generate content before everything else to avoid cache corruption in case of failure
+        # Generate content before everything else to avoid cache corruption in case of
+        # failure
         content = self.to_json(forCacheFile=True)
 
         found, filepath, ext = self._getExistingFilePath(self._localCache_filename)
@@ -370,7 +385,8 @@ class LocalCache(JSONSerializable):
             # Use a temp file to ensure new data is written before rotating old files
             tmpfilepath: str
             destpath: str = (
-                f"{LocalCache._cachedir()}/{self._localCache_filename}{LocalCache._extension()}"
+                f"{LocalCache._cachedir()}/{self._localCache_filename}"
+                f"{LocalCache._extension()}"
             )
 
             with NamedTemporaryFile(
@@ -401,7 +417,8 @@ class LocalCache(JSONSerializable):
         found, filepath, ext = cls._getExistingFilePath(filename)
         if not found:
             __hermes__.logger.info(
-                f"Specified cache file '{filepath}' doesn't exists, returning empty data"
+                f"Specified cache file '{filepath}' doesn't exists,"
+                " returning empty data"
             )
             jsondata = "{}"
         else:
@@ -421,11 +438,11 @@ class LocalCache(JSONSerializable):
         the current cache.
 
         Returns a tuple (found, filepath, extension)
-            - found: boolean indicating if filepath was found
-            - filepath: if found: str indicating filepath, otherwise filepath with
-                default extension (may be useful for logging)
-            - extension: if found: str containing the extension of the filepath found,
-                None otherwise
+        - found: boolean indicating if filepath was found
+        - filepath: if found: str indicating filepath, otherwise filepath with
+          default extension (may be useful for logging)
+        - extension: if found: str containing the extension of the filepath found,
+          None otherwise
         """
         for extension in (
             # Extension that should be used according to Config
@@ -454,7 +471,7 @@ class LocalCache(JSONSerializable):
     def _rotatecachefile(cls: type[AnyLocalCache], filename: str):
         idxlen = 6
         for i in range(LocalCache._backupCount(), 0, -1):
-            oldsuffix = f".{str(i-1).zfill(idxlen)}" if i > 1 else ""
+            oldsuffix = f".{str(i - 1).zfill(idxlen)}" if i > 1 else ""
             found, old, ext = cls._getExistingFilePath(f"{filename}{oldsuffix}")
             if found:
                 new = f"{LocalCache._cachedir()}/{filename}.{str(i).zfill(idxlen)}{ext}"
@@ -472,7 +489,7 @@ class LocalCache(JSONSerializable):
         # Remove backup cache files
         idxlen = 6
         for i in range(LocalCache._backupCount(), 0, -1):
-            suffix = f".{str(i-1).zfill(idxlen)}" if i > 1 else ""
+            suffix = f".{str(i - 1).zfill(idxlen)}" if i > 1 else ""
             found, path, ext = cls._getExistingFilePath(f"{filename}{suffix}")
             if found:
                 __hermes__.logger.debug(f"Deleting '{path}'")

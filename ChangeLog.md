@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed unnecessary cache and logs directories checks in CLI tools that could have caused failure in case of missing directory or missing write permissions.
 - Fixed a bug which prevented the Kafka consumer plugin (plugins/messagebus_consumers/kafka/) from running due to an improper call to define the timeout.
 - Fixed regex escape sequences that was generating SyntaxWarning on Python >= 3.12
+- Updated the code to make it compatible with flake8, in addition to black
 
 ### Security
 

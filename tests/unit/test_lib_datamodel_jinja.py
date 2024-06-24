@@ -59,7 +59,10 @@ class TestJinjaClass(unittest.TestCase):
             self.assertEqual(
                 v["restype"],
                 type(result),
-                msg=f"{k=} failed: {result=} {type(result)=} instead of {str(v['restype'])}",
+                msg=(
+                    f"{k=} failed: {result=} {type(result)=} instead of"
+                    f" {str(v['restype'])}"
+                ),
             )
 
     def test_flatvars_set_filling(self):
@@ -70,7 +73,7 @@ class TestJinjaClass(unittest.TestCase):
             "2": "{{ VAR2 | lower }}",
             "3+4": "{{ VAR3 ~ '+' ~ VAR4 }}",
         }
-        compiled = Jinja.compileIfJinjaTemplate(
+        Jinja.compileIfJinjaTemplate(
             var=vars,
             flatvars_set=flatvars,
             jinjaenv=env,
@@ -90,7 +93,8 @@ class TestJinjaClass(unittest.TestCase):
         }
         self.assertRaisesRegex(
             HermesTooManyJinjaVarsError,
-            r"2 variables found in Jinja template '''{{ VAR3 ~ '\+' ~ VAR4 }}'''. Only one Jinja var is allowed to ensure data consistency",
+            r"2 variables found in Jinja template '''{{ VAR3 ~ '\+' ~ VAR4 }}'''."
+            r" Only one Jinja var is allowed to ensure data consistency",
             Jinja.compileIfJinjaTemplate,
             var=vars,
             flatvars_set=flatvars,
@@ -152,7 +156,9 @@ class TestJinjaClass(unittest.TestCase):
 
         self.assertRaisesRegex(
             HermesNotAJinjaExpression,
-            "Error context: Only Jinja expressions '{{ ... }}' are allowed. Another type of Jinja data was found in '''{% for c in VAR1 %}{{ c }}{% endfor %}'''",
+            "Error context: Only Jinja expressions '{{ ... }}' are allowed. Another"
+            " type of Jinja data was found in "
+            "'''{% for c in VAR1 %}{{ c }}{% endfor %}'''",
             Jinja.compileIfJinjaTemplate,
             var=vars,
             flatvars_set=None,
@@ -205,7 +211,9 @@ class TestJinjaClass(unittest.TestCase):
 
         self.assertRaisesRegex(
             HermesDataModelAttrsmappingError,
-            "Error context: A mix between jinja templates and raw data was found in '''{{ VAR1 | upper }} Hello {{ VAR2 }}''', with this configuration it's impossible to determine source attribute name",
+            "Error context: A mix between jinja templates and raw data was found in"
+            " '''{{ VAR1 | upper }} Hello {{ VAR2 }}''', with this configuration"
+            " it's impossible to determine source attribute name",
             Jinja.compileIfJinjaTemplate,
             var=vars,
             flatvars_set=None,
@@ -250,7 +258,9 @@ class TestJinjaClass(unittest.TestCase):
 
         self.assertRaisesRegex(
             HermesTooManyJinjaVarsError,
-            r"Error context: 2 variables found in Jinja template '''{{ \(VAR1 \| upper\) ~ ' ' ~ VAR2 }}'''. Only one Jinja var is allowed to ensure data consistency",
+            r"Error context: 2 variables found in Jinja template"
+            r" '''{{ \(VAR1 \| upper\) ~ ' ' ~ VAR2 }}'''. Only one Jinja var is"
+            r" allowed to ensure data consistency",
             Jinja.compileIfJinjaTemplate,
             var=vars,
             flatvars_set=None,

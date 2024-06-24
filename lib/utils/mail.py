@@ -19,6 +19,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Hermes. If not, see <https://www.gnu.org/licenses/>.
 
+from typing import Any
 
 from lib.config import HermesConfig
 
@@ -124,7 +125,7 @@ class Email:
         else:
             mimetype = "text/plain"
             ext = ".txt"
-            compress = lambda data: data  # Keep data as is
+            compress = Email._dontCompress  # Keep data as is
 
         tmpattachments = [
             Attachment(f"previous{ext}", mimetype, compress(previous)),
@@ -162,3 +163,7 @@ class Email:
             content=content,
             attachments=attachments,
         )
+
+    @staticmethod
+    def _dontCompress(data: Any) -> Any:
+        return data

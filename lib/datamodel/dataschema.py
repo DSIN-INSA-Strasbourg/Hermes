@@ -36,8 +36,9 @@ class HermesInvalidDataschemaError(Exception):
 class Dataschema(LocalCache):
     """Handle the Dataschema computed from server config, or received from server on
     clients side
-    This class will offer the main datamodel types names and their corresponding DataObject
-    and DataObjectList subclasses in 'objectTypes' and 'objectlistTypes' attributes.
+    This class will offer the main datamodel types names and their corresponding
+    DataObject and DataObjectList subclasses in 'objectTypes' and 'objectlistTypes'
+    attributes.
     These attributes will be set only once the class method 'fillObjectTypes' have been
     called on server, or at Dataschema instantiation on clients
     """
@@ -50,23 +51,28 @@ class Dataschema(LocalCache):
         """Setup a new DataSchema"""
 
         self.objectTypes: dict[str, type[DataObject]] = {}
-        """Contains the datamodel object types specified in server datamodel or in client
-        schema with object name as key, and dynamically created DataObject subclass as value
+        """Contains the datamodel object types specified in server datamodel or in
+        client schema with object name as key, and dynamically created DataObject
+        subclass as value
         """
 
         self.objectlistTypes: dict[str, type[DataObjectList]] = {}
-        """Contains the datamodel objectlist types specified in server datamodel or in client
-        schema with object name as key, and dynamically created DataObjectList subclass as value
+        """Contains the datamodel objectlist types specified in server datamodel or in
+        client schema with object name as key, and dynamically created DataObjectList
+        subclass as value
         """
 
         # Args validity check
         if from_raw_dict is None and from_json_dict is None:
-            err = f"Cannot instantiate schema from nothing: you must specify one data source"
+            err = (
+                "Cannot instantiate schema from nothing: you must specify one data"
+                " source"
+            )
             __hermes__.logger.critical(err)
             raise AttributeError(err)
 
         if from_raw_dict is not None and from_json_dict is not None:
-            err = f"Cannot instantiate schema from multiple data sources at once"
+            err = "Cannot instantiate schema from multiple data sources at once"
             __hermes__.logger.critical(err)
             raise AttributeError(err)
 
@@ -78,7 +84,7 @@ class Dataschema(LocalCache):
             # Update data types if imported from json
             for typesettings in from_dict.values():
                 for k, v in typesettings.items():
-                    if type(v) == list:
+                    if type(v) is list:
                         if k == "PRIMARYKEY_ATTRIBUTE":
                             typesettings[k] = tuple(v)
                         else:
@@ -101,11 +107,13 @@ class Dataschema(LocalCache):
                         objdata[attr] = set()
                     else:
                         raise HermesInvalidDataschemaError(
-                            f"'{objtype}' is missing the attribute '{attr}' in received json Dataschema"
+                            f"'{objtype}' is missing the attribute '{attr}' in received"
+                            " json Dataschema"
                         )
                 if type(objdata[attr]) not in attrtype:
                     raise HermesInvalidDataschemaError(
-                        f"'{objtype}.{attr}' has wrong type in received json Dataschema ('{type(objdata[attr])}' instead of '{attrtype}')"
+                        f"'{objtype}.{attr}' has wrong type in received json Dataschema"
+                        f" ('{type(objdata[attr])}' instead of '{attrtype}')"
                     )
             self._schema[objtype] = {
                 "HERMES_ATTRIBUTES": set(objdata["HERMES_ATTRIBUTES"]),
@@ -167,14 +175,15 @@ class Dataschema(LocalCache):
 
     @staticmethod
     def createSubclass(name: str, baseClass: type[Any]) -> type[Any]:
-        """Dynamically create a subclass of baseClass with specified name, and return it"""
+        """Dynamically create a subclass of baseClass with specified name, and return
+        it"""
         newclass: type[Any] = type(name, (baseClass,), {})
         newclass._clsname_ = name
         return newclass
 
     def diffFrom(self, other: "Dataschema") -> DiffObject:
-        """Return DiffObject with differences (attributes names) of current instance from
-        another"""
+        """Return DiffObject with differences (attributes names) of current instance
+        from another"""
         diff = DiffObject()
 
         s = self.schema.keys()
@@ -198,7 +207,8 @@ class Dataschema(LocalCache):
 
     @property
     def schema(self) -> dict[str, Any]:
-        """Returns the public schema (without CACHEONLY_ATTRIBUTES and LOCAL_ATTRIBUTES)"""
+        """Returns the public schema (without CACHEONLY_ATTRIBUTES and
+        LOCAL_ATTRIBUTES)"""
         schema = deepcopy(self._schema)
         for objschema in schema.values():
             objschema["HERMES_ATTRIBUTES"] -= (

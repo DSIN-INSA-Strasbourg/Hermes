@@ -26,7 +26,8 @@ from lib.datamodel.dataobject import DataObject
 
 from datetime import datetime
 
-import ldap, ldap.modlist
+import ldap
+import ldap.modlist
 from ldap import LDAPError
 
 from typing import Any
@@ -35,7 +36,8 @@ HERMES_PLUGIN_CLASSNAME = "LdapClient"
 
 
 class LdapClient(GenericClient):
-    """Hermes-client class handling users, passwords, groups and groupMembers in LDAP directory"""
+    """Hermes-client class handling users, passwords, groups and groupMembers in
+    LDAP directory"""
 
     def __handleLDAPError(self, err: LDAPError):
         """All LDAP exceptions contains a msgid that will change, generating a lot
@@ -151,24 +153,24 @@ class LdapClient(GenericClient):
         newattrdict = attrdict.copy()
         for attr in newattrdict:
             # Convert dattime instances to ldap datetime
-            if type(newattrdict[attr]) == datetime:
+            if isinstance(newattrdict[attr], datetime):
                 newattrdict[attr] = LdapClient.datetimeToLDAP(newattrdict[attr])
-            if type(newattrdict[attr]) == list:
+            if type(newattrdict[attr]) is list:
                 newval = []
                 for listval in newattrdict[attr]:
-                    if type(listval) == datetime:
+                    if isinstance(listval, datetime):
                         newval.append(LdapClient.datetimeToLDAP(listval))
                     else:
                         newval.append(listval)
                 newattrdict[attr] = newval
 
             # Convert values to list if necessary
-            if type(newattrdict[attr]) != list:
+            if type(newattrdict[attr]) is not list:
                 newattrdict[attr] = [newattrdict[attr]]
 
             # Convert values to str if necessary, then to bytes
             newattrdict[attr] = [
-                v.encode("utf-8") if type(v) == str else str(v).encode("utf-8")
+                v.encode("utf-8") if type(v) is str else str(v).encode("utf-8")
                 for v in newattrdict[attr]
             ]
 
@@ -221,7 +223,10 @@ class LdapClient(GenericClient):
                     groupsDNs = self.ldap.search_s(
                         base=self.groups_ou,
                         scope=ldap.SCOPE_SUBTREE,
-                        filterstr=f"(&(objectClass={self.groups_objectclass})({self.groupMemberAttr}={prevdn}))",
+                        filterstr=(
+                            f"(&(objectClass={self.groups_objectclass})"
+                            f"({self.groupMemberAttr}={prevdn}))"
+                        ),
                         attrlist=[self.groupMemberAttr],
                         attrsonly=1,
                     )
@@ -303,7 +308,10 @@ class LdapClient(GenericClient):
             if getattr(newobj, self.dnAttrGroups) != getattr(
                 cachedobj, self.dnAttrGroups
             ):
-                prevdn = f"{self.dnAttrGroups}={getattr(cachedobj, self.dnAttrGroups)},{self.groups_ou}"
+                prevdn = (
+                    f"{self.dnAttrGroups}"
+                    f"={getattr(cachedobj, self.dnAttrGroups)},{self.groups_ou}"
+                )
                 try:
                     self.ldap.rename_s(
                         prevdn,
@@ -335,7 +343,10 @@ class LdapClient(GenericClient):
     def on_Groups_removed(
         self, objkey: Any, eventattrs: "dict[str, Any]", cachedobj: DataObject
     ):
-        groupdn = f"{self.dnAttrGroups}={getattr(cachedobj, self.dnAttrGroups)},{self.groups_ou}"
+        groupdn = (
+            f"{self.dnAttrGroups}"
+            f"={getattr(cachedobj, self.dnAttrGroups)},{self.groups_ou}"
+        )
         try:
             self.ldap.delete_s(groupdn)
         except LDAPError as e:
@@ -349,8 +360,14 @@ class LdapClient(GenericClient):
         cachedgroup = self.getObjectFromCache("Groups", newobj.group_pkey)
         cacheduser = self.getObjectFromCache("Users", newobj.user_pkey)
 
-        userdn = f"{self.dnAttrUsers}={getattr(cacheduser, self.dnAttrUsers)},{self.users_ou}"
-        groupdn = f"{self.dnAttrGroups}={getattr(cachedgroup, self.dnAttrGroups)},{self.groups_ou}"
+        userdn = (
+            f"{self.dnAttrUsers}"
+            f"={getattr(cacheduser, self.dnAttrUsers)},{self.users_ou}"
+        )
+        groupdn = (
+            f"{self.dnAttrGroups}"
+            f"={getattr(cachedgroup, self.dnAttrGroups)},{self.groups_ou}"
+        )
         modlist = [(ldap.MOD_ADD, self.groupMemberAttr, userdn.encode("utf-8"))]
         try:
             self.ldap.modify_s(groupdn, modlist)
@@ -365,8 +382,14 @@ class LdapClient(GenericClient):
         cachedgroup = self.getObjectFromCache("Groups", cachedobj.group_pkey)
         cacheduser = self.getObjectFromCache("Users", cachedobj.user_pkey)
 
-        userdn = f"{self.dnAttrUsers}={getattr(cacheduser, self.dnAttrUsers)},{self.users_ou}"
-        groupdn = f"{self.dnAttrGroups}={getattr(cachedgroup, self.dnAttrGroups)},{self.groups_ou}"
+        userdn = (
+            f"{self.dnAttrUsers}"
+            f"={getattr(cacheduser, self.dnAttrUsers)},{self.users_ou}"
+        )
+        groupdn = (
+            f"{self.dnAttrGroups}"
+            f"={getattr(cachedgroup, self.dnAttrGroups)},{self.groups_ou}"
+        )
         modlist = [(ldap.MOD_DELETE, self.groupMemberAttr, userdn.encode("utf-8"))]
         try:
             self.ldap.modify_s(groupdn, modlist)
@@ -413,7 +436,10 @@ class LdapClient(GenericClient):
         self, user_pkey: Any, newldapobj: dict[str, Any], cachedldapobj: dict[str, Any]
     ):
         cacheduser = self.getObjectFromCache("Users", user_pkey)
-        dn = f"{self.dnAttrUsers}={getattr(cacheduser, self.dnAttrUsers)},{self.users_ou}"
+        dn = (
+            f"{self.dnAttrUsers}"
+            f"={getattr(cacheduser, self.dnAttrUsers)},{self.users_ou}"
+        )
 
         # Modify
         if self.currentStep == 0:

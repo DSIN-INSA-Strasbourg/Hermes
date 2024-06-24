@@ -75,7 +75,8 @@ if __name__ == "__main__":
 
             if config["hermes"]["cli_socket"]["path"] is None:
                 print(
-                    f"CLI is disabled, as cli_socket.path is not set in {config['appname']} config",
+                    "CLI is disabled, as cli_socket.path is not set in"
+                    f" {config['appname']} config",
                     file=sys.stderr,
                 )
                 sys.exit(1)
@@ -85,7 +86,9 @@ if __name__ == "__main__":
                 reply = SockClient.send(config["hermes"]["cli_socket"]["path"], msg)
             except SocketNotFoundError:
                 print(
-                    f"""Socket '{config["hermes"]["cli_socket"]["path"]}' not found. Maybe {config['appname']} isn't running or socket permissions are too restrictive""",
+                    f"Socket '{config['hermes']['cli_socket']['path']}' not found."
+                    f" Maybe {config['appname']} isn't running or socket permissions"
+                    " are too restrictive",
                     file=sys.stderr,
                 )
                 sys.exit(1)

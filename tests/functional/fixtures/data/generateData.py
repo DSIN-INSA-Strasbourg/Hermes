@@ -212,7 +212,7 @@ if __name__ == "__main__":
                     job = f.job()
                     if job not in jobs:
                         jobs.append(job)
-                        user[f"desired_job_{1+idx}"] = job
+                        user[f"desired_job_{1 + idx}"] = job
             user["desired_jobs_joined"] = ";".join(jobs)
 
     with open("users_all.json", "+wt") as f:

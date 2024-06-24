@@ -45,11 +45,13 @@ from lib.datamodel.datasource import Datasource
 
 
 class HermesDataModelMissingPrimarykeyError(Exception):
-    """Raised when the primarykey is missing from the attrsmapping of a source in datamodel"""
+    """Raised when the primarykey is missing from the attrsmapping of a source in
+    datamodel"""
 
 
 class HermesInvalidPrimarykeyTypeError(Exception):
-    """Raised when the primarykey is missing from the attrsmapping of a source in datamodel"""
+    """Raised when the primarykey is missing from the attrsmapping of a source in
+    datamodel"""
 
 
 class HermesDataModelInvalidQueryTypeError(Exception):
@@ -57,11 +59,11 @@ class HermesDataModelInvalidQueryTypeError(Exception):
 
 
 class DatamodelFragment:
-    """Handle settings, data and access to remote source data of one datamodel type for one
-    source.
+    """Handle settings, data and access to remote source data of one datamodel type for
+    one source.
 
-    The data from several DatamodelFragment will then be consolidated and merged in and by
-    Datamodel.
+    The data from several DatamodelFragment will then be consolidated and merged in and
+    by Datamodel.
     """
 
     HERMES_RESERVED_JINJA_VARS = set(
@@ -85,9 +87,11 @@ class DatamodelFragment:
         datasourceplugin: AbstractDataSourcePlugin,
         attributesplugins: dict[str, Callable[..., Any]],
     ):
-        """Create a new DatamodelFragment of specified dataobjtype, from specified datasourcename.
-        To allow data to be fetched/commited properly, fragmentSettings (source settings)
-        must be specified, as primarykeyattr, datasourceplugin and attributesplugins"""
+        """Create a new DatamodelFragment of specified dataobjtype, from specified
+        datasourcename.
+        To allow data to be fetched/commited properly, fragmentSettings (source
+        settings) must be specified, as primarykeyattr, datasourceplugin and
+        attributesplugins"""
         self._dataobjects: list[DataObject] = []
         self._datasourceplugin: AbstractDataSourcePlugin = datasourceplugin
         self._errorcontext: str = (
@@ -133,8 +137,8 @@ class DatamodelFragment:
     def __createDataObjectsubclass(
         self, dataobjtype: str, datasourcename: str, primarykeyattr: str | tuple[str]
     ) -> type[DataObject]:
-        """Dynamically create a new subclass of DataObject class, and set it up according
-        to Datamodel"""
+        """Dynamically create a new subclass of DataObject class, and set it up
+        according to Datamodel"""
         newcls: type[DataObject] = Dataschema.createSubclass(
             f"{dataobjtype}_{datasourcename}", DataObject
         )
@@ -195,7 +199,7 @@ class DatamodelFragment:
         for objdata in fetcheddata:
             # As primary key may be a tuple, we'll have to render each value of tuple
             objpkeys = []
-            if type(objcls.PRIMARYKEY_ATTRIBUTE) == tuple:
+            if type(objcls.PRIMARYKEY_ATTRIBUTE) is tuple:
                 pkey_attrs = objcls.PRIMARYKEY_ATTRIBUTE
             else:
                 pkey_attrs = (objcls.PRIMARYKEY_ATTRIBUTE,)
@@ -217,11 +221,14 @@ class DatamodelFragment:
                     unhashable[pkey_attrs[i]] = objpkeys[i]
 
             if unhashable:
-                err = f""""Invalid value type for primary key(s) : {unhashable}. Primary keys must be 'hashable'"""
+                err = (
+                    f"Invalid value type for primary key(s) : {unhashable}."
+                    " Primary keys must be 'hashable'"
+                )
                 __hermes__.logger.critical(err)
                 raise HermesInvalidPrimarykeyTypeError(err)
 
-            if type(objcls.PRIMARYKEY_ATTRIBUTE) == tuple:
+            if type(objcls.PRIMARYKEY_ATTRIBUTE) is tuple:
                 objpkey = tuple(objpkeys)
             else:
                 objpkey = objpkeys[0]
@@ -293,7 +300,8 @@ class DatamodelFragment:
         REMOTE_ATTRIBUTES as keys, and corresponding fetched values as values
         """
         __hermes__.logger.debug(
-            f"{self.getDataobjClass().__name__}: _runQuery({querytype=}, {query=}, {queryvars=})"
+            f"{self.getDataobjClass().__name__}:"
+            f" _runQuery({querytype=}, {query=}, {queryvars=})"
         )
         fetcheddata = None
         starttime = time.time()
@@ -314,11 +322,13 @@ class DatamodelFragment:
         elapsedms = int(round(1000 * (time.time() - starttime)))
         if fetcheddata is None:
             __hermes__.logger.debug(
-                f"{self.getDataobjClass().__name__}: _runQuery() returned in {elapsedms} ms"
+                f"{self.getDataobjClass().__name__}:"
+                f" _runQuery() returned in {elapsedms} ms"
             )
         else:
             __hermes__.logger.debug(
-                f"{self.getDataobjClass().__name__}: _runQuery() returned {len(fetcheddata)} entries in {elapsedms} ms"
+                f"{self.getDataobjClass().__name__}:"
+                f" _runQuery() returned {len(fetcheddata)} entries in {elapsedms} ms"
             )
 
         return fetcheddata
@@ -348,7 +358,7 @@ class Datamodel:
         for objtype, fragmentslist in self._fragments.items():
             for sourcename, sourcesettings in datamodel[objtype]["sources"].items():
                 pkeyattr = datamodel[objtype]["primarykeyattr"]
-                if type(pkeyattr) == list:
+                if type(pkeyattr) is list:
                     pkeyattr = tuple(pkeyattr)
                 item = DatamodelFragment(
                     objtype,
@@ -396,11 +406,12 @@ class Datamodel:
                     count[attr] = count[attr] + 1 if attr in count else 1
             pkey = self._fragments[objtype][0].getDataobjClass().PRIMARYKEY_ATTRIBUTE
 
-            if type(pkey) == tuple:
+            if type(pkey) is tuple:
                 for key in pkey:
                     if count[key] != len(self._fragments[objtype]):
                         raise HermesDataModelMissingPrimarykeyError(
-                            f"The primary key '{pkey}' must be fetched from each datasource"
+                            f"The primary key '{pkey}' must be fetched from each"
+                            " datasource"
                         )
             else:
                 if count[pkey] != len(self._fragments[objtype]):
@@ -422,7 +433,8 @@ class Datamodel:
             unknownattrs = jinjavars - set(count.keys())
             if unknownattrs:
                 raise HermesUnknownVarsInJinjaTemplateError(
-                    f"Unknown attributes met in 'hermes-server.datamodel.{objtype}.toString' jinja template: {unknownattrs}"
+                    "Unknown attributes met in 'hermes-server.datamodel"
+                    f".{objtype}.toString' jinja template: {unknownattrs}"
                 )
             schema[objtype] = {
                 "HERMES_ATTRIBUTES": set(count.keys()),
@@ -449,26 +461,32 @@ class Datamodel:
                     var=srcsettings["merge_constraints"],
                     flatvars_set=settings["merge_constraints_vars"],
                     jinjaenv=self._jinjaenv,
-                    errorcontext=f"hermes-server.datamodel.{dataobjtype}.sources.{srcname}.merge_constraints",
+                    errorcontext=(
+                        f"hermes-server.datamodel.{dataobjtype}.sources.{srcname}"
+                        ".merge_constraints"
+                    ),
                     allowOnlyOneTemplate=False,
                     allowOnlyOneVar=False,
                 )
 
-            # Compile integrity_constraints templates and fill integrity_constraints_vars that
-            # will contain required vars. This will allow lazy generation of Jinja env vars
+            # Compile integrity_constraints templates and fill
+            # integrity_constraints_vars that will contain required vars.
+            # This willallow lazy generation of Jinja env vars
             settings["integrity_constraints_vars"] = set()
             settings["integrity_constraints"] = Jinja.compileIfJinjaTemplate(
                 var=settings["integrity_constraints"],
                 flatvars_set=settings["integrity_constraints_vars"],
                 jinjaenv=self._jinjaenv,
-                errorcontext=f"hermes-server.datamodel.{dataobjtype}.integrity_constraints",
+                errorcontext=(
+                    f"hermes-server.datamodel.{dataobjtype}.integrity_constraints"
+                ),
                 allowOnlyOneTemplate=False,
                 allowOnlyOneVar=False,
             )
 
     def fetch(self):
-        """Fetch data from all sources, enforce merge and integrity constraints, and store
-        merged data in 'ds' attribute"""
+        """Fetch data from all sources, enforce merge and integrity constraints, and
+        store merged data in 'ds' attribute"""
         fragment: DatamodelFragment
         # Load data starting in specific order to minimize inconsistencies if any
         # modifications are processed in the same time
@@ -487,7 +505,8 @@ class Datamodel:
                 alreadyProcessed = True
                 for context_objtype in self.dataschema.objectlistTypes:
                     if context_objtype == objtype:
-                        # Current and remaining context_objtype haven't been processed yet
+                        # Current and remaining context_objtype haven't been processed
+                        # yet
                         alreadyProcessed = False
 
                     # Generate context only if required
@@ -501,10 +520,10 @@ class Datamodel:
                             ].getPKeys()
                         else:
                             __hermes__.logger.warning(
-                                f"You're trying to use '{context_objtype}_pkeys' var of "
-                                f"an objtype declared after the current one ({objtype}) "
-                                "in datamodel, which has therefore not yet been "
-                                "processed. Will use an empty var."
+                                f"You're trying to use '{context_objtype}_pkeys' var"
+                                " of an objtype declared after the current one"
+                                f" ({objtype}) in datamodel, which has therefore not"
+                                " yet been processed. Will use an empty var."
                             )
                             context[context_objtype + "_pkeys"] = set()
                     if (
@@ -518,9 +537,9 @@ class Datamodel:
                         else:
                             __hermes__.logger.warning(
                                 f"You're trying to use '{context_objtype}' var of "
-                                f"an objtype declared after the current one ({objtype}) "
-                                "in datamodel, which has therefore not yet been "
-                                "processed. Will use an empty var."
+                                "an objtype declared after the current one "
+                                f"({objtype}) in datamodel, which has therefore not"
+                                " yet been processed. Will use an empty var."
                             )
                             context[context_objtype] = []
                 fragment.fetch(cache, context)  # Fetch fragment data from remote source
@@ -576,7 +595,8 @@ class Datamodel:
                         if toRemove:
                             hasChanged = True
                             # __hermes__.logger.debug(
-                            #     f"Merge constraints: filtering {len(toRemove)} item(s) from {fragment.datasourcename}"
+                            #     f"Merge constraints: filtering {len(toRemove)}"
+                            #     f" item(s) from {fragment.datasourcename}"
                             # )
                             for obj in toRemove:
                                 fragment._dataobjects.remove(obj)
@@ -584,7 +604,8 @@ class Datamodel:
 
                 elapsedms = int(round(1000 * (time.time() - starttime)))
                 __hermes__.logger.debug(
-                    f"Enforced <{objtype}> merge constraints in {elapsedms} ms: filtered {len(mergeFiltered)} item(s)"
+                    f"Enforced <{objtype}> merge constraints in {elapsedms} ms:"
+                    f" filtered {len(mergeFiltered)} item(s)"
                 )
 
             # Merge data
@@ -602,7 +623,8 @@ class Datamodel:
             objlist.mergeFiltered |= mergeFiltered
             elapsedms = int(round(1000 * (time.time() - starttime)))
             __hermes__.logger.debug(
-                f"Merged all <{objtype}> data in {elapsedms} ms: filtered {len(mergeFiltered)} item(s)"
+                f"Merged all <{objtype}> data in {elapsedms} ms: filtered"
+                f" {len(mergeFiltered)} item(s)"
             )
 
             # Store merged data in current Datasource var
@@ -662,7 +684,8 @@ class Datamodel:
                         for pkey in integrityFiltered:
                             self.data[objtype].removeByPkey(pkey)
                         __hermes__.logger.debug(
-                            f"Integrity constraints: filtered {len(integrityFiltered)} item(s) from {objtype}"
+                            f"Integrity constraints: filtered {len(integrityFiltered)}"
+                            f" item(s) from {objtype}"
                         )
                         self.data[objtype].integrityFiltered |= integrityFiltered
 
@@ -670,7 +693,8 @@ class Datamodel:
             __hermes__.logger.debug(f"Integrity constraints enforced in {elapsedms} ms")
 
     def commit_one(self, obj: DataObject):
-        """Commit that specified 'obj' data changes have successfully sent to message bus"""
+        """Commit that specified 'obj' data changes have successfully sent to message
+        bus"""
         for objtype, objcls in self.dataschema.objectTypes.items():
             if isinstance(obj, objcls):
                 cachedobj: DataObject | None = self.data.cache[objtype].get(

@@ -23,7 +23,6 @@
 from collections.abc import KeysView, ValuesView, ItemsView
 from typing import Any, Iterator
 
-from lib.datamodel.dataobject import DataObject
 from lib.datamodel.dataobjectlist import DataObjectList
 from lib.datamodel.dataschema import Dataschema
 
@@ -51,8 +50,8 @@ class Datasource:
         """Copy of Dataschema used to build current datasource"""
 
         self._data: dict[str, DataObjectList] = {}
-        """Dictionary containing the datamodel object types specified in server datamodel
-        or in client schema with object name as key, and their corresponding
+        """Dictionary containing the datamodel object types specified in server
+        datamodel or in client schema with object name as key, and their corresponding
         DataObjectList as value"""
 
         for objtype, objlistcls in self.schema.objectlistTypes.items():
@@ -88,7 +87,8 @@ class Datasource:
         if self._hasTrashbin:
             for objtype, objlistcls in self.schema.objectlistTypes.items():
                 self._data["trashbin_" + objtype] = objlistcls.loadcachefile(
-                    f"{self.__cacheFilePrefix}trashbin_{objtype}{self.__cacheFileSuffix}"
+                    f"{self.__cacheFilePrefix}trashbin_"
+                    f"{objtype}{self.__cacheFileSuffix}"
                 )
 
     def save(self):
@@ -100,7 +100,8 @@ class Datasource:
         if self._hasTrashbin:
             for objtype in self.schema.objectlistTypes:
                 self._data["trashbin_" + objtype].savecachefile(
-                    f"{self.__cacheFilePrefix}trashbin_{objtype}{self.__cacheFileSuffix}"
+                    f"{self.__cacheFilePrefix}trashbin_"
+                    f"{objtype}{self.__cacheFileSuffix}"
                 )
 
     def __len__(self) -> int:

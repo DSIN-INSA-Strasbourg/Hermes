@@ -28,7 +28,8 @@ from typing import Any
 
 
 class HermesMergingConflictError(Exception):
-    """Raised when merging two objects with the same attribute having different values"""
+    """Raised when merging two objects with the same attribute having different
+    values"""
 
 
 class DataObject(JSONSerializable):
@@ -67,13 +68,14 @@ class DataObject(JSONSerializable):
     """Set containing attributes names that won't be sent in events, cached or used for
     diff. Used by DataObject"""
     CACHEONLY_ATTRIBUTES: set[str] = None
-    """Set containing attributes names that won't be sent in events or used for diff, but
-    will be cached. Used by DataObject"""
+    """Set containing attributes names that won't be sent in events or used for diff,
+    but will be cached. Used by DataObject"""
     PRIMARYKEY_ATTRIBUTE: str | tuple[str, ...] = None
-    """String or tuple of strings containing datamodel primary key(s) attribute name(s)"""
+    """String or tuple of strings containing datamodel primary key(s) attribute
+    name(s)"""
     TOSTRING: Template | None = None
-    """Contains a compiled Jinja template for objects repr/string representation if set in
-    datamodel, or None to use default one"""
+    """Contains a compiled Jinja template for objects repr/string representation if set
+    in datamodel, or None to use default one"""
 
     def __init__(
         self,
@@ -88,19 +90,22 @@ class DataObject(JSONSerializable):
         If data is from remote, every attributes specified in REMOTE_ATTRIBUTES must
         exists in from_remote dict, eventually with None value to be ignored
 
-        jinjaContextVars may contains additional vars to pass to Jinja render() method when
-        called with 'from_remote'
+        jinjaContextVars may contains additional vars to pass to Jinja render() method
+        when called with 'from_remote'
         """
         super().__init__(jsondataattr="_jsondata")
         self._hash = None
 
         if from_remote is None and from_json_dict is None:
-            err = f"Cannot instantiate object from nothing: you must specify one data source"
+            err = (
+                "Cannot instantiate object from nothing:"
+                " you must specify one data source"
+            )
             __hermes__.logger.critical(err)
             raise AttributeError(err)
 
         if from_remote is not None and from_json_dict is not None:
-            err = f"Cannot instantiate object from multiple data sources at once"
+            err = "Cannot instantiate object from multiple data sources at once"
             __hermes__.logger.critical(err)
             raise AttributeError(err)
 
@@ -118,11 +123,16 @@ class DataObject(JSONSerializable):
         and jinjaContextVars"""
         if self.REMOTE_ATTRIBUTES is None:
             raise AttributeError(
-                f"Current class {self.__class__.__name__} can't be instantiated with 'from_remote' args as {self.__class__.__name__}.REMOTE_ATTRIBUTES is not defined"
+                f"Current class {self.__class__.__name__} can't be instantiated with"
+                f" 'from_remote' args as {self.__class__.__name__}.REMOTE_ATTRIBUTES"
+                " is not defined"
             )
         missingattrs = self.REMOTE_ATTRIBUTES.difference(from_remote.keys())
         if len(missingattrs) > 0:
-            err = f"Required attributes are missing from specified from_remote dict: {missingattrs}"
+            err = (
+                "Required attributes are missing from specified from_remote dict:"
+                f" {missingattrs}"
+            )
             __hermes__.logger.critical(err)
             raise AttributeError(err)
 
@@ -130,15 +140,15 @@ class DataObject(JSONSerializable):
         for attr, remoteattr in self.HERMES_TO_REMOTE_MAPPING.items():
             if isinstance(remoteattr, Template):  # May be a compiled Jinja Template
                 result = remoteattr.render(jinjaContextVars | from_remote)
-                if type(result) == list:
+                if type(result) is list:
                     result = [v for v in result if v is not None]
                 if result is not None and result != [] and result != {}:
                     self._data[attr] = result
-            elif type(remoteattr) == str:
+            elif type(remoteattr) is str:
                 val = from_remote[remoteattr]
                 if val is not None and val != [] and val != {}:
                     self._data[attr] = from_remote[remoteattr]
-            elif type(remoteattr) == list:
+            elif type(remoteattr) is list:
                 self._data[attr] = []
                 for remoteattritem in remoteattr:
                     value = from_remote[remoteattritem]
@@ -147,7 +157,10 @@ class DataObject(JSONSerializable):
                 if len(self._data[attr]) == 0:
                     del self._data[attr]
             else:
-                err = f"Invalid type met in HERMES_TO_REMOTE_MAPPING['{attr}']: {type(remoteattr)}"
+                err = (
+                    "Invalid type met in"
+                    f" HERMES_TO_REMOTE_MAPPING['{attr}']: {type(remoteattr)}"
+                )
                 __hermes__.logger.critical(err)
                 raise AttributeError(err)
 
@@ -163,9 +176,9 @@ class DataObject(JSONSerializable):
             return super().__getattribute__(attr)
 
     def __setattr__(self, attr: str, value: Any):
-        """Set attribute in "data" dict (and reset instance hash cache) if attrname exists
-        in HERMES_ATTRIBUTES or INTERNALATTRIBUTES. Otherwise set it in "standard" python
-        way"""
+        """Set attribute in "data" dict (and reset instance hash cache) if attrname
+        exists in HERMES_ATTRIBUTES or INTERNALATTRIBUTES. Otherwise set it in
+        "standard" python way"""
         if attr not in (self.HERMES_ATTRIBUTES | self.INTERNALATTRIBUTES):
             super().__setattr__(attr, value)
         else:
@@ -244,8 +257,8 @@ class DataObject(JSONSerializable):
         }
 
     def diffFrom(self, other: "DataObject") -> DiffObject:
-        """Return DiffObject with differences (attributes names) of current instance from
-        another"""
+        """Return DiffObject with differences (attributes names) of current instance
+        from another"""
         diff = DiffObject(self, other)
 
         s = set(
@@ -275,17 +288,17 @@ class DataObject(JSONSerializable):
     def isDifferent(a: Any, b: Any) -> bool:
         """Test true difference between two object: recursive compare of type,
         len and values"""
-        if type(a) != type(b):
+        if type(a) is not type(b):
             return True
 
-        if type(a) == list:
+        if type(a) is list:
             if len(a) != len(b):
                 return True
             else:
                 for i in range(len(a)):
                     if DataObject.isDifferent(a[i], b[i]):
                         return True
-        elif type(a) == dict:
+        elif type(a) is dict:
             if a.keys() != b.keys():
                 return True
             else:
@@ -332,7 +345,7 @@ class DataObject(JSONSerializable):
 
     def getPKey(self) -> Any:
         """Return primary key value"""
-        if type(self.PRIMARYKEY_ATTRIBUTE) == tuple:
+        if type(self.PRIMARYKEY_ATTRIBUTE) is tuple:
             return tuple([getattr(self, key) for key in self.PRIMARYKEY_ATTRIBUTE])
         else:
             return getattr(self, self.PRIMARYKEY_ATTRIBUTE)

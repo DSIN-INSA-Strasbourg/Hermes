@@ -52,7 +52,8 @@ import traceback
 
 
 class HermesAlreadyNotifiedException(Exception):
-    """Raised when an exception has already been notified, to avoid a second notification"""
+    """Raised when an exception has already been notified, to avoid a second
+    notification"""
 
 
 class HermesClientHandlerError(Exception):
@@ -112,9 +113,11 @@ class HermesClientCache(LocalCache):
         """String containing latest exception trace"""
 
         self.initstartoffset: Any | None = from_json_dict.get("initstartoffset")
-        """Contains the offset of the first message of initSync sequence on message bus"""
+        """Contains the offset of the first message of initSync sequence on message
+        bus"""
         self.initstopoffset: Any | None = from_json_dict.get("initstopoffset")
-        """Contains the offset of the last message of initSync sequence on message bus"""
+        """Contains the offset of the last message of initSync sequence on message
+        bus"""
         self.nextoffset: Any | None = from_json_dict.get("nextoffset")
         """Contains the offset of the next message to process on message bus"""
 
@@ -125,8 +128,9 @@ class HermesClientCache(LocalCache):
 
 class GenericClient:
     """Superclass of all hermes-client implementations.
-    Manage all the internals of hermes for a client: datamodel updates, caching, error management, trashbin and
-    converting messages from message bus into events handlers calls"""
+    Manage all the internals of hermes for a client: datamodel updates, caching, error
+    management, trashbin and converting messages from message bus into events handlers
+    calls"""
 
     def __init__(self, config: HermesConfig):
         """Instantiate a new client"""
@@ -234,8 +238,8 @@ class GenericClient:
         """Datetime when latest error queue retry was ran"""
 
         self.__currentStep: int = 0
-        """Store the step number of current event processing. Will be stored in events in
-        error queue to allow clients to resume an event where it has failed"""
+        """Store the step number of current event processing. Will be stored in events
+        in error queue to allow clients to resume an event where it has failed"""
 
         self.__saveRequired: bool = False
         """Reset to False at each loop start, and if any change is made during
@@ -331,8 +335,8 @@ class GenericClient:
     def __processSocketMessage(
         self, msg: SocketMessageToServer
     ) -> SocketMessageToClient:
-        """Handler that process specified msg received on unix socket and returns the answer
-        to send"""
+        """Handler that process specified msg received on unix socket and returns the
+        answer to send"""
         reply: SocketMessageToClient | None = None
 
         try:
@@ -426,7 +430,10 @@ class GenericClient:
                     msg += f"  * {category.capitalize()}{nl}"
                     for infoname, infodata in infos[category].items():
                         indentedinfodata = str(infodata).replace("\n", "\n      ")
-                        msg += f"    - {info2printable.get(infoname, infoname)}: {indentedinfodata}{nl}"
+                        msg += (
+                            f"    - {info2printable.get(infoname, infoname)}:"
+                            f" {indentedinfodata}{nl}"
+                        )
             msg = msg.rstrip()
 
         return SocketMessageToClient(retcode=0, retmsg=msg)
@@ -439,9 +446,10 @@ class GenericClient:
 
     @currentStep.setter
     def currentStep(self, value: int):
-        if type(value) != int:
+        if type(value) is not int:
             raise TypeError(
-                f"Specified step {value=} has invalid type '{type(value)}' instead of int"
+                f"Specified step {value=} has invalid type '{type(value)}'"
+                " instead of int"
             )
 
         if value < 0:
@@ -459,11 +467,12 @@ class GenericClient:
 
         if self.__datamodel.hasRemoteSchema():
             __hermes__.logger.debug(
-                f"Remote Dataschema in cache: {self.__datamodel.remote_schema.to_json()=}"
+                "Remote Dataschema in cache:"
+                f" {self.__datamodel.remote_schema.to_json()=}"
             )
             self.__datamodel.loadErrorQueue()
         else:
-            __hermes__.logger.debug(f"No remote Dataschema in cache yet")
+            __hermes__.logger.debug("No remote Dataschema in cache yet")
 
         if self.__sock is not None:
             self.__sock.startProcessMessagesDaemon(appname=__hermes__.appname)
@@ -497,20 +506,21 @@ class GenericClient:
                         self.__processEvents(isInitSync=False)
                     else:
                         __hermes__.logger.info(
-                            f"Client hasn't ran its first initsync sequence yet"
+                            "Client hasn't ran its first initsync sequence yet"
                         )
                         if self.__canBeInitialized():
                             __hermes__.logger.info(
-                                f"First initsync sequence processing begins"
+                                "First initsync sequence processing begins"
                             )
                             self.__processEvents(isInitSync=True)
                             if self.__hasAlreadyBeenInitialized():
                                 __hermes__.logger.info(
-                                    f"First initsync sequence processing completed"
+                                    "First initsync sequence processing completed"
                                 )
                         else:
                             __hermes__.logger.info(
-                                f"No initsync sequence is available on message bus. Retry..."
+                                "No initsync sequence is available on message bus."
+                                " Retry..."
                             )
 
                     self.__notifyException(None)
@@ -722,7 +732,8 @@ class GenericClient:
         self.__cache.initstartoffset = start
         self.__cache.initstopoffset = stop
         __hermes__.logger.debug(
-            f"Init sequence was found in Kafka at offsets [{self.__cache.initstartoffset} ; {self.__cache.initstopoffset}]"
+            "Init sequence was found in Kafka at offsets"
+            f" [{self.__cache.initstartoffset} ; {self.__cache.initstopoffset}]"
         )
         return True
 
@@ -734,7 +745,7 @@ class GenericClient:
 
         self.__datamodel.updateSchema(newSchema)
         self.__config.savecachefile()  # Save config to be able to rebuild datamodel
-        # Save and reload error queue to purge it from events of suppressed types, if any
+        # Save and reload error queue to purge it from events of any suppressed types
         self.__datamodel.saveErrorQueue()
         self.__datamodel.loadErrorQueue()
         self.__checkDatamodelWarnings()
@@ -742,12 +753,15 @@ class GenericClient:
     def __checkDatamodelWarnings(self):
         if self.__datamodel.unknownRemoteTypes:
             __hermes__.logger.warning(
-                f"Datamodel errors: remote types '{self.__datamodel.unknownRemoteTypes}' don't exist in current Dataschema"
+                "Datamodel errors: remote types"
+                f" '{self.__datamodel.unknownRemoteTypes}'"
+                " don't exist in current Dataschema"
             )
 
         if self.__datamodel.unknownRemoteAttributes:
             __hermes__.logger.warning(
-                f"Datamodel errors: remote attributes don't exist in current Dataschema: {self.__datamodel.unknownRemoteAttributes}"
+                "Datamodel errors: remote attributes don't exist in current"
+                f" Dataschema: {self.__datamodel.unknownRemoteAttributes}"
             )
         self.__notifyDatamodelWarnings()
 
@@ -798,7 +812,8 @@ class GenericClient:
                     self.__updateSchema(schema)
                 case _:
                     __hermes__.logger.error(
-                        f"Received an event with unknown type '{remote_event.eventtype}': ignored"
+                        "Received an event with unknown type"
+                        f" '{remote_event.eventtype}': ignored"
                     )
 
             self.__cache.nextoffset = remote_event.offset + 1
@@ -861,7 +876,10 @@ class GenericClient:
             secretAttrs = self.__datamodel.remote_schema.secretsAttributesOf(
                 remote_event.objtype
             )
-            errorMsg = f"Object in remote event {remote_event.toString(secretAttrs)} already had unresolved errors: appending event to error queue"
+            errorMsg = (
+                f"Object in remote event {remote_event.toString(secretAttrs)} already"
+                " had unresolved errors: appending event to error queue"
+            )
             __hermes__.logger.warning(errorMsg)
             self.__processRemoteEvent(
                 remote_event,
@@ -918,7 +936,8 @@ class GenericClient:
                 local_event.step = self.currentStep
 
                 if local_event is None:
-                    # Force empty event generation when local_event doesn't change anything
+                    # Force empty event generation when local_event doesn't change
+                    # anything
                     local_event = self.__datamodel.convertEventToLocal(
                         remote_event, r_obj_complete, allowEmptyEvent=True
                     )
@@ -934,7 +953,7 @@ class GenericClient:
         simulateOnly: bool = False,
     ):
         if local_event is None:
-            __hermes__.logger.debug(f"__processLocalEvent(None)")
+            __hermes__.logger.debug("__processLocalEvent(None)")
             return
 
         secretAttrs = self.__datamodel.local_schema.secretsAttributesOf(
@@ -959,7 +978,10 @@ class GenericClient:
             secretAttrs = self.__datamodel.local_schema.secretsAttributesOf(
                 local_event.objtype
             )
-            errorMsg = f"Object in local event {local_event.toString(secretAttrs)} has unresolved errors, appending event to error queue"
+            errorMsg = (
+                f"Object in local event {local_event.toString(secretAttrs)} has"
+                " unresolved errors, appending event to error queue"
+            )
             __hermes__.logger.info(errorMsg)
             self.__processLocalEvent(
                 None, local_event, enqueueEventWithError=False, simulateOnly=True
@@ -981,9 +1003,11 @@ class GenericClient:
                         self.__localAdded(local_event, simulateOnly)
                 case "modified":
                     if not simulateOnly and local_event.objpkey in trashbin:
-                        # Object is in trashbin, and cannot be modified until it is restored
+                        # Object is in trashbin, and cannot be modified until it is
+                        # restored
                         if enqueueEventWithError:
-                            # As the object changes will be processed at restore, ignore the change
+                            # As the object changes will be processed at restore,
+                            # ignore the change
                             self.__processLocalEvent(
                                 None,
                                 local_event,
@@ -993,7 +1017,8 @@ class GenericClient:
                         else:
                             # Propagate error as requested
                             raise HermesClientHandlerError(
-                                f"Object of event {repr(local_event)} is in trashbin, and cannot be modified until it is restored"
+                                f"Object of event {repr(local_event)} is in trashbin,"
+                                " and cannot be modified until it is restored"
                             )
                     else:
                         self.__localModified(local_event, simulateOnly)
@@ -1435,7 +1460,8 @@ class GenericClient:
 
         if not callable(hdlr):
             __hermes__.logger.debug(
-                f"Calling '{handlerName}({kwargsstr})': handler '{handlerName}()' doesn't exists"
+                f"Calling '{handlerName}({kwargsstr})': handler '{handlerName}()'"
+                " doesn't exists"
             )
             return
 
@@ -1447,7 +1473,8 @@ class GenericClient:
             hdlr(**kwargs)
         except Exception as e:
             __hermes__.logger.error(
-                f"Calling '{handlerName}({kwargsstr})': error met on step {self.currentStep} '{str(e)}'"
+                f"Calling '{handlerName}({kwargsstr})': error met on step"
+                f" {self.currentStep} '{str(e)}'"
             )
             raise HermesClientHandlerError(e)
 
@@ -1467,13 +1494,15 @@ class GenericClient:
         __hermes__.logger.info(f"Datamodel has changed: {diff.dict}")
         self.__saveRequired = True
 
-        # Start by removed types, as it requires the previous datamodel to process data removal
+        # Start by removed types, as it requires the previous datamodel to process data
+        # removal
         if diff.removed:
             for l_objtype in diff.removed:
                 __hermes__.logger.info(f"About to purge data from type '{l_objtype}'")
                 if l_objtype not in self.__datamodel.typesmapping.values():
                     __hermes__.logger.warning(
-                        f"Requested to purge data from type '{l_objtype}', but it doesn't exist in previous datamodel: ignoring"
+                        f"Requested to purge data from type '{l_objtype}', but it"
+                        " doesn't exist in previous datamodel: ignoring"
                     )
                     continue
 
@@ -1498,13 +1527,15 @@ class GenericClient:
                             l_objtype
                         )
                         __hermes__.logger.debug(
-                            f"Removing local object of {pkey=}: {l_ev.toString(secretAttrs)=}"
+                            f"Removing local object of {pkey=}:"
+                            f" {l_ev.toString(secretAttrs)=}"
                         )
                         self.__localRemoved(l_ev)
                     else:
                         __hermes__.logger.error(f"Local object of {pkey=} not found")
 
-                # All objects have been removed, remove remaining events from errorqueue, if any
+                # All objects have been removed, remove remaining events from
+                # errorqueue, if any
                 for l_obj in self.__datamodel.localdata_complete[l_objtype]:
                     # Remove eventual events relative to current object from error queue
                     self.__datamodel.errorqueue.purgeAllEventsOfDataObject(
@@ -1531,9 +1562,9 @@ class GenericClient:
             # Generate diff events according to datamodel changes
             new_local_data: dict[str, DataObjectList] = {}
 
-            # Work on "complete" copy of data cache, representing the cache that should be
-            # without any event in error queue in order to compute diff on complete cache
-            # representation
+            # Work on "complete" copy of data cache, representing the cache that should
+            # be without any event in error queue in order to compute diff on complete
+            # cache representation
             completeRemoteData = self.__datamodel.remotedata_complete
             completeLocalData = self.__datamodel.localdata_complete
 
@@ -1574,11 +1605,11 @@ class GenericClient:
 
                             if prefix == "trashbin_":
                                 if obj not in completeLocalDataObjtype:
-                                    # Object exists in remote trashbin, but not in local one
-                                    # as it has been removed before its type was added to
-                                    # client's Datamodel
-                                    # Process a local "added" event, then a local "removed"
-                                    # event to store local object in trashbin
+                                    # Object exists in remote trashbin, but not in
+                                    # local one as it has been removed before its type
+                                    # was added to client's Datamodel.
+                                    # Process a local "added" event, then a local
+                                    # "removed" event to store local object in trashbin
 
                                     # Add local object
                                     self.__processLocalEvent(
@@ -1615,13 +1646,15 @@ class GenericClient:
     def __status(
         self, verbose=False, level="information", ignoreUnhandledExceptions=False
     ) -> dict[str, dict[str, dict[str, Any]]]:
-        """Returns a dict containing status for current client Datamodel and error queue'.
+        """Returns a dict containing status for current client Datamodel and error
+        queue.
 
         Each status contains 3 categories/levels: "information", "warning" and "error"
         """
         if level not in ("information", "warning", "error"):
             raise AttributeError(
-                f"""Specified level '{level}' is invalid. Possible values are ("information", "warning", "error"):"""
+                f"Specified level '{level}' is invalid. Possible values are"
+                """("information", "warning", "error"):"""
             )
 
         appname: str = self.__config["appname"]

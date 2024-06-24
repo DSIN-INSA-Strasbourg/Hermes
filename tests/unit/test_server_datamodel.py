@@ -145,7 +145,7 @@ class TestDatamodelClass(HermesServerTestCase):
 
         confdata = self.loadYaml()
         config = self.saveYamlAndLoadConfig(confdata)
-        dm = Datamodel(config)
+        Datamodel(config)
 
         self.assertIsInstance(
             config["hermes-server"]["datamodel"]["UserPasswords"][
@@ -215,7 +215,8 @@ class TestDatamodelClass(HermesServerTestCase):
 
         self.assertRaisesRegex(
             HermesDataModelMissingPrimarykeyError,
-            r"The primary key '\('user_id', 'login'\)' must be fetched from each datasource",
+            r"The primary key '\('user_id', 'login'\)' must be fetched from each"
+            r" datasource",
             Datamodel,
             config,
         )

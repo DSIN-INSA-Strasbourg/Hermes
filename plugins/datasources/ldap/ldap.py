@@ -27,7 +27,8 @@ if TYPE_CHECKING:  # pragma: no cover
     from ldap.ldapobject import LDAPObject
 
 from lib.plugins import AbstractDataSourcePlugin
-import ldap, ldap.modlist
+import ldap
+import ldap.modlist
 from datetime import datetime
 
 HERMES_PLUGIN_CLASSNAME: str | None = "DatasourceLdap"
@@ -38,7 +39,8 @@ class DatasourceLdap(AbstractDataSourcePlugin):
     """Remote Data Source for LDAP server"""
 
     def __init__(self, settings: dict[str, Any]):
-        """Instantiate new plugin and store a copy of its settings dict in self._settings"""
+        """Instantiate new plugin and store a copy of its settings dict in
+        self._settings"""
         super().__init__(settings)
         self._ldap: LDAPObject | None = None
 
@@ -133,9 +135,11 @@ class DatasourceLdap(AbstractDataSourcePlugin):
                     {
                         "dn": "uid=whatever,ou=company,dc=example,dc=com",  # Mandatory
                         "add": {  # Facultative
-                            # Create attribute if it doesn't exist, and add "value" to it
+                            # Create attribute if it doesn't exist,
+                            # and add "value" to it
                             "attrnameToAdd": "value",
-                            # Create attribute if it doesn't exist, and add "value1" and "value2" to it
+                            # Create attribute if it doesn't exist,
+                            # and add "value1" and "value2" to it
                             "attrnameToAddList": ["value1", "value2"],
                         },
                     },
@@ -191,23 +195,29 @@ class DatasourceLdap(AbstractDataSourcePlugin):
                     {
                         "dn": "uid=whatever,ou=company,dc=example,dc=com",  # Mandatory
                         "add": {  # Facultative
-                            # Create attribute if it doesn't exist, and add "value" to it
+                            # Create attribute if it doesn't exist,
+                            # and add "value" to it
                             "attrnameToAdd": "value",
-                            # Create attribute if it doesn't exist, and add "value1" and "value2" to it
+                            # Create attribute if it doesn't exist,
+                            # and add "value1" and "value2" to it
                             "attrnameToAddList": ["value1", "value2"],
                         },
                         "modify": {  # Facultative
-                            # Create attribute if it doesn't exist, and replace all its value by "value"
+                            # Create attribute if it doesn't exist,
+                            # and replace all its value by "value"
                             "attrnameToModify": "newvalue",
-                            # Create attribute if it doesn't exist, and replace all its value by "newvalue1" and "newvalue2"
+                            # Create attribute if it doesn't exist,
+                            # and replace all its value by "newvalue1" and "newvalue2"
                             "attrnameToModifyList": ["newvalue1", "newvalue2"],
                         },
                         "delete": {  # Facultative
                             # Delete specified attribute and all of its values
                             "attrnameToDelete": None,
-                            # Delete "value" from specified attribute. Raise an error if value is missing
+                            # Delete "value" from specified attribute.
+                            # Raise an error if value is missing
                             "attrnameToDeleteValue": "value",
-                            # Delete "value1" and "value2" from specified attribute. Raise an error if a value is missing
+                            # Delete "value1" and "value2" from specified attribute.
+                            # Raise an error if a value is missing
                             "attrnameToDeleteValueList": ["value1", "value2"],
                         },
                     },
@@ -280,12 +290,12 @@ class DatasourceLdap(AbstractDataSourcePlugin):
             return None
 
         # Convert dattime instances to ldap datetime
-        if type(value) == datetime:
+        if isinstance(value, datetime):
             res = DatasourceLdap._convertdatetime_to_ldap(value)
-        elif type(value) == list:
+        elif type(value) is list:
             res = []
             for listval in value:
-                if type(listval) == datetime:
+                if isinstance(listval, datetime):
                     res.append(DatasourceLdap._convertdatetime_to_ldap(listval))
                 else:
                     res.append(listval)

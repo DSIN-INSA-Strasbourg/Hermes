@@ -19,6 +19,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Hermes. If not, see <https://www.gnu.org/licenses/>.
 
+from typing import Any
+
 from copy import deepcopy
 from datetime import datetime
 
@@ -31,7 +33,9 @@ from .hermesintegrationtestcase import (
 
 import inspect
 
-myself = lambda: inspect.stack()[1][3]
+
+def myself() -> str:
+    return inspect.stack()[1][3]
 
 
 class TestScenarioSingle(HermesIntegrationTestCase):
@@ -50,22 +54,31 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         for tablename, entries in deepcopy(cls.fixtures).items():
             # Force some users to generate errors (storres and kturner)
             if tablename in ("users_all",):
-                errusers = lambda d: d["login"] in ["storres", "kturner"]
+
+                def errusers(d: dict[str, Any]):
+                    return d["login"] in ["storres", "kturner"]
+
                 for entry in filter(errusers, entries):
                     entry["middle_name"] = "error"
 
             # Force some users to generate partially processed event errors (twagner)
             if tablename in ("users_all",):
-                errusers = lambda d: d["login"] in ["twagner"]
+
+                def errusers(d: dict[str, Any]):
+                    return d["login"] in ["twagner"]
+
                 for entry in filter(errusers, entries):
                     entry["middle_name"] = "error_on_second_step"
 
             # Force some groups to generate errors (marine_engineering and energy)
             if tablename == "groups":
-                errgroups = lambda d: d["name"] in [
-                    "marine_engineering",
-                    "energy",
-                ]
+
+                def errgroups(d: dict[str, Any]):
+                    return d["name"] in [
+                        "marine_engineering",
+                        "energy",
+                    ]
+
                 for entry in filter(errgroups, entries):
                     entry["name"] = f'{entry["name"]}_error'
 
@@ -193,13 +206,15 @@ class TestScenarioSingle(HermesIntegrationTestCase):
                 for attr in presentAttributes:
                     self.assertTrue(
                         hasattr(user, attr),
-                        f"aharris's attribute '{attr}' is missing from {context} but should be present",
+                        f"aharris's attribute '{attr}' is missing from {context} but"
+                        " should be present",
                     )
                 # Missing attributes
                 for attr in missingAttributes:
                     self.assertFalse(
                         hasattr(user, attr),
-                        f"aharris's attribute '{attr}' is present on {context} but should be missing",
+                        f"aharris's attribute '{attr}' is present on {context} but"
+                        " should be missing",
                     )
 
     def test_004c_validate_attributes_types(self):
@@ -228,7 +243,8 @@ class TestScenarioSingle(HermesIntegrationTestCase):
                     self.assertEqual(
                         expectedType,
                         currentType,
-                        f"aharris's attribute '{attr}' has unexpected type on {context}. {currentType=} {expectedType=}",
+                        f"aharris's attribute '{attr}' has unexpected type on"
+                        f" {context}. {currentType=} {expectedType=}",
                     )
 
     def test_005_update_values(self):
@@ -239,8 +255,8 @@ class TestScenarioSingle(HermesIntegrationTestCase):
             "id": jvanguid,
             "middle_name": "Jack",  # Add middle name
             "dateOfBirth": "1965-01-13T12:34:56",  # Modify time
-            "desired_jobs_joined": "Arboriculturist",  # Remove "Copywriter, advertising"
-            "desired_job_1": None,  # Remove "Copywriter, advertising"
+            "desired_jobs_joined": "Arboriculturist",  # Remove Copywriter, advertising
+            "desired_job_1": None,  # Remove Copywriter, advertising
         }
         expectedjvang = deepcopy(self.serverdata("SRVUsers")[jvanguid].toNative())
         expectedjvang["middle_name"] = "Jack"
@@ -252,7 +268,9 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         mpatel = {
             "id": mpateluid,
             "middle_name": "Paula",  # Add middle name
-            "desired_jobs_joined": "Pension scheme manager;Geneticist, molecular;Microbiologist",  # Add new desired_jobs
+            "desired_jobs_joined": (
+                "Pension scheme manager;Geneticist, molecular;Microbiologist"
+            ),  # Add new desired_jobs
             "desired_job_2": "Geneticist, molecular",  # Add desired_job
             "desired_job_9": "Microbiologist",  # Add desired_job
         }
@@ -415,7 +433,8 @@ class TestScenarioSingle(HermesIntegrationTestCase):
 
     def test_201a_client_datamodel_add_attribute(self):
         self.log_current_test_name(myself())
-        # Add a new attr "login_uppercase" to each user, not declared in server datamodel
+        # Add a new attr "login_uppercase" to each user, not declared in server
+        # datamodel.
         # Restore conf["hermes-client"]["datamodel"]["GroupsMembers"]
         conf = self.loadYamlClient("single")
         conf["hermes-client"]["datamodel"]["Users"]["attrsmapping"][
@@ -464,7 +483,8 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         # Verify attribute content
         for user in self.clientdata("Users"):
             if hasattr(user, "_trashbin_timestamp"):
-                continue  # Ignore users in trashbin as they don't have the new attribute
+                # Ignore users in trashbin as they don't have the new attribute
+                continue
             self.assertNotEqual(user.login, user.login_uppercase)
             self.assertEqual(user.login.upper(), user.login_uppercase)
 
@@ -476,7 +496,8 @@ class TestScenarioSingle(HermesIntegrationTestCase):
             "login_uppercase"
         ] = "{{ login_uppercase | capitalize }}"
         self.clientthread.restart_client(conf)
-        # The attribute will change in error queue too, so a change notification will be sent
+        # The attribute will change in error queue too, so a change notification will
+        # be sent
         self.assertRaises(NewPendingEmail, self.clientthread.update)
         self.assertEqual(EmailFixture.numberOfUnreadEmails(), 1)
         self.assertEqual(
@@ -488,7 +509,8 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         # Verify attribute content
         for user in self.clientdata("Users"):
             if hasattr(user, "_trashbin_timestamp"):
-                continue  # Ignore users in trashbin as they don't have the new attribute
+                # Ignore users in trashbin as they don't have the new attribute
+                continue
             self.assertEqual(user.login.capitalize(), user.login_uppercase)
 
     def test_203a_client_datamodel_modify_attribute(self):
@@ -499,7 +521,8 @@ class TestScenarioSingle(HermesIntegrationTestCase):
             "login_uppercase"
         ] = "login"
         self.clientthread.restart_client(conf)
-        # The attribute will change in error queue too, so a change notification will be sent
+        # The attribute will change in error queue too, so a change notification will
+        # be sent
         self.assertRaises(NewPendingEmail, self.clientthread.update)
         self.assertEqual(EmailFixture.numberOfUnreadEmails(), 1)
         self.assertEqual(
@@ -511,7 +534,8 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         # Verify attribute content
         for user in self.clientdata("Users"):
             if hasattr(user, "_trashbin_timestamp"):
-                continue  # Ignore users in trashbin as they don't have the new attribute
+                # Ignore users in trashbin as they don't have the new attribute
+                continue
             self.assertEqual(user.login, user.login_uppercase)
 
     def test_204a_client_datamodel_restore_login_uppercase_attribute(self):
@@ -522,7 +546,8 @@ class TestScenarioSingle(HermesIntegrationTestCase):
             "login_uppercase"
         ] = "login_uppercase"
         self.clientthread.restart_client(conf)
-        # The attribute will change in error queue too, so a change notification will be sent
+        # The attribute will change in error queue too, so a change notification will
+        # be sent
         self.assertRaises(NewPendingEmail, self.clientthread.update)
         self.assertEqual(EmailFixture.numberOfUnreadEmails(), 1)
         self.assertEqual(
@@ -534,7 +559,8 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         # Verify attribute content
         for user in self.clientdata("Users"):
             if hasattr(user, "_trashbin_timestamp"):
-                continue  # Ignore users in trashbin as they don't have the new attribute
+                # Ignore users in trashbin as they don't have the new attribute
+                continue
             self.assertNotEqual(user.login, user.login_uppercase)
             self.assertEqual(user.login.upper(), user.login_uppercase)
 
@@ -565,7 +591,8 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         # Verify attribute content
         for user in self.clientdata("Users"):
             if hasattr(user, "_trashbin_timestamp"):
-                continue  # Ignore users in trashbin as they don't have the new attribute
+                # Ignore users in trashbin as they don't have the new attribute
+                continue
             self.assertEqual(user.login.capitalize(), user.login_uppercase)
 
     def test_206a_client_datamodel_remove_attribute(self):
@@ -573,7 +600,8 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         # Remove attr "login_uppercase"
         conf = self.loadYamlClient("single")
         self.clientthread.restart_client(conf)
-        # The attribute will be removed in error queue too, so a change notification will be sent
+        # The attribute will be removed in error queue too, so a change notification
+        # will be sent
         self.assertRaises(NewPendingEmail, self.clientthread.update)
         self.assertEqual(EmailFixture.numberOfUnreadEmails(), 1)
         self.assertEqual(
@@ -585,7 +613,8 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         # Verify attribute content
         for user in self.clientdata("Users"):
             if hasattr(user, "_trashbin_timestamp"):
-                continue  # Ignore users in trashbin as they don't have the new attribute
+                # Ignore users in trashbin as they don't have the new attribute
+                continue
             self.assertFalse(hasattr(user, "login_uppercase"))
 
     def test_207a_server_datamodel_modify_attribute(self):
@@ -608,14 +637,15 @@ class TestScenarioSingle(HermesIntegrationTestCase):
 
     def test_208a_client_datamodel_no_change(self):
         self.log_current_test_name(myself())
-        conf = self.loadYamlClient("single")
+        self.loadYamlClient("single")
         self.clientthread.update()
         self.assertClientdataLen()
 
         # Verify that attribute still doesn't exist
         for user in self.clientdata("Users"):
             if hasattr(user, "_trashbin_timestamp"):
-                continue  # Ignore users in trashbin as they don't have the new attribute
+                # Ignore users in trashbin as they don't have the new attribute
+                continue
             self.assertFalse(hasattr(user, "login_uppercase"))
 
     def test_209a_client_datamodel_restore_attribute(self):
@@ -626,7 +656,8 @@ class TestScenarioSingle(HermesIntegrationTestCase):
             "login_uppercase"
         ] = "login_uppercase"
         self.clientthread.restart_client(conf)
-        # The attribute will change in error queue too, so a change notification will be sent
+        # The attribute will change in error queue too, so a change notification will
+        # be sent
         self.assertRaises(NewPendingEmail, self.clientthread.update)
         self.assertEqual(EmailFixture.numberOfUnreadEmails(), 1)
         self.assertEqual(
@@ -638,7 +669,8 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         # Verify attribute content
         for user in self.clientdata("Users"):
             if hasattr(user, "_trashbin_timestamp"):
-                continue  # Ignore users in trashbin as they don't have the new attribute
+                # Ignore users in trashbin as they don't have the new attribute
+                continue
             self.assertEqual(user.first_name, user.login_uppercase)
 
     def test_210a_server_datamodel_remove_attribute(self):
@@ -669,7 +701,8 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         # Verify that attribute still doesn't exist
         for user in self.clientdata("Users"):
             if hasattr(user, "_trashbin_timestamp"):
-                continue  # Ignore users in trashbin as they don't have the new attribute
+                # Ignore users in trashbin as they don't have the new attribute
+                continue
             self.assertFalse(hasattr(user, "login_uppercase"))
 
     def test_210c_client_datamodel_remove_attribute(self):
@@ -683,7 +716,8 @@ class TestScenarioSingle(HermesIntegrationTestCase):
             EmailFixture.emails[0].subject,
             "[hermes-client-usersgroups_null] no more datamodel warnings",
         )
-        # The attribute will be removed in error queue too, so a change notification will be sent
+        # The attribute will be removed in error queue too, so a change notification
+        # will be sent
         self.assertEqual(
             EmailFixture.emails[1].subject,
             "[hermes-client-usersgroups_null] objects in error queue have changed",
@@ -693,7 +727,8 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         # Verify that attribute still doesn't exist
         for user in self.clientdata("Users"):
             if hasattr(user, "_trashbin_timestamp"):
-                continue  # Ignore users in trashbin as they don't have the new attribute
+                # Ignore users in trashbin as they don't have the new attribute
+                continue
             self.assertFalse(hasattr(user, "login_uppercase"))
 
     #######################
@@ -712,7 +747,8 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         conf["hermes-server"]["datamodel"]["SRVGroupsMembers"][
             "integrity_constraints"
         ] = [
-            "{{ _SELF.user_simpleid in SRVUsers_pkeys and _SELF.group_simpleid in SRVGroups_pkeys }}"
+            "{{ _SELF.user_simpleid in SRVUsers_pkeys"
+            " and _SELF.group_simpleid in SRVGroups_pkeys }}"
         ]
         self.serverthread.restart_server(conf)
         self.serverthread.update()
@@ -746,7 +782,8 @@ class TestScenarioSingle(HermesIntegrationTestCase):
 
         self.assertRaises(NewPendingEmail, self.clientthread.update)
         self.assertEqual(EmailFixture.numberOfUnreadEmails(), 1)
-        # The error queue objects primary keys were changed, so a change notification will be sent
+        # The error queue objects primary keys were changed, so a change notification
+        # will be sent
         self.assertEqual(
             EmailFixture.emails[0].subject,
             "[hermes-client-usersgroups_null] objects in error queue have changed",
@@ -764,7 +801,8 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         conf["hermes-server"]["datamodel"]["SRVGroupsMembers"][
             "integrity_constraints"
         ] = [
-            "{{ _SELF.user_simpleid in SRVUsers_pkeys and _SELF.group_simpleid in SRVGroups_pkeys }}"
+            "{{ _SELF.user_simpleid in SRVUsers_pkeys"
+            " and _SELF.group_simpleid in SRVGroups_pkeys }}"
         ]
         self.serverthread.restart_server(conf)
         self.serverthread.update()
@@ -857,7 +895,8 @@ class TestScenarioSingle(HermesIntegrationTestCase):
 
         self.assertRaises(NewPendingEmail, self.clientthread.update)
         self.assertEqual(EmailFixture.numberOfUnreadEmails(), 1)
-        # The error queue objects primary keys were changed, so a change notification will be sent
+        # The error queue objects primary keys were changed, so a change notification
+        # will be sent
         self.assertEqual(
             EmailFixture.emails[0].subject,
             "[hermes-client-usersgroups_null] objects in error queue have changed",
@@ -893,7 +932,8 @@ class TestScenarioSingle(HermesIntegrationTestCase):
 
         self.assertRaises(NewPendingEmail, self.clientthread.update)
         self.assertEqual(EmailFixture.numberOfUnreadEmails(), 1)
-        # The error queue objects primary keys were changed, so a change notification will be sent
+        # The error queue objects primary keys were changed, so a change notification
+        # will be sent
         self.assertEqual(
             EmailFixture.emails[0].subject,
             "[hermes-client-usersgroups_null] objects in error queue have changed",
@@ -1167,7 +1207,7 @@ class TestScenarioSingle(HermesIntegrationTestCase):
     # Errorqueue #
     ##############
 
-    def test_501a_server_test_maximum_remediation_removed_then_added_with_previous_added(
+    def test_501a_server_maxremediation_removed_then_added_with_previous_added(
         self,
     ):
         self.log_current_test_name(myself())
@@ -1181,7 +1221,7 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         self.assertServerdataLen(SRVUsers=-1, SRVGroupsMembers=-3)
         self.assertServerIntegrityfiltered(SRVGroupsMembers=+3)
 
-    def test_501b_client_test_maximum_remediation_removed_then_added_with_previous_added(
+    def test_501b_client_maxremediation_removed_then_added_with_previous_added(
         self,
     ):
         self.log_current_test_name(myself())
@@ -1191,7 +1231,7 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         self.clientthread.update()
         self.assertClientdataLen()
 
-    def test_501c_server_test_maximum_remediation_removed_then_added_with_previous_added(
+    def test_501c_server_maxremediation_removed_then_added_with_previous_added(
         self,
     ):
         self.log_current_test_name(myself())
@@ -1211,14 +1251,14 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         self.assertServerdataLen(SRVUsers=+1, SRVGroupsMembers=+3)
         self.assertServerIntegrityfiltered(SRVGroupsMembers=-3)
 
-    def test_501d_client_test_maximum_remediation_removed_then_added_with_previous_added(
+    def test_501d_client_maxremediation_removed_then_added_with_previous_added(
         self,
     ):
         self.log_current_test_name(myself())
         self.clientthread.update()  # Update data
         self.assertClientdataLen()
 
-    def test_501e_client_test_maximum_remediation_removed_then_added_with_previous_added(
+    def test_501e_client_maxremediation_removed_then_added_with_previous_added(
         self,
     ):
         twagneruid = "f3abea0d-5be9-4db3-9d92-dd7c0db977a9"
@@ -1252,19 +1292,21 @@ class TestScenarioSingle(HermesIntegrationTestCase):
             expectedtwagner, self.clientdata("Users")[twagneruid].toNative()
         )
 
-    def test_502a_client_test_maximum_remediation_removed_then_added_with_previous_local_modified(
+    def test_502a_client_maxremediation_removed_then_added_with_prev_local_modified(
         self,
     ):
         self.log_current_test_name(myself())
         # Use a jinja filter to add a local-only modified event to errorqueue
         conf = self.loadYamlClient("single")
-        conf["hermes-client"]["datamodel"]["Users"]["attrsmapping"][
-            "middle_name"
-        ] = "{{ middle_name|default(None) if login != 'twagner' else 'error_on_second_step' }}"
+        conf["hermes-client"]["datamodel"]["Users"]["attrsmapping"]["middle_name"] = (
+            "{{ middle_name|default(None) if login != 'twagner'"
+            " else 'error_on_second_step' }}"
+        )
         # Enable autoremediation
         conf["hermes-client"]["autoremediation"] = "maximum"
         self.clientthread.restart_client(conf)
-        # The attribute will change in error queue too, so a change notification will be sent
+        # The attribute will change in error queue too, so a change notification will
+        # be sent
         self.assertRaises(NewPendingEmail, self.clientthread.update)
         self.assertEqual(EmailFixture.numberOfUnreadEmails(), 1)
         self.assertEqual(
@@ -1273,7 +1315,7 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         )
         self.assertClientdataLen()
 
-    def test_502b_server_test_maximum_remediation_removed_then_added_with_previous_local_modified(
+    def test_502b_server_maxremediation_removed_then_added_with_prev_local_modified(
         self,
     ):
         self.log_current_test_name(myself())
@@ -1287,14 +1329,14 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         self.assertServerdataLen(SRVUsers=-1, SRVGroupsMembers=-3)
         self.assertServerIntegrityfiltered(SRVGroupsMembers=+3)
 
-    def test_502c_client_test_maximum_remediation_removed_then_added_with_previous_local_modified(
+    def test_502c_client_maxremediation_removed_then_added_with_prev_local_modified(
         self,
     ):
         self.log_current_test_name(myself())
         self.clientthread.update()
         self.assertClientdataLen()
 
-    def test_502d_server_test_maximum_remediation_removed_then_added_with_previous_local_modified(
+    def test_502d_server_maxremediation_removed_then_added_with_prev_local_modified(
         self,
     ):
         self.log_current_test_name(myself())
@@ -1314,14 +1356,14 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         self.assertServerdataLen(SRVUsers=+1, SRVGroupsMembers=+3)
         self.assertServerIntegrityfiltered(SRVGroupsMembers=-3)
 
-    def test_502e_client_test_maximum_remediation_removed_then_added_with_previous_local_modified(
+    def test_502e_client_maxremediation_removed_then_added_with_prev_local_modified(
         self,
     ):
         self.log_current_test_name(myself())
         self.clientthread.update()
         self.assertClientdataLen()
 
-    def test_502f_client_test_maximum_remediation_removed_then_added_with_previous_local_modified(
+    def test_502f_client_maxremediation_removed_then_added_with_prev_local_modified(
         self,
     ):
         twagneruid = "f3abea0d-5be9-4db3-9d92-dd7c0db977a9"
@@ -1361,16 +1403,21 @@ class TestScenarioSingle(HermesIntegrationTestCase):
 
     def test_503a_server_fix_errors(self):
         self.log_current_test_name(myself())
+
         # Fix users with errors (storres, kturner and twagner)
-        errusers = lambda d: d["login"] in ["storres", "kturner", "twagner"]
+        def errusers(d: dict[str, Any]):
+            return d["login"] in ["storres", "kturner", "twagner"]
+
         for entry in filter(errusers, self.fixtures["users_all"]):
             self.updateEntry(self.databases["db_single"], "users_all", ["id"], entry)
 
         # Fix groups with errors (marine_engineering and energy)
-        errgroups = lambda d: d["name"] in [
-            "marine_engineering",
-            "energy",
-        ]
+        def errgroups(d: dict[str, Any]):
+            return d["name"] in [
+                "marine_engineering",
+                "energy",
+            ]
+
         for entry in filter(errgroups, self.fixtures["groups"]):
             self.updateEntry(self.databases["db_single"], "groups", ["id"], entry)
 

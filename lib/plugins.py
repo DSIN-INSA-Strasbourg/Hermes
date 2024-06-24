@@ -27,7 +27,8 @@ from lib.datamodel.event import Event
 
 
 class FailedToSendEventError(Exception):
-    """Raised when AbstractMessageBusProducerPlugin was unable to send event to MessageBus"""
+    """Raised when AbstractMessageBusProducerPlugin was unable to send event to
+    MessageBus"""
 
 
 class AbstractAttributePlugin:
@@ -43,7 +44,8 @@ class AbstractAttributePlugin:
     """
 
     def __init__(self, settings: dict[str, Any]):
-        """Instantiate new plugin and store a copy of its settings dict in self._settings"""
+        """Instantiate new plugin and store a copy of its settings dict in
+        self._settings"""
         self._settings = settings.copy()
 
     def filter(self, value: Any | None | Undefined, *args: Any, **kwds: Any) -> Any:
@@ -52,8 +54,8 @@ class AbstractAttributePlugin:
 
 
 class AbstractDataSourcePlugin:
-    """Superclass of datasource plugins, to interface Hermes with database, ldap directory,
-    webservice or whatever you need
+    """Superclass of datasource plugins, to interface Hermes with database, ldap
+    directory, webservice or whatever you need
     The connection is established in a with-statement context handled by this class that
     will call open() and close() methods
 
@@ -65,7 +67,8 @@ class AbstractDataSourcePlugin:
     """
 
     def __init__(self, settings: dict[str, Any]):
-        """Instantiate new plugin and store a copy of its settings dict in self._settings"""
+        """Instantiate new plugin and store a copy of its settings dict in
+        self._settings"""
         self._settings = settings.copy()
 
     def __enter__(self) -> "AbstractDataSourcePlugin":
@@ -121,12 +124,12 @@ class AbstractDataSourcePlugin:
 
 
 class AbstractMessageBusProducerPlugin:
-    """Superclass of message bus producers plugins, to allow Hermes-server to emit events
-    to message bus.
+    """Superclass of message bus producers plugins, to allow Hermes-server to emit
+    events to message bus.
     The connection to the bus is established in a with-statement context handled by this
     class that will call open() and close() methods.
-    The subclasses must defines _open() method, and not override open() method that exists
-    only to call _open() and handle errors.
+    The subclasses must defines _open() method, and not override open() method that
+    exists only to call _open() and handle errors.
 
     Settings can be provided in config file, and a cerberus
     config-schema-plugin-PLUGINNAME.yml can be provided in the plugin dir, containing
@@ -136,7 +139,8 @@ class AbstractMessageBusProducerPlugin:
     """
 
     def __init__(self, settings: dict[str, Any]):
-        """Instantiate new plugin and store a copy of its settings dict in self._settings"""
+        """Instantiate new plugin and store a copy of its settings dict in
+        self._settings"""
         self._settings = settings.copy()
 
     def __enter__(self) -> "AbstractMessageBusProducerPlugin":
@@ -182,8 +186,8 @@ class AbstractMessageBusProducerPlugin:
 
 
 class AbstractMessageBusConsumerPlugin:
-    """Superclass of message bus consumers plugins, to allow Hermes-clients to fetch events
-    from message bus.
+    """Superclass of message bus consumers plugins, to allow Hermes-clients to fetch
+    events from message bus.
     The connection to the bus is established in a with-statement context handled by this
     class that will call open() and close() methods.
 
@@ -195,7 +199,8 @@ class AbstractMessageBusConsumerPlugin:
     """
 
     def __init__(self, settings: dict[str, Any]):
-        """Instantiate new plugin and store a copy of its settings dict in self._settings"""
+        """Instantiate new plugin and store a copy of its settings dict in
+        self._settings"""
         self._settings = settings.copy()
 
     def __enter__(self) -> "AbstractMessageBusConsumerPlugin":

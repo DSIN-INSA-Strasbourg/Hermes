@@ -35,7 +35,8 @@ class KafkaProducerPlugin(AbstractMessageBusProducerPlugin):
     to Apache Kafka."""
 
     def __init__(self, settings: dict[str, Any]):
-        """Instantiate new plugin and store a copy of its settings dict in self._settings"""
+        """Instantiate new plugin and store a copy of its settings dict in
+        self._settings"""
         super().__init__(settings)
         self._kafka: KafkaProducer | None = None
 
@@ -69,7 +70,8 @@ class KafkaProducerPlugin(AbstractMessageBusProducerPlugin):
             key=event.evcategory.encode(),
             value=event.to_json().encode(),
         )
-        # Only way to ensure message is stored on broker. Will raise an exception otherwise
-        # Don't trust self._kafka.flush() or future.is_done for that, or you'll lose some
-        # messages
+        # Only way to ensure message is stored on broker. Will raise an exception
+        # otherwise
+        # Don't trust self._kafka.flush() or future.is_done for that, or you'll lose
+        # some messages
         future.get()

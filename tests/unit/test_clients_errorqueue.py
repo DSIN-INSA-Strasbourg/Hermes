@@ -2518,19 +2518,31 @@ class TestErrorQueueClass(HermesServerTestCase):
         self.assertEqual(eq.to_json(), self.queueremediatedmaximumjson)
         # Ensure fallback was used
         self.assertIn(
-            "INFO:hermes-unit-tests:Unable to merge removed prevEvent=<Event(TestObj1_removed[3])> with added lastEvent.objattrs={'obj_id': 3, 'name': 'Object3_v2', 'description': 'Test Object3_v2'}, as no datasource is available. Fallback to 'conservative' mode.",
+            "INFO:hermes-unit-tests:Unable to merge removed prevEvent="
+            "<Event(TestObj1_removed[3])> with added lastEvent.objattrs="
+            "{'obj_id': 3, 'name': 'Object3_v2', 'description': 'Test Object3_v2'},"
+            " as no datasource is available. Fallback to 'conservative' mode.",
             cm.output,
         )
         self.assertIn(
-            "INFO:hermes-unit-tests:Unable to merge removed prevEvent=<Event(TestObj1_local_removed[3])> with added lastEvent.objattrs={'obj_id': 3, 'name': 'Object3_v2', 'description': 'Test Object3_v2'}, as no datasource is available. Fallback to 'conservative' mode.",
+            "INFO:hermes-unit-tests:Unable to merge removed prevEvent="
+            "<Event(TestObj1_local_removed[3])> with added lastEvent.objattrs="
+            "{'obj_id': 3, 'name': 'Object3_v2', 'description': 'Test Object3_v2'},"
+            " as no datasource is available. Fallback to 'conservative' mode.",
             cm.output,
         )
         self.assertIn(
-            "INFO:hermes-unit-tests:Unable to merge removed prevEvent=<Event(TestObj1_removed[5])> with added lastEvent.objattrs={'obj_id': 5, 'name': 'Object5 new', 'description': 'Test Object5 new'}, as no datasource is available. Fallback to 'conservative' mode.",
+            "INFO:hermes-unit-tests:Unable to merge removed prevEvent="
+            "<Event(TestObj1_removed[5])> with added lastEvent.objattrs="
+            "{'obj_id': 5, 'name': 'Object5 new', 'description': 'Test Object5 new'},"
+            " as no datasource is available. Fallback to 'conservative' mode.",
             cm.output,
         )
         self.assertIn(
-            "INFO:hermes-unit-tests:Unable to merge removed prevEvent=<Event(TestObj1_local_removed[5])> with added lastEvent.objattrs={'obj_id': 5, 'name': 'Object5 new', 'description': 'Test Object5 new'}, as no datasource is available. Fallback to 'conservative' mode.",
+            "INFO:hermes-unit-tests:Unable to merge removed prevEvent="
+            "<Event(TestObj1_local_removed[5])> with added lastEvent.objattrs="
+            "{'obj_id': 5, 'name': 'Object5 new', 'description': 'Test Object5 new'},"
+            " as no datasource is available. Fallback to 'conservative' mode.",
             cm.output,
         )
 
@@ -2549,19 +2561,31 @@ class TestErrorQueueClass(HermesServerTestCase):
         self.assertEqual(eq.to_json(), self.queueremediatedmaximumatimportjson)
         # Ensure fallback was used
         self.assertIn(
-            "INFO:hermes-unit-tests:Unable to merge removed prevEvent=<Event(TestObj1_removed[3])> with added lastEvent.objattrs={'obj_id': 3, 'name': 'Object3_v2', 'description': 'Test Object3_v2'}, as no datasource is available. Fallback to 'conservative' mode.",
+            "INFO:hermes-unit-tests:Unable to merge removed prevEvent="
+            "<Event(TestObj1_removed[3])> with added lastEvent.objattrs="
+            "{'obj_id': 3, 'name': 'Object3_v2', 'description': 'Test Object3_v2'},"
+            " as no datasource is available. Fallback to 'conservative' mode.",
             cm.output,
         )
         self.assertIn(
-            "INFO:hermes-unit-tests:Unable to merge removed prevEvent=<Event(TestObj1_local_removed[3])> with added lastEvent.objattrs={'obj_id': 3, 'name': 'Object3_v2', 'description': 'Test Object3_v2'}, as no datasource is available. Fallback to 'conservative' mode.",
+            "INFO:hermes-unit-tests:Unable to merge removed prevEvent="
+            "<Event(TestObj1_local_removed[3])> with added lastEvent.objattrs="
+            "{'obj_id': 3, 'name': 'Object3_v2', 'description': 'Test Object3_v2'},"
+            " as no datasource is available. Fallback to 'conservative' mode.",
             cm.output,
         )
         self.assertIn(
-            "INFO:hermes-unit-tests:Unable to merge removed prevEvent=<Event(TestObj1_removed[5])> with added lastEvent.objattrs={'obj_id': 5, 'name': 'Object5 new', 'description': 'Test Object5 new'}, as no datasource is available. Fallback to 'conservative' mode.",
+            "INFO:hermes-unit-tests:Unable to merge removed prevEvent="
+            "<Event(TestObj1_removed[5])> with added lastEvent.objattrs="
+            "{'obj_id': 5, 'name': 'Object5 new', 'description': 'Test Object5 new'},"
+            " as no datasource is available. Fallback to 'conservative' mode.",
             cm.output,
         )
         self.assertIn(
-            "INFO:hermes-unit-tests:Unable to merge removed prevEvent=<Event(TestObj1_local_removed[5])> with added lastEvent.objattrs={'obj_id': 5, 'name': 'Object5 new', 'description': 'Test Object5 new'}, as no datasource is available. Fallback to 'conservative' mode.",
+            "INFO:hermes-unit-tests:Unable to merge removed prevEvent="
+            "<Event(TestObj1_local_removed[5])> with added lastEvent.objattrs="
+            "{'obj_id': 5, 'name': 'Object5 new', 'description': 'Test Object5 new'},"
+            " as no datasource is available. Fallback to 'conservative' mode.",
             cm.output,
         )
 
@@ -2604,7 +2628,8 @@ class TestErrorQueueClass(HermesServerTestCase):
             self.assertEqual(
                 str(cm.exception),
                 "BUG : unexpected eventtype met when trying to merge two events "
-                f"{lastEvent=} {lastEvent.eventtype=} ; {prevEvent=} {prevEvent.eventtype=}",
+                f"{lastEvent=} {lastEvent.eventtype=} ; {prevEvent=}"
+                f" {prevEvent.eventtype=}",
             )
 
     def test_remediation_inconsistency_between_merge_results(self):
@@ -2616,7 +2641,7 @@ class TestErrorQueueClass(HermesServerTestCase):
 
         self.assertRaisesRegex(
             AssertionError,
-            f"BUG \\: inconsistency between remote and local merge results \\: .*$",
+            "BUG \\: inconsistency between remote and local merge results \\: .*$",
             eq.append,
             self.singleModifiedEvent,
             self.singleRemovedEvent,
@@ -2642,7 +2667,8 @@ class TestErrorQueueClass(HermesServerTestCase):
             eq.append(event, event, "Fake error message")
         self.assertEqual(len(cm.output), 1)
         self.assertIn(
-            "INFO:hermes-unit-tests:Ignore loading of remote event of unknown objtype UnknownTestObj",
+            "INFO:hermes-unit-tests:Ignore loading of remote event of unknown objtype"
+            " UnknownTestObj",
             cm.output,
         )
         self.assertEqual(len(eq), 0)  # Queue should be empty
@@ -2651,7 +2677,8 @@ class TestErrorQueueClass(HermesServerTestCase):
             eq.append(None, event, "Fake error message")
         self.assertEqual(len(cm.output), 1)
         self.assertIn(
-            "INFO:hermes-unit-tests:Ignore loading of local event of unknown objtype UnknownTestObj",
+            "INFO:hermes-unit-tests:Ignore loading of local event of unknown objtype"
+            " UnknownTestObj",
             cm.output,
         )
         self.assertEqual(len(eq), 0)  # Queue should be empty

@@ -22,13 +22,13 @@
 
 from typing import TypeVar, Any, Iterable
 
-AnyDataObjectList = TypeVar("AnyDataObjectList", bound="DataObjectList")
-
 import time
 
 from lib.datamodel.diffobject import DiffObject
 from lib.datamodel.dataobject import DataObject, HermesMergingConflictError
 from lib.datamodel.serialization import LocalCache
+
+AnyDataObjectList = TypeVar("AnyDataObjectList", bound="DataObjectList")
 
 
 class DataObjectList(LocalCache):
@@ -70,25 +70,30 @@ class DataObjectList(LocalCache):
         """Set containing primary keys of all duplicated entries"""
 
         self._mergeConflicts: set[Any] = set()
-        """Set containing primary keys of each entry with a merge conflict (i.e. when the
-        same attribute has different values on different sources)"""
+        """Set containing primary keys of each entry with a merge conflict (i.e. when
+        the same attribute has different values on different sources)"""
 
         self.mergeFiltered: set[Any] = set()
         """Set containing primary keys of each entry filtered by merge constraints"""
 
         self.integrityFiltered: set[Any] = set()
-        """Set containing primary keys of each entry filtered by integrity constraints"""
+        """Set containing primary keys of each entry filtered by integrity
+        constraints"""
 
         self._datadict: dict[Any, DataObject] = {}
-        """Dictionary containing the data, with primary keys as keys, and DataObject as values"""
+        """Dictionary containing the data, with primary keys as keys, and DataObject as
+        values"""
 
         if objlist is None and from_json_dict is None:
-            err = f"Cannot instantiate object from nothing: you must specify one data source"
+            err = (
+                "Cannot instantiate object from nothing: you must specify one data"
+                " source"
+            )
             __hermes__.logger.critical(err)
             raise AttributeError(err)
 
         if objlist is not None and from_json_dict is not None:
-            err = f"Cannot instantiate object from multiple data sources at once"
+            err = "Cannot instantiate object from multiple data sources at once"
             __hermes__.logger.critical(err)
             raise AttributeError(err)
 
@@ -133,14 +138,16 @@ class DataObjectList(LocalCache):
             return self._datadict[objOrPkey]
 
     def __contains__(self, objOrPkey: Any) -> bool:
-        """'in' operator: return True if specified DataObject or pkey exists in current instance"""
+        """'in' operator: return True if specified DataObject or pkey exists in current
+        instance"""
         if isinstance(objOrPkey, DataObject):
             return objOrPkey.getPKey() in self._datadict
         else:
             return objOrPkey in self._datadict
 
     def get(self, pkey: Any, __default: Any = None) -> Any:
-        """Returns DataObject entry with specified pkey, or __default value if no entry was found"""
+        """Returns DataObject entry with specified pkey, or __default value if no entry
+        was found"""
         return self._datadict.get(pkey, __default)
 
     def getPKeys(self) -> set[Any]:
@@ -152,16 +159,18 @@ class DataObjectList(LocalCache):
         If obj is of another type than self.OBJTYPE, it will be casted to OBJTYPE.
         If obj is already in current instance, it will be put in _inconsistencies
         """
-        if type(obj) == self.OBJTYPE:
+        if type(obj) is self.OBJTYPE:
             objconverted = obj
         else:
-            # Recreate object with the required type (useful when merging data from datamodel)
+            # Recreate object with the required type
+            # (useful when merging data from datamodel)
             objconverted = self.OBJTYPE(from_json_dict=obj.toNative())
 
         pkey = objconverted.getPKey()
         if pkey in self._inconsistencies | self._mergeConflicts:
             # __hermes__.logger.debug(
-            #     f"<{self.__class__.__name__}> Ignoring {objconverted=} because already known as an inconsistency"
+            #     f"<{self.__class__.__name__}> Ignoring {objconverted=}"
+            #     " because already known as an inconsistency"
             # )
             return
 
@@ -169,7 +178,8 @@ class DataObjectList(LocalCache):
             self._datadict[pkey] = objconverted
         else:
             __hermes__.logger.warning(
-                f"<{self.__class__.__name__}> Trying to insert an already existing object: {objconverted=}"
+                f"<{self.__class__.__name__}> Trying to insert an already existing"
+                f" object: {objconverted=}"
             )
             self._inconsistencies.add(pkey)
             del self._datadict[pkey]
@@ -205,8 +215,8 @@ class DataObjectList(LocalCache):
     ) -> set[Any]:
         """Merge specified objlist data in current
         If dontMergeOnConflict is True, pkeys of items with conflict will be put in
-        mergeConflicts and items will be removed of current list. Otherwise conflicting data
-        of item in current instance will be kept
+        mergeConflicts and items will be removed of current list. Otherwise conflicting
+        data of item in current instance will be kept
         Returns a set containing pkeys of items filtered by pkeyMergeConstraint
         """
 
@@ -219,7 +229,8 @@ class DataObjectList(LocalCache):
 
         if pkeyMergeConstraint not in validsPkeyMergeConstraints:
             raise AttributeError(
-                f"Specified {pkeyMergeConstraint=} is invalid. Valiid values are {validsPkeyMergeConstraints}"
+                f"Specified {pkeyMergeConstraint=} is invalid."
+                f" Valiid values are {validsPkeyMergeConstraints}"
             )
 
         pkeysMerged = set()
@@ -251,7 +262,8 @@ class DataObjectList(LocalCache):
                         self._mergeConflicts.add(pkey)
                         self.removeByPkey(pkey)
                     else:
-                        # newobj may be a new instance, so overwrite current reference in datadict
+                        # newobj may be a new instance, so overwrite current reference
+                        # in datadict
                         self.replace(newobj)
                 elif pkeyMergeConstraint == "mustNotExist":
                     # Constraint isn't respected, remove object
@@ -265,7 +277,9 @@ class DataObjectList(LocalCache):
                 self.removeByPkey(pkey)
 
         __hermes__.logger.debug(
-            f"pkey_merge_constraints: merged {len(pkeysMerged)} objects, ignored {len(pkeysIgnored)} objects, removed {len(pkeysToRemove)} objects from {type(self)}"
+            f"pkey_merge_constraints: merged {len(pkeysMerged)} objects, ignored"
+            f" {len(pkeysIgnored)} objects, removed {len(pkeysToRemove)} objects from"
+            f" {type(self)}"
         )
 
         return pkeysIgnored | pkeysToRemove
@@ -295,7 +309,8 @@ class DataObjectList(LocalCache):
         diffcount = [f"{len(v)} {k}" for k, v in diff.dict.items() if len(v) > 0]
         info = ", ".join(diffcount) if diffcount else "no difference"
         __hermes__.logger.debug(
-            f"{self.__class__.__name__}: Diffed {len(s)}/{len(o)} entries in {elapsed} ms: {info}"
+            f"{self.__class__.__name__}: Diffed {len(s)}/{len(o)} entries in"
+            f" {elapsed} ms: {info}"
         )
         return diff
 
@@ -303,12 +318,13 @@ class DataObjectList(LocalCache):
     def inconsistencies(self) -> set[Any]:
         """Returns a set containing primary keys of all duplicated entries
 
-        Warning: only indicate duplicated entries of first declared source in current type,
-        duplicated entries of other sources will be notified in mergeConflicts"""
+        Warning: only indicate duplicated entries of first declared source in current
+        type, duplicated entries of other sources will be notified in mergeConflicts"""
         return self._inconsistencies.copy()
 
     def replaceInconsistenciesByCachedValues(self, cache: AnyDataObjectList):
-        """Replace each entry filtered for inconsistency by their cache value, when existing"""
+        """Replace each entry filtered for inconsistency by their cache value, when
+        existing"""
         for src, srcname in [
             (self._inconsistencies, "inconsistency"),
             (self._mergeConflicts, "merge conflict"),
@@ -317,12 +333,15 @@ class DataObjectList(LocalCache):
                 if pkey in cache.getPKeys():
                     self._datadict[pkey] = cache[pkey]
                     __hermes__.logger.warning(
-                        f"Entry of pkey {pkey} with {srcname} found in cache, using cache value"
+                        f"Entry of pkey {pkey} with {srcname} found in cache,"
+                        " using cache value"
                     )
                 else:
-                    # Data shouldn't contains an entry with this pkey anymore, nothing to do
+                    # Data shouldn't contains an entry with this pkey anymore,
+                    # nothing to do
                     __hermes__.logger.warning(
-                        f"Entry of pkey {pkey} with {srcname} not found in cache, ignoring it"
+                        f"Entry of pkey {pkey} with {srcname} not found in cache,"
+                        " ignoring it"
                     )
 
     @property
@@ -340,7 +359,8 @@ class DataObjectList(LocalCache):
         """
         if not self._datadict.keys().isdisjoint(other._datadict.keys()):
             raise KeyError(
-                "Unable to extend, as current instance and 'other' contains some objects with the same primary key"
+                "Unable to extend, as current instance and 'other' contains some"
+                " objects with the same primary key"
             )
 
         self._datadict |= other._datadict
