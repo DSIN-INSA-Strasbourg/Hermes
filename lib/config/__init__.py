@@ -31,7 +31,6 @@ import os.path
 import sys
 import signal
 import threading
-import warnings
 import yaml
 from lib.datamodel.serialization import LocalCache
 from lib.plugins import (
@@ -119,20 +118,6 @@ class HermesConfig(LocalCache):
         instances) """
         self._allowMultipleInstances: bool = allowMultipleInstances
         """Indicate if we must abort if another instance is already running"""
-
-        warnings.filterwarnings(
-            "ignore",
-            "_SixMetaPathImporter.find_spec.. not found; falling back to find_module..",
-            ImportWarning,
-        )
-        warnings.filterwarnings(
-            "ignore",
-            (
-                "_SixMetaPathImporter.exec_module.. not found;"
-                " falling back to load_module.."
-            ),
-            ImportWarning,
-        )
 
         if from_json_dict is not None:
             self._rawconfig = from_json_dict
