@@ -200,7 +200,10 @@ class HermeClientThread:
         # Remove all logger handlers to avoid duplicates if client is restarted
         self.logger = None
         while __hermes__.logger.hasHandlers():
-            hdlr = __hermes__.logger.handlers[0]
+            try:
+                hdlr = __hermes__.logger.handlers[0]
+            except IndexError:
+                break
             hdlr.flush()
             hdlr.close()
             __hermes__.logger.removeHandler(hdlr)
@@ -307,7 +310,10 @@ class HermeServerThread:
         # Remove all logger handlers to avoid duplicates if server is restarted
         self.logger = None
         while __hermes__.logger.hasHandlers():
-            hdlr = __hermes__.logger.handlers[0]
+            try:
+                hdlr = __hermes__.logger.handlers[0]
+            except IndexError:
+                break
             hdlr.flush()
             hdlr.close()
             __hermes__.logger.removeHandler(hdlr)
