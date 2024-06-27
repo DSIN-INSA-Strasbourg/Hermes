@@ -1,4 +1,7 @@
 # hermes-devel recommended requirements
 black
 coverage
-
+flake8
+flake8-black
+pytest
+pytest-cov
