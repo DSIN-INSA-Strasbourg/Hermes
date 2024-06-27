@@ -1,0 +1,41 @@
+name: Run linters and test suite, then publish reports and badges
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "*/**"
+      - "tox.ini"
+      - "*.py"
+      - "*.pyi"
+      - "!**.md"
+      - "!**.txt"
+      - "**requirements*.txt"
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  run_linter_and_tests:
+    uses: ./.github/workflows/run_linter_and_tests.yml
+
+  # Publish job
+  publish_reports_and_badges:
+    if: ${{ !cancelled() }}
+    needs: run_linter_and_tests
+    # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
