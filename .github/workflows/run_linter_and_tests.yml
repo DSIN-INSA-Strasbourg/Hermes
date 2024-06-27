@@ -1,0 +1,45 @@
+name: Run linters and test suite
+
+on:
+  pull_request:
+    paths:
+      - "*/**"
+      - "tox.ini"
+      - "*.py"
+      - "*.pyi"
+      - "!**.md"
+      - "!**.txt"
+      - "**requirements*.txt"
+  workflow_call:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  run_linter_and_tests:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install python-ldap requirements
+        run: sudo apt install -y libldap-dev libsasl2-dev
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: |
+            3.10
+            3.11
+            3.12
+      - name: Install tox and any other packages
+        run: pip install tox
+      - name: Run linters checks
+        if: ${{ !cancelled() }}
+        run: tox run -m linters_from_ci
+      - name: Run test suite on supported Python versions
+        if: ${{ !cancelled() }}
+        run: tox run-parallel -m tests_from_ci
+      - name: Save reports and badges
+        if: ${{ !cancelled() }}
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .tox/.reports/html/
