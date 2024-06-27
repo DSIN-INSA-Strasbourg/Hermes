@@ -1,7 +1,18 @@
 # Hermes
 
-![GitHub](https://img.shields.io/github/license/DSIN-INSA-Strasbourg/Hermes)
-![GitHub top language](https://img.shields.io/github/languages/top/DSIN-INSA-Strasbourg/Hermes)
+[![GitHub](https://img.shields.io/github/license/DSIN-INSA-Strasbourg/Hermes)](https://github.com/DSIN-INSA-Strasbourg/Hermes/blob/main/LICENSE)
+[![GitHub top language](https://img.shields.io/github/languages/top/DSIN-INSA-Strasbourg/Hermes)](https://www.python.org/)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![flake8](https://dsin-insa-strasbourg.github.io/Hermes/badges/flake8.svg)](https://dsin-insa-strasbourg.github.io/Hermes/flake8_report/)  
+[![Python 3.10](https://img.shields.io/badge/python-3.10-blue)](https://www.python.org/downloads/release/python-3100/)
+[![tests py310](https://dsin-insa-strasbourg.github.io/Hermes/badges/tests_py310.svg)](https://dsin-insa-strasbourg.github.io/Hermes/tests_reports/hermes_tests_py310.html)
+[![codecov py310](https://dsin-insa-strasbourg.github.io/Hermes/badges/coverage_py310.svg)](https://dsin-insa-strasbourg.github.io/Hermes/coverage_report_py310/)  
+[![Python 3.11](https://img.shields.io/badge/python-3.11-blue)](https://www.python.org/downloads/release/python-3110/)
+[![tests py311](https://dsin-insa-strasbourg.github.io/Hermes/badges/tests_py311.svg)](https://dsin-insa-strasbourg.github.io/Hermes/tests_reports/hermes_tests_py311.html)
+[![codecov py311](https://dsin-insa-strasbourg.github.io/Hermes/badges/coverage_py311.svg)](https://dsin-insa-strasbourg.github.io/Hermes/coverage_report_py311/)  
+[![Python 3.12](https://img.shields.io/badge/python-3.12-blue)](https://www.python.org/downloads/release/python-3120/)
+[![tests py312](https://dsin-insa-strasbourg.github.io/Hermes/badges/tests_py312.svg)](https://dsin-insa-strasbourg.github.io/Hermes/tests_reports/hermes_tests_py312.html)
+[![codecov py312](https://dsin-insa-strasbourg.github.io/Hermes/badges/coverage_py312.svg)](https://dsin-insa-strasbourg.github.io/Hermes/coverage_report_py312/)
 
 ---
 
