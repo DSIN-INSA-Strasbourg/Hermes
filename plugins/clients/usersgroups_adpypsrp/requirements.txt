@@ -1,3 +1,4 @@
 # plugins/clients/usersgroups_adpypsrp
 pypsrp==0.8.1
+requests-credssp==2.0.0
 
