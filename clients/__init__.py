@@ -484,71 +484,90 @@ class GenericClient:
         while not self.__isStopped:
             self.__saveRequired = False
 
-            with self._msgbus:
-                if self.__isPaused or self.__numberOfLoopToProcess == 0:
-                    sleep(sleepDuration)
-                    continue
+            try:
+                with self._msgbus:
+                    if self.__isPaused or self.__numberOfLoopToProcess == 0:
+                        sleep(sleepDuration)
+                        continue
 
-                try:
-                    if self.__hasAlreadyBeenInitialized():
-                        if isFirstLoopIteration:
-                            try:
-                                self.__processDatamodelUpdate()
-                            except Exception as e:
-                                self.__notifyFatalException(
-                                    HermesClientHandlerError.exceptionToString(
-                                        e, purgeCurrentFileFromTrace=False
+                    try:
+                        if self.__hasAlreadyBeenInitialized():
+                            if isFirstLoopIteration:
+                                try:
+                                    self.__processDatamodelUpdate()
+                                except Exception as e:
+                                    self.__notifyFatalException(
+                                        HermesClientHandlerError.exceptionToString(
+                                            e, purgeCurrentFileFromTrace=False
+                                        )
                                     )
-                                )
-                                raise HermesAlreadyNotifiedException
-                        self.__retryErrorQueue()
-                        self.__emptyTrashBin()
-                        self.__processEvents(isInitSync=False)
-                    else:
-                        __hermes__.logger.info(
-                            "Client hasn't ran its first initsync sequence yet"
-                        )
-                        if self.__canBeInitialized():
-                            __hermes__.logger.info(
-                                "First initsync sequence processing begins"
-                            )
-                            self.__processEvents(isInitSync=True)
-                            if self.__hasAlreadyBeenInitialized():
-                                __hermes__.logger.info(
-                                    "First initsync sequence processing completed"
-                                )
+                                    raise HermesAlreadyNotifiedException
+                            self.__retryErrorQueue()
+                            self.__emptyTrashBin()
+                            self.__processEvents(isInitSync=False)
                         else:
                             __hermes__.logger.info(
-                                "No initsync sequence is available on message bus."
-                                " Retry..."
+                                "Client hasn't ran its first initsync sequence yet"
                             )
+                            if self.__canBeInitialized():
+                                __hermes__.logger.info(
+                                    "First initsync sequence processing begins"
+                                )
+                                self.__processEvents(isInitSync=True)
+                                if self.__hasAlreadyBeenInitialized():
+                                    __hermes__.logger.info(
+                                        "First initsync sequence processing completed"
+                                    )
+                            else:
+                                __hermes__.logger.info(
+                                    "No initsync sequence is available on message bus."
+                                    " Retry..."
+                                )
 
-                    self.__notifyException(None)
+                        self.__notifyException(None)
 
-                except HermesAlreadyNotifiedException:
-                    pass
-                except InvalidDataError as e:
-                    self.__notifyFatalException(
-                        HermesClientHandlerError.exceptionToString(
-                            e, purgeCurrentFileFromTrace=False
+                    except HermesAlreadyNotifiedException:
+                        pass
+                    except InvalidDataError as e:
+                        self.__notifyFatalException(
+                            HermesClientHandlerError.exceptionToString(
+                                e, purgeCurrentFileFromTrace=False
+                            )
                         )
-                    )
-                except Exception as e:
-                    self.__notifyException(
-                        HermesClientHandlerError.exceptionToString(
-                            e, purgeCurrentFileFromTrace=False
+                    except Exception as e:
+                        self.__notifyException(
+                            HermesClientHandlerError.exceptionToString(
+                                e, purgeCurrentFileFromTrace=False
+                            )
                         )
+                    finally:
+                        isFirstLoopIteration = False
+            except Exception as e:
+                __hermes__.logger.warning(
+                    "Message bus seems to be unavailable."
+                    " Waiting 60 seconds before retrying"
+                )
+                self.__notifyException(
+                    HermesClientHandlerError.exceptionToString(
+                        e, purgeCurrentFileFromTrace=False
                     )
-                finally:
-                    isFirstLoopIteration = False
-                    if self.__saveRequired or self.__isStopped:
-                        self.__datamodel.saveErrorQueue()
-                        if self.__hasAtLeastBeganInitialization():
-                            self.__datamodel.saveLocalAndRemoteData()
-                        self.currentStep = 0  # Reset current step for "on_save" event
-                        self.__callHandler("", "save")  # Call special event "on_save()"
-                        self.__notifyQueueErrors()
-                        self.__cache.savecachefile()
+                )
+                # Wait one second 60 times to avoid waiting too long before stopping
+                for i in range(60):
+                    if self.__isStopped:
+                        break
+                    sleep(1)
+            finally:
+                if self.__saveRequired or self.__isStopped:
+                    self.__datamodel.saveErrorQueue()
+                    if self.__hasAtLeastBeganInitialization():
+                        self.__datamodel.saveLocalAndRemoteData()
+                    # Reset current step for "on_save" event
+                    self.currentStep = 0
+                    # Call special event "on_save()"
+                    self.__callHandler("", "save")
+                    self.__notifyQueueErrors()
+                    self.__cache.savecachefile()
 
             # Only used in functionnal tests
             if self.__numberOfLoopToProcess:

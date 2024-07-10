@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed regex escape sequences that was generating SyntaxWarning on Python >= 3.12
 - Updated the code to make it compatible with flake8, in addition to black
 - Added missing dependency of `requests-credssp` to client plugin `usersgroups_adpypsrp`
+- Clients stopped whenever the message bus was unavailable. Now they wait 60 seconds before retrying to contact it
 
 ### Security
 
