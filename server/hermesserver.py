@@ -514,6 +514,15 @@ class HermesServer:
                 self.notifyException(trace)
                 self._cache.savecachefile()
 
+                __hermes__.logger.warning(
+                    "An error was met. Waiting 60 seconds before retrying"
+                )
+                # Wait one second 60 times to avoid waiting too long before stopping
+                for i in range(60):
+                    if self._isStopped:
+                        break
+                    time.sleep(1)
+
             # Only used in functionnal tests
             if self._numberOfLoopToProcess:
                 self._numberOfLoopToProcess -= 1

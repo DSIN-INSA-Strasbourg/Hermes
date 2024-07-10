@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated the code to make it compatible with flake8, in addition to black
 - Added missing dependency of `requests-credssp` to client plugin `usersgroups_adpypsrp`
 - Clients stopped whenever the message bus was unavailable. Now they wait 60 seconds before retrying to contact it
+- Server kept trying to contact the message bus when it was unavailable, causing excessive CPU load and log file filling. Now the server waits 60 seconds before retrying to contact it
 
 ### Security
 
