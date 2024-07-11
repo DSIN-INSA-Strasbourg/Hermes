@@ -165,7 +165,11 @@ class JSONSerializable:
 
         for idx in range(start, stop):
             from_v, to_v = HERMES_VERSIONS[idx : idx + 2]
-            methodName = f"migrate_from_v{from_v}_to_v{to_v}".replace(".", "_")
+            methodName = (
+                (f"migrate_from_v{from_v}_to_v{to_v}")
+                .replace(".", "_")
+                .replace("-", "_")
+            )
             method = getattr(cls, methodName, None)
             if not callable(method):
                 # __hermes__.logger.info(
