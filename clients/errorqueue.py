@@ -394,26 +394,26 @@ class ErrorQueue(LocalCache):
 
         # Can't merge partially processed events
         if (
-            prevLocalEvent.step != 0
-            or lastLocalEvent.step != 0
-            or (prevRemoteEvent is not None and prevRemoteEvent.step != 0)
-            or (lastRemoteEvent is not None and lastRemoteEvent.step != 0)
+            prevLocalEvent.isPartiallyProcessed
+            or lastLocalEvent.isPartiallyProcessed
+            or (prevRemoteEvent is not None and prevRemoteEvent.isPartiallyProcessed)
+            or (lastRemoteEvent is not None and lastRemoteEvent.isPartiallyProcessed)
         ):
             stepsvalues = []
             if prevRemoteEvent is not None:
-                stepsvalues.append(f"{prevRemoteEvent.step=}")
+                stepsvalues.append(f"{prevRemoteEvent.isPartiallyProcessed=}")
             else:
                 stepsvalues.append(f"{prevRemoteEvent=}")
-            stepsvalues.append(f"{prevLocalEvent.step=}")
+            stepsvalues.append(f"{prevLocalEvent.isPartiallyProcessed=}")
             if lastRemoteEvent is not None:
-                stepsvalues.append(f"{lastRemoteEvent.step=}")
+                stepsvalues.append(f"{lastRemoteEvent.isPartiallyProcessed=}")
             else:
                 stepsvalues.append(f"{lastRemoteEvent=}")
-            stepsvalues.append(f"{lastLocalEvent.step=}")
+            stepsvalues.append(f"{lastLocalEvent.isPartiallyProcessed=}")
 
             __hermes__.logger.info(
-                "Unable to merge two events of which at least one has already been "
-                f"partially processed. {' '.join(stepsvalues)}"
+                "Unable to merge two events of which at least one has already been"
+                f" partially processed. {' '.join(stepsvalues)}"
             )
             return
 

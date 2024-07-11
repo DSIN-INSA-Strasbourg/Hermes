@@ -72,17 +72,26 @@ class Event(JSONSerializable):
             "objpkey",
             "objattrs",
             "step",
+            "isPartiallyProcessed",
         ]
         super().__init__(jsondataattr=__jsondataattrs)
         self.offset: int | None = None
         self.timestamp: datetime = datetime(year=1, month=1, day=1)
         self.step: int = 0
+        self.isPartiallyProcessed: bool = False
         if from_json_dict is not None:
             for attr in __jsondataattrs:
                 if attr in from_json_dict:
                     setattr(self, attr, from_json_dict[attr])
                     if attr == "objpkey" and type(self.objpkey) is list:
                         self.objpkey = tuple(self.objpkey)
+                else:
+                    if attr == "isPartiallyProcessed":
+                        # "isPartiallyProcessed" was added in v1.0.0-alpha.2,
+                        # As fallback when missing, set to True if step > 0, False
+                        # otherwise
+                        if from_json_dict.get("step", 0) != 0:
+                            self.isPartiallyProcessed = True
             # As obj instance isn't available, use pkey as default repr
             self.objrepr = str(self.objpkey)
         else:

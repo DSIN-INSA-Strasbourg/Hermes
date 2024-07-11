@@ -285,6 +285,7 @@ class WinrmADClient(GenericClient):
                     "-Confirm:$False",
                 ]
                 self.run_ps(" `\n  ".join(cmd))
+                self.isPartiallyProcessed = True
             self.currentStep += 1
 
         if self.currentStep == 1:
@@ -338,6 +339,7 @@ class WinrmADClient(GenericClient):
                 cmd.append(f"""-Clear {','.join(other_attrs)}""")
 
             self.run_ps(" `\n  ".join(cmd))
+            self.isPartiallyProcessed = True
             self.currentStep += 1
 
     def on_Users_trashed(
@@ -432,6 +434,7 @@ class WinrmADClient(GenericClient):
                     "-Confirm:$False",
                 ]
                 self.run_ps(" `\n  ".join(cmd))
+                self.isPartiallyProcessed = True
             self.currentStep += 1
 
         if self.currentStep == 1:
@@ -487,6 +490,7 @@ class WinrmADClient(GenericClient):
                 cmd.append(f"""-Clear {','.join(other_attrs)}""")
 
             self.run_ps(" `\n  ".join(cmd))
+            self.isPartiallyProcessed = True
             self.currentStep += 1
 
     def on_Groups_removed(

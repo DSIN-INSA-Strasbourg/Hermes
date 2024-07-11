@@ -241,6 +241,10 @@ class GenericClient:
         """Store the step number of current event processing. Will be stored in events
         in error queue to allow clients to resume an event where it has failed"""
 
+        self.__isPartiallyProcessed: bool = False
+        """Store if some data has been processed during current event processing. Will
+        be stored in events in error queue to handle autoremediation properly"""
+
         self.__saveRequired: bool = False
         """Reset to False at each loop start, and if any change is made during
         processing, set to True in order to save all cache at the loop end.
@@ -457,6 +461,22 @@ class GenericClient:
 
         self.__currentStep = value
 
+    @property
+    def isPartiallyProcessed(self) -> bool:
+        """Indicate if some data has been processed during current event processing.
+        Required to handle autoremediation properly"""
+        return self.__isPartiallyProcessed
+
+    @isPartiallyProcessed.setter
+    def isPartiallyProcessed(self, value: bool):
+        if type(value) is not bool:
+            raise TypeError(
+                f"Specified isPartiallyProcessed {value=} has invalid type"
+                f" '{type(value)}' instead of bool"
+            )
+
+        self.__isPartiallyProcessed = value
+
     def mainLoop(self):
         """Client main loop"""
         self.__startTime = datetime.now()
@@ -564,6 +584,7 @@ class GenericClient:
                         self.__datamodel.saveLocalAndRemoteData()
                     # Reset current step for "on_save" event
                     self.currentStep = 0
+                    self.isPartiallyProcessed = False
                     # Call special event "on_save()"
                     self.__callHandler("", "save")
                     self.__notifyQueueErrors()
@@ -581,7 +602,7 @@ class GenericClient:
 
         eventNumber: int
         localEvent: Event
-        remoteEvent: Event
+        remoteEvent: Event | None
         for (
             eventNumber,
             remoteEvent,
@@ -601,7 +622,9 @@ class GenericClient:
                         f"... failed on step {self.currentStep}: {str(e)}"
                     )
                     remoteEvent.step = self.currentStep
+                    remoteEvent.isPartiallyProcessed = self.isPartiallyProcessed
                     localEvent.step = self.currentStep
+                    localEvent.isPartiallyProcessed = self.isPartiallyProcessed
                     self.__datamodel.errorqueue.updateErrorMsg(eventNumber, e.msg)
                 else:
                     # If event has suppressed object, eventNumber has already been
@@ -621,9 +644,8 @@ class GenericClient:
                     __hermes__.logger.info(
                         f"... failed on step {self.currentStep}: {str(e)}"
                     )
-                    if remoteEvent is not None:
-                        remoteEvent.step = self.currentStep
                     localEvent.step = self.currentStep
+                    localEvent.isPartiallyProcessed = self.isPartiallyProcessed
                     self.__datamodel.errorqueue.updateErrorMsg(eventNumber, e.msg)
                 else:
                     # If event has suppressed object, eventNumber has already been
@@ -952,7 +974,9 @@ class GenericClient:
                     simulateOnly=True,
                 )
                 remote_event.step = self.currentStep
+                remote_event.isPartiallyProcessed = self.isPartiallyProcessed
                 local_event.step = self.currentStep
+                local_event.isPartiallyProcessed = self.isPartiallyProcessed
 
                 if local_event is None:
                     # Force empty event generation when local_event doesn't change
@@ -985,7 +1009,9 @@ class GenericClient:
         self.__saveRequired = True
 
         if not simulateOnly:
-            self.currentStep = local_event.step  # Reset current step
+            # Reset current step
+            self.currentStep = local_event.step
+            self.isPartiallyProcessed = local_event.isPartiallyProcessed
 
         if (
             not simulateOnly
@@ -1059,7 +1085,9 @@ class GenericClient:
                 )
                 if remote_event is not None:
                     remote_event.step = self.currentStep
+                    remote_event.isPartiallyProcessed = self.isPartiallyProcessed
                 local_event.step = self.currentStep
+                local_event.isPartiallyProcessed = self.isPartiallyProcessed
                 self.__datamodel.errorqueue.append(remote_event, local_event, e.msg)
             else:
                 raise
@@ -1485,7 +1513,8 @@ class GenericClient:
             return
 
         __hermes__.logger.info(
-            f"Calling '{handlerName}({kwargsstr})' - currentStep={self.currentStep}"
+            f"Calling '{handlerName}({kwargsstr})' - currentStep={self.currentStep},"
+            f" isPartiallyProcessed={self.isPartiallyProcessed=}"
         )
 
         try:

@@ -1268,7 +1268,7 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         for evNumber, remoteEv, localEv, errMsg in self.clienterrorqueue().allEvents():
             if (
                 localEv.objpkey == twagneruid
-                and localEv.step == 1
+                and localEv.isPartiallyProcessed
                 and remoteEv is not None
             ):
                 del remoteEv.objattrs["middle_name"]
@@ -1371,7 +1371,11 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         # Resolve first twagner event manually
         self.log_current_test_name(myself())
         for evNumber, remoteEv, localEv, errMsg in self.clienterrorqueue().allEvents():
-            if localEv.objpkey == twagneruid and localEv.step == 1 and remoteEv is None:
+            if (
+                localEv.objpkey == twagneruid
+                and localEv.isPartiallyProcessed
+                and remoteEv is None
+            ):
                 del localEv.objattrs["added"]["middle_name"]
                 break
 

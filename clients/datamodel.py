@@ -571,6 +571,7 @@ class Datamodel:
             res.objrepr = str(res.objpkey)
             res.timestamp = event.timestamp
             res.step = event.step
+            res.isPartiallyProcessed = event.isPartiallyProcessed
         return res
 
     def createLocalDataobject(

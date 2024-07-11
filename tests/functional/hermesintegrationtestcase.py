@@ -75,6 +75,7 @@ class NullClientFixture:
         ):
             if "error_on_second_step" in newobj.middle_name:
                 self.currentStep = 1
+                self.isPartiallyProcessed = True
             raise AssertionError(f"User {newobj} has error")
 
     def on_Users_modified(
@@ -91,6 +92,7 @@ class NullClientFixture:
         ):
             if "error_on_second_step" in newobj.middle_name:
                 self.currentStep = 1
+                self.isPartiallyProcessed = True
             raise AssertionError(f"User {newobj} has error")
 
     def on_Users_removed(
@@ -103,6 +105,7 @@ class NullClientFixture:
         ):
             if "fail_on_remove_second_step" in cachedobj.middle_name:
                 self.currentStep = 1
+                self.isPartiallyProcessed = True
             raise AssertionError(f"User {cachedobj} has error")
 
     def on_Groups_added(
@@ -115,6 +118,7 @@ class NullClientFixture:
         ):
             if "error_on_second_step" in newobj.name:
                 self.currentStep = 1
+                self.isPartiallyProcessed = True
             raise AssertionError(f"Group {newobj} has error")
 
     def on_Groups_modified(
@@ -131,6 +135,7 @@ class NullClientFixture:
         ):
             if "error_on_second_step" in newobj.name:
                 self.currentStep = 1
+                self.isPartiallyProcessed = True
             raise AssertionError(f"Group {newobj} has error")
 
 

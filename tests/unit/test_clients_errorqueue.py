@@ -77,6 +77,7 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "description": "Test Object1",
                 },
                 "step": 0,
+                "isPartiallyProcessed": False,
             },
             {
                 "evcategory": "initsync",
@@ -89,6 +90,7 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "description": "Test Object1",
                 },
                 "step": 0,
+                "isPartiallyProcessed": False,
             },
             "Fake error message",
         ],
@@ -105,6 +107,7 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "removed": {"description": None},
                 },
                 "step": 0,
+                "isPartiallyProcessed": False,
             },
             "Fake error message",
         ],
@@ -123,6 +126,7 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "removed": {"new_attr30": None},
                 },
                 "step": 0,
+                "isPartiallyProcessed": False,
             },
             {
                 "evcategory": "base",
@@ -138,6 +142,7 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "removed": {"new_attr30": None},
                 },
                 "step": 0,
+                "isPartiallyProcessed": False,
             },
             "Fake error message",
         ],
@@ -153,6 +158,7 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "description": "Test Object4",
                 },
                 "step": 0,
+                "isPartiallyProcessed": False,
             },
             {
                 "evcategory": "base",
@@ -165,6 +171,7 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "description": "Test Object4",
                 },
                 "step": 0,
+                "isPartiallyProcessed": False,
             },
             "Fake error message",
         ],
@@ -180,6 +187,7 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "description": "Test Object5",
                 },
                 "step": 0,
+                "isPartiallyProcessed": False,
             },
             {
                 "evcategory": "base",
@@ -192,6 +200,7 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "description": "Test Object5",
                 },
                 "step": 0,
+                "isPartiallyProcessed": False,
             },
             "Fake error message",
         ],
@@ -203,6 +212,7 @@ class TestErrorQueueClass(HermesServerTestCase):
                 "objpkey": 1,
                 "objattrs": {},
                 "step": 0,
+                "isPartiallyProcessed": False,
             },
             {
                 "evcategory": "base",
@@ -211,6 +221,7 @@ class TestErrorQueueClass(HermesServerTestCase):
                 "objpkey": 1,
                 "objattrs": {},
                 "step": 0,
+                "isPartiallyProcessed": False,
             },
             "Fake error message",
         ],
@@ -230,6 +241,7 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "removed": {},
                 },
                 "step": 0,
+                "isPartiallyProcessed": False,
             },
             "Fake error message",
         ],
@@ -248,6 +260,7 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "removed": {"new_attr32": None},
                 },
                 "step": 0,
+                "isPartiallyProcessed": False,
             },
             {
                 "evcategory": "base",
@@ -263,6 +276,7 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "removed": {"new_attr32": None},
                 },
                 "step": 0,
+                "isPartiallyProcessed": False,
             },
             "Fake error message",
         ],
@@ -281,6 +295,7 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "removed": {"description": None},
                 },
                 "step": 0,
+                # "isPartiallyProcessed": False,
             },
             "Fake error message",
         ],
@@ -299,6 +314,7 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "removed": {"description": None},
                 },
                 "step": 1,
+                # "isPartiallyProcessed": True,
             },
             "Fake error message",
         ],
@@ -316,6 +332,7 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "removed": {"new_attr2": None},
                 },
                 "step": 0,
+                "isPartiallyProcessed": False,
             },
             {
                 "evcategory": "base",
@@ -330,6 +347,7 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "removed": {"new_attr2": None},
                 },
                 "step": 0,
+                "isPartiallyProcessed": False,
             },
             "Fake error message",
         ],
@@ -341,6 +359,7 @@ class TestErrorQueueClass(HermesServerTestCase):
                 "objpkey": 3,
                 "objattrs": {},
                 "step": 0,
+                "isPartiallyProcessed": False,
             },
             {
                 "evcategory": "base",
@@ -349,6 +368,7 @@ class TestErrorQueueClass(HermesServerTestCase):
                 "objpkey": 3,
                 "objattrs": {},
                 "step": 0,
+                "isPartiallyProcessed": False,
             },
             "Fake error message",
         ],
@@ -366,6 +386,7 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "removed": {"description": None},
                 },
                 "step": 0,
+                "isPartiallyProcessed": False,
             },
             {
                 "evcategory": "base",
@@ -380,6 +401,7 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "removed": {"description": None},
                 },
                 "step": 0,
+                "isPartiallyProcessed": False,
             },
             "Fake error message",
         ],
@@ -397,6 +419,7 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "removed": {"description": None},
                 },
                 "step": 0,
+                "isPartiallyProcessed": False,
             },
             {
                 "evcategory": "base",
@@ -411,6 +434,7 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "removed": {"description": None},
                 },
                 "step": 0,
+                "isPartiallyProcessed": False,
             },
             "Fake error message",
         ],
@@ -426,6 +450,7 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "description": "Test Object3_v2",
                 },
                 "step": 0,
+                "isPartiallyProcessed": False,
             },
             {
                 "evcategory": "base",
@@ -438,6 +463,7 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "description": "Test Object3_v2",
                 },
                 "step": 0,
+                "isPartiallyProcessed": False,
             },
             "Fake error message",
         ],
@@ -449,6 +475,7 @@ class TestErrorQueueClass(HermesServerTestCase):
                 "objpkey": 5,
                 "objattrs": {},
                 "step": 0,
+                "isPartiallyProcessed": False,
             },
             {
                 "evcategory": "base",
@@ -457,6 +484,7 @@ class TestErrorQueueClass(HermesServerTestCase):
                 "objpkey": 5,
                 "objattrs": {},
                 "step": 0,
+                "isPartiallyProcessed": False,
             },
             "Fake error message",
         ],
@@ -474,6 +502,7 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "removed": {"description": None},
                 },
                 "step": 1,
+                "isPartiallyProcessed": True,
             },
             {
                 "evcategory": "base",
@@ -488,6 +517,7 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "removed": {"description": None},
                 },
                 "step": 1,
+                "isPartiallyProcessed": True,
             },
             "Fake error message",
         ],
@@ -503,6 +533,7 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "description": "Test Object5 new",
                 },
                 "step": 0,
+                "isPartiallyProcessed": False,
             },
             {
                 "evcategory": "base",
@@ -515,6 +546,7 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "description": "Test Object5 new",
                 },
                 "step": 0,
+                "isPartiallyProcessed": False,
             },
             "Fake error message",
         ],
@@ -533,7 +565,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "name": "Object1",
                     "description": "Test Object1"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "initsync",
@@ -545,7 +578,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "name": "Object1",
                     "description": "Test Object1"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -567,7 +601,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                         "description": null
                     }
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -589,7 +624,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                         "new_attr30": null
                     }
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -608,7 +644,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                         "new_attr30": null
                     }
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -623,7 +660,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "name": "Object4",
                     "description": "Test Object4"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -635,7 +673,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "name": "Object4",
                     "description": "Test Object4"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -650,7 +689,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "name": "Object5",
                     "description": "Test Object5"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -662,7 +702,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "name": "Object5",
                     "description": "Test Object5"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -673,7 +714,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                 "objtype": "TestObj1",
                 "objpkey": 1,
                 "objattrs": {},
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -681,7 +723,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                 "objtype": "TestObj1_local",
                 "objpkey": 1,
                 "objattrs": {},
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -702,7 +745,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     },
                     "removed": {}
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -724,7 +768,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                         "new_attr32": null
                     }
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -743,7 +788,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                         "new_attr32": null
                     }
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -765,7 +811,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                         "description": null
                     }
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -787,7 +834,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                         "description": null
                     }
                 },
-                "step": 1
+                "step": 1,
+                "isPartiallyProcessed": true
             },
             "Fake error message"
         ],
@@ -808,7 +856,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                         "new_attr2": null
                     }
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -826,7 +875,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                         "new_attr2": null
                     }
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -837,7 +887,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                 "objtype": "TestObj1",
                 "objpkey": 3,
                 "objattrs": {},
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -845,7 +896,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                 "objtype": "TestObj1_local",
                 "objpkey": 3,
                 "objattrs": {},
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -866,7 +918,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                         "description": null
                     }
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -884,7 +937,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                         "description": null
                     }
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -905,7 +959,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                         "description": null
                     }
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -923,7 +978,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                         "description": null
                     }
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -938,7 +994,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "name": "Object3_v2",
                     "description": "Test Object3_v2"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -950,7 +1007,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "name": "Object3_v2",
                     "description": "Test Object3_v2"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -961,7 +1019,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                 "objtype": "TestObj1",
                 "objpkey": 5,
                 "objattrs": {},
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -969,7 +1028,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                 "objtype": "TestObj1_local",
                 "objpkey": 5,
                 "objattrs": {},
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -990,7 +1050,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                         "description": null
                     }
                 },
-                "step": 1
+                "step": 1,
+                "isPartiallyProcessed": true
             },
             {
                 "evcategory": "base",
@@ -1008,7 +1069,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                         "description": null
                     }
                 },
-                "step": 1
+                "step": 1,
+                "isPartiallyProcessed": true
             },
             "Fake error message"
         ],
@@ -1023,7 +1085,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "name": "Object5 new",
                     "description": "Test Object5 new"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -1035,7 +1098,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "name": "Object5 new",
                     "description": "Test Object5 new"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ]
@@ -1055,7 +1119,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "name": "Object1",
                     "description": "Test Object1"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "initsync",
@@ -1067,7 +1132,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "name": "Object1",
                     "description": "Test Object1"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -1088,7 +1154,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                         "new_attr2": null
                     }
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -1107,7 +1174,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                         "description": null
                     }
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -1129,7 +1197,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                         "new_attr30": null
                     }
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -1148,7 +1217,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                         "new_attr30": null
                     }
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -1163,7 +1233,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "name": "Object4_modified_final",
                     "new_attr41": "new_attr41_value_final"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -1176,7 +1247,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "new_attr4": "new_attr4_value",
                     "new_attr41": "new_attr41_value_final"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -1191,7 +1263,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "name": "Object5",
                     "description": "Test Object5"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -1203,7 +1276,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "name": "Object5",
                     "description": "Test Object5"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -1214,7 +1288,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                 "objtype": "TestObj1",
                 "objpkey": 1,
                 "objattrs": {},
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -1222,7 +1297,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                 "objtype": "TestObj1_local",
                 "objpkey": 1,
                 "objattrs": {},
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -1244,7 +1320,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                         "description": null
                     }
                 },
-                "step": 1
+                "step": 1,
+                "isPartiallyProcessed": true
             },
             "Fake error message"
         ],
@@ -1255,7 +1332,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                 "objtype": "TestObj1",
                 "objpkey": 3,
                 "objattrs": {},
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -1263,7 +1341,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                 "objtype": "TestObj1_local",
                 "objpkey": 3,
                 "objattrs": {},
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -1284,7 +1363,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                         "description": null
                     }
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -1302,7 +1382,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                         "description": null
                     }
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -1317,7 +1398,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "name": "Object3_v2",
                     "description": "Test Object3_v2"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -1329,7 +1411,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "name": "Object3_v2",
                     "description": "Test Object3_v2"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -1340,7 +1423,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                 "objtype": "TestObj1",
                 "objpkey": 5,
                 "objattrs": {},
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -1348,7 +1432,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                 "objtype": "TestObj1_local",
                 "objpkey": 5,
                 "objattrs": {},
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -1369,7 +1454,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                         "description": null
                     }
                 },
-                "step": 1
+                "step": 1,
+                "isPartiallyProcessed": true
             },
             {
                 "evcategory": "base",
@@ -1387,7 +1473,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                         "description": null
                     }
                 },
-                "step": 1
+                "step": 1,
+                "isPartiallyProcessed": true
             },
             "Fake error message"
         ],
@@ -1402,7 +1489,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "name": "Object5 new",
                     "description": "Test Object5 new"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -1414,7 +1502,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "name": "Object5 new",
                     "description": "Test Object5 new"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ]
@@ -1434,7 +1523,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "name": "Object1",
                     "description": "Test Object1"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "initsync",
@@ -1446,7 +1536,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "name": "Object1",
                     "description": "Test Object1"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -1467,7 +1558,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                         "new_attr2": null
                     }
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -1486,7 +1578,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                         "description": null
                     }
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -1508,7 +1601,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                         "new_attr30": null
                     }
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -1527,7 +1621,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                         "new_attr30": null
                     }
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -1542,7 +1637,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "name": "Object4_modified_final",
                     "new_attr41": "new_attr41_value_final"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -1555,7 +1651,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "new_attr4": "new_attr4_value",
                     "new_attr41": "new_attr41_value_final"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -1570,7 +1667,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "name": "Object5",
                     "description": "Test Object5"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -1582,7 +1680,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "name": "Object5",
                     "description": "Test Object5"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -1593,7 +1692,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                 "objtype": "TestObj1",
                 "objpkey": 1,
                 "objattrs": {},
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -1601,7 +1701,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                 "objtype": "TestObj1_local",
                 "objpkey": 1,
                 "objattrs": {},
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -1623,7 +1724,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                         "description": null
                     }
                 },
-                "step": 1
+                "step": 1,
+                "isPartiallyProcessed": true
             },
             "Fake error message"
         ],
@@ -1634,7 +1736,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                 "objtype": "TestObj1",
                 "objpkey": 3,
                 "objattrs": {},
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -1642,7 +1745,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                 "objtype": "TestObj1_local",
                 "objpkey": 3,
                 "objattrs": {},
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -1663,7 +1767,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                         "description": null
                     }
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -1681,7 +1786,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                         "description": null
                     }
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -1696,7 +1802,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "name": "Object3_v2",
                     "description": "Test Object3_v2"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -1708,7 +1815,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "name": "Object3_v2",
                     "description": "Test Object3_v2"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -1719,7 +1827,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                 "objtype": "TestObj1",
                 "objpkey": 5,
                 "objattrs": {},
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -1727,7 +1836,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                 "objtype": "TestObj1_local",
                 "objpkey": 5,
                 "objattrs": {},
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -1748,7 +1858,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                         "description": null
                     }
                 },
-                "step": 1
+                "step": 1,
+                "isPartiallyProcessed": true
             },
             {
                 "evcategory": "base",
@@ -1766,7 +1877,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                         "description": null
                     }
                 },
-                "step": 1
+                "step": 1,
+                "isPartiallyProcessed": true
             },
             "Fake error message"
         ],
@@ -1781,7 +1893,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "name": "Object5 new",
                     "description": "Test Object5 new"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -1793,7 +1906,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "name": "Object5 new",
                     "description": "Test Object5 new"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ]
@@ -1819,7 +1933,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                         "new_attr2": null
                     }
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -1838,7 +1953,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                         "description": null
                     }
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -1849,7 +1965,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                 "objtype": "TestObj1",
                 "objpkey": 3,
                 "objattrs": {},
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -1857,7 +1974,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                 "objtype": "TestObj1_local",
                 "objpkey": 3,
                 "objattrs": {},
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -1872,7 +1990,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "name": "Object4_modified_final",
                     "new_attr41": "new_attr41_value_final"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -1885,7 +2004,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "new_attr4": "new_attr4_value",
                     "new_attr41": "new_attr41_value_final"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -1900,7 +2020,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "name": "Object5",
                     "description": "Test Object5"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -1912,7 +2033,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "name": "Object5",
                     "description": "Test Object5"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -1934,7 +2056,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                         "description": null
                     }
                 },
-                "step": 1
+                "step": 1,
+                "isPartiallyProcessed": true
             },
             "Fake error message"
         ],
@@ -1945,7 +2068,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                 "objtype": "TestObj1",
                 "objpkey": 5,
                 "objattrs": {},
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -1953,7 +2077,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                 "objtype": "TestObj1_local",
                 "objpkey": 5,
                 "objattrs": {},
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -1968,7 +2093,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "name": "Object3_v2",
                     "description": "Test Object3_v2"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -1980,7 +2106,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "name": "Object3_v2",
                     "description": "Test Object3_v2"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -2001,7 +2128,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                         "description": null
                     }
                 },
-                "step": 1
+                "step": 1,
+                "isPartiallyProcessed": true
             },
             {
                 "evcategory": "base",
@@ -2019,7 +2147,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                         "description": null
                     }
                 },
-                "step": 1
+                "step": 1,
+                "isPartiallyProcessed": true
             },
             "Fake error message"
         ],
@@ -2034,7 +2163,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "name": "Object5 new",
                     "description": "Test Object5 new"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -2046,7 +2176,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "name": "Object5 new",
                     "description": "Test Object5 new"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ]
@@ -2072,7 +2203,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                         "new_attr2": null
                     }
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -2091,7 +2223,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                         "description": null
                     }
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -2102,7 +2235,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                 "objtype": "TestObj1",
                 "objpkey": 3,
                 "objattrs": {},
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -2110,7 +2244,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                 "objtype": "TestObj1_local",
                 "objpkey": 3,
                 "objattrs": {},
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -2125,7 +2260,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "name": "Object4_modified_final",
                     "new_attr41": "new_attr41_value_final"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -2138,7 +2274,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "new_attr4": "new_attr4_value",
                     "new_attr41": "new_attr41_value_final"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -2153,7 +2290,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "name": "Object5",
                     "description": "Test Object5"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -2165,7 +2303,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "name": "Object5",
                     "description": "Test Object5"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -2187,7 +2326,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                         "description": null
                     }
                 },
-                "step": 1
+                "step": 1,
+                "isPartiallyProcessed": true
             },
             "Fake error message"
         ],
@@ -2198,7 +2338,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                 "objtype": "TestObj1",
                 "objpkey": 5,
                 "objattrs": {},
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -2206,7 +2347,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                 "objtype": "TestObj1_local",
                 "objpkey": 5,
                 "objattrs": {},
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -2221,7 +2363,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "name": "Object3_v2",
                     "description": "Test Object3_v2"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -2233,7 +2376,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "name": "Object3_v2",
                     "description": "Test Object3_v2"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ],
@@ -2254,7 +2398,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                         "description": null
                     }
                 },
-                "step": 1
+                "step": 1,
+                "isPartiallyProcessed": true
             },
             {
                 "evcategory": "base",
@@ -2272,7 +2417,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                         "description": null
                     }
                 },
-                "step": 1
+                "step": 1,
+                "isPartiallyProcessed": true
             },
             "Fake error message"
         ],
@@ -2287,7 +2433,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "name": "Object5 new",
                     "description": "Test Object5 new"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             {
                 "evcategory": "base",
@@ -2299,7 +2446,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "name": "Object5 new",
                     "description": "Test Object5 new"
                 },
-                "step": 0
+                "step": 0,
+                "isPartiallyProcessed": false
             },
             "Fake error message"
         ]
@@ -2313,7 +2461,8 @@ class TestErrorQueueClass(HermesServerTestCase):
             "objtype": "TestObj1",
             "objpkey": 1,
             "objattrs": {"obj_id": 1},
-            "step": 0
+            "step": 0,
+            "isPartiallyProcessed": false
         }"""
     singleModifiedEventJson = """
         {
@@ -2326,7 +2475,8 @@ class TestErrorQueueClass(HermesServerTestCase):
                 "modified": {"attr": "value"},
                 "removed": {}
             },
-            "step": 0
+            "step": 0,
+            "isPartiallyProcessed": false
         }"""
     singleRemovedEventJson = """
         {
@@ -2335,7 +2485,8 @@ class TestErrorQueueClass(HermesServerTestCase):
             "objtype": "TestObj1",
             "objpkey": 1,
             "objattrs": {},
-            "step": 0
+            "step": 0,
+            "isPartiallyProcessed": false
         }"""
     singleUnexpectedEventJson = """
         {
@@ -2344,7 +2495,8 @@ class TestErrorQueueClass(HermesServerTestCase):
             "objtype": "TestObj1",
             "objpkey": 1,
             "objattrs": {"obj_id": 1},
-            "step": 0
+            "step": 0,
+            "isPartiallyProcessed": false
         }"""
 
     @classmethod
@@ -2661,6 +2813,7 @@ class TestErrorQueueClass(HermesServerTestCase):
                 "description": "Unknown Test Object 01",
             },
             "step": 0,
+            "isPartiallyProcessed": False,
         }
         event = Event(from_json_dict=evjson)
         with self.assertLogs(__hermes__.logger, level="INFO") as cm:

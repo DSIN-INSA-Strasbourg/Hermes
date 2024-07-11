@@ -213,6 +213,7 @@ class LdapClient(GenericClient):
                 except LDAPError as e:
                     self.__handleLDAPError(e)
                     raise
+                self.isPartiallyProcessed = True
 
             self.currentStep += 1
 
@@ -244,9 +245,11 @@ class LdapClient(GenericClient):
                     except LDAPError as e:
                         self.__handleLDAPError(e)
                         raise
+                    self.isPartiallyProcessed = True
 
                 # Change login in cached instance to reflect renaming
                 setattr(cachedobj, self.dnAttrUsers, getattr(newobj, self.dnAttrUsers))
+                self.isPartiallyProcessed = True
 
             self.currentStep += 1
 
@@ -261,6 +264,7 @@ class LdapClient(GenericClient):
                 except LDAPError as e:
                     self.__handleLDAPError(e)
                     raise
+                self.isPartiallyProcessed = True
             self.currentStep += 1
 
     @ensureIsConnected
@@ -324,6 +328,7 @@ class LdapClient(GenericClient):
                 setattr(
                     cachedobj, self.dnAttrGroups, getattr(newobj, self.dnAttrGroups)
                 )
+                self.isPartiallyProcessed = True
             self.currentStep += 1
 
         # Modify
@@ -337,6 +342,7 @@ class LdapClient(GenericClient):
                 except LDAPError as e:
                     self.__handleLDAPError(e)
                     raise
+                self.isPartiallyProcessed = True
             self.currentStep += 1
 
     @ensureIsConnected
@@ -450,4 +456,5 @@ class LdapClient(GenericClient):
                 except LDAPError as e:
                     self.__handleLDAPError(e)
                     raise
+                self.isPartiallyProcessed = True
             self.currentStep += 1
