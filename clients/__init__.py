@@ -1514,7 +1514,7 @@ class GenericClient:
 
         __hermes__.logger.info(
             f"Calling '{handlerName}({kwargsstr})' - currentStep={self.currentStep},"
-            f" isPartiallyProcessed={self.isPartiallyProcessed=}"
+            f" isPartiallyProcessed={self.isPartiallyProcessed}"
         )
 
         try:
