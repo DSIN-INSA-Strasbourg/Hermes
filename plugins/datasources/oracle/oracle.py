@@ -38,6 +38,9 @@ class DatasourceOracle(AbstractDataSourcePlugin):
         super().__init__(settings)
         self._dbcon: oracledb.connection.Connection | None = None
 
+        # returns strings or bytes instead of a LOB locator
+        oracledb.defaults.fetch_lobs = False
+
     def open(self):
         """Establish connection with Oracle Database"""
         params = {

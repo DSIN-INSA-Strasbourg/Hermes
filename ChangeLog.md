@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added a setting `hermes.logs.long_string_limit` to avoid to fill the logs with big strings content. If a string attribute content is greater than this limit, it will be truncated to this limit and marked as a LONG_STRING in logs.
 - Added the support of the python type `bytes` from datasources. It works, but should be used only for small binary content.
+- Added the BLOB support in the Oracle datasource plugin (plugins/datasources/oracle/), now that `bytes` are supported.
 
 ## [1.0.0-alpha.2] - 2024-07-11
 
