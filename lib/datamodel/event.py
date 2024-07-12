@@ -149,6 +149,8 @@ class Event(JSONSerializable):
 
             if k in secretattrs:
                 res[k] = f"<SECRET_VALUE({type(v)})>"
+            elif type(v) is bytes:
+                res[k] = f"<BINARY_DATA({len(v)})>"
             elif (
                 type(v) is str
                 and Event.LONG_STRING_LIMIT is not None

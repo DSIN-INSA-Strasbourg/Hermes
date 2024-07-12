@@ -30,6 +30,7 @@ if TYPE_CHECKING:  # pragma: no cover
 from lib.version import HERMES_VERSION, HERMES_VERSIONS
 from datetime import datetime
 from tempfile import NamedTemporaryFile
+import base64
 import json
 import os
 import os.path
@@ -78,6 +79,8 @@ class JSONEncoder(json.JSONEncoder):
         # If object to encode is a datetime, convert it to an internal isoformat string
         if isinstance(obj, datetime):
             return f"HermesDatetime({obj.isoformat(timespec='seconds')}Z)"
+        if isinstance(obj, bytes):
+            return f"HermesBytes({base64.b64encode(obj).decode('ascii')})"
         if isinstance(obj, JSONSerializable):
             return obj._get_jsondict()
         if isinstance(obj, set):
@@ -222,9 +225,7 @@ class JSONSerializable:
         return cls(from_json_dict=jsondict, **kwargs)
 
     @classmethod
-    def _json_parser(
-        cls: type[AnyJSONSerializable], value: dict[str, Any]
-    ) -> dict[str, Any]:
+    def _json_parser(cls: type[AnyJSONSerializable], value: Any) -> Any:
         if isinstance(value, dict):
             for k, v in value.items():
                 value[k] = cls._json_parser(v)
@@ -232,18 +233,26 @@ class JSONSerializable:
             for index, row in enumerate(value):
                 value[index] = cls._json_parser(row)
         elif isinstance(value, str) and value:
-            # String have to match internal isoformat  to be converted to datetime:
-            # "HermesDatetime(yyyy-mm-ddThh:mm:ssZ)"
-            if not re.fullmatch(
+            # HermesDatetime
+            if re.fullmatch(
                 r"HermesDatetime\(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z\)", value
             ):
-                pass
-            try:
-                # Ignore internal isformat container and trailing "Z":
-                # handle timezone could create a lot of troubles
-                value = datetime.fromisoformat(value[15:-2])
-            except ValueError:
-                pass
+                # String have to match internal isoformat  to be converted to datetime:
+                # "HermesDatetime(yyyy-mm-ddThh:mm:ssZ)"
+                try:
+                    # Ignore internal isformat container and trailing "Z":
+                    # handle timezone could create a lot of troubles
+                    value = datetime.fromisoformat(value[15:-2])
+                except ValueError:
+                    pass
+
+            # HermesBytes
+            elif re.fullmatch(r"HermesBytes\([^)]*\)", value):
+                try:
+                    value = base64.b64decode(value[12:-1].encode("ascii"))
+                except Exception:
+                    pass
+
         return value
 
 
