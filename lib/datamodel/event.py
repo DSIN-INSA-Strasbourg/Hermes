@@ -34,6 +34,12 @@ class Event(JSONSerializable):
 
     EVTYPES = ["initsync", "added", "modified", "removed", "dataschema"]
 
+    LONG_STRING_LIMIT: int | None = 256
+    """If a string attribute should be logged and its len is greater than this value,
+    it will be marked as a LONG_STRING and its content will be truncated.
+    Can be set to None to disable this feature.
+    """
+
     def __init__(
         self,
         evcategory: str | None = None,
@@ -143,6 +149,12 @@ class Event(JSONSerializable):
 
             if k in secretattrs:
                 res[k] = f"<SECRET_VALUE({type(v)})>"
+            elif (
+                type(v) is str
+                and Event.LONG_STRING_LIMIT is not None
+                and len(v) > Event.LONG_STRING_LIMIT
+            ):
+                res[k] = f"<LONG_STR({len(v)}, '{v[:Event.LONG_STRING_LIMIT]}...')>"
             else:
                 res[k] = v
         return res

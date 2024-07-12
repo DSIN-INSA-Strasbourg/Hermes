@@ -32,6 +32,7 @@ import sys
 import signal
 import threading
 import yaml
+from lib.datamodel.event import Event
 from lib.datamodel.serialization import LocalCache
 from lib.plugins import (
     AbstractAttributePlugin,
@@ -169,6 +170,9 @@ class HermesConfig(LocalCache):
             os.umask(self._config["hermes"]["umask"])
             lib.utils.logging.setup_logger(self)  # Setup logging
             LocalCache.setup(self)  # Update cache files settings
+            Event.LONG_STRING_LIMIT = self._config["hermes"]["logs"][
+                "long_string_limit"
+            ]  # Set LONG_STRING_LIMIT according to config
 
         super().__init__(
             jsondataattr="_rawconfig",

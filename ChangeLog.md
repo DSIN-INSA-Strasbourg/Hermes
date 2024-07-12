@@ -5,6 +5,12 @@ All notable changes to Hermes will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Added a setting `hermes.logs.long_string_limit` to avoid to fill the logs with big strings content. If a string attribute content is greater than this limit, it will be truncated to this limit and marked as a LONG_STRING in logs.
+
 ## [1.0.0-alpha.2] - 2024-07-11
 
 ### Added
