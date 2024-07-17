@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added a directory `clients/helpers/` to store some helpers modules that can be used by client plugins.
 - Added `clients.helper.command` helper, to run local commands on client's host.
+- Added `clients.helper.randompassword` helper, to generate random passwords with specific constraints.
 
 ## [1.0.0-alpha.3] - 2024-07-12
 
