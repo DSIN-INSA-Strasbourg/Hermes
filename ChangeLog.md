@@ -12,7 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a directory `clients/helpers/` to store some helpers modules that can be used by client plugins.
 - Added `clients.helper.command` helper, to run local commands on client's host.
 - Added `clients.helper.randompassword` helper, to generate random passwords with specific constraints.
-- Client plugins `usersgroups_adpypsrp` and `usersgroups_adwinrm`: replaced the random generation of non-configurable passwords with the `clients.helper.randompassword` helper, and added the possibility of configuring it using the client plugin configuration file
+- Client plugins `usersgroups_adpypsrp` and `usersgroups_adwinrm`: replaced the random generation of non-configurable passwords with the `clients.helper.randompassword` helper, and added the possibility of configuring it using the client plugin configuration file.
+- Added a new client plugin `usersgroups_kadmin_heimdal` to manage users and their passwords in an Heimdal Kerberos server.
 
 ## [1.0.0-alpha.3] - 2024-07-12
 
