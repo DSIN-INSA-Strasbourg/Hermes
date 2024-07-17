@@ -21,10 +21,10 @@
 
 
 from clients import GenericClient
+from clients.helpers.randompassword import RandomPassword
 from lib.config import HermesConfig
 from lib.datamodel.dataobject import DataObject
 
-import random
 from pypsrp.complex_objects import ObjectMeta
 from pypsrp.powershell import PowerShell, RunspacePool
 from pypsrp.wsman import WSMan
@@ -90,6 +90,22 @@ class PypsrpADClient(GenericClient):
         super().__init__(config)
         self.__init_settings()
         self.pool: RunspacePool | None = None
+        pwd_conf = self.config["random_passwords"]
+        self._randomPassword = RandomPassword(
+            length=pwd_conf["length"],
+            withUpperLetters=pwd_conf["with_upper_letters"],
+            minimumNumberOfUpperLetters=pwd_conf["minimum_number_of_upper_letters"],
+            withLowerLetters=pwd_conf["with_lower_letters"],
+            minimumNumberOfLowerLetters=pwd_conf["minimum_number_of_lower_letters"],
+            withNumbers=pwd_conf["with_numbers"],
+            minimumNumberOfNumbers=pwd_conf["minimum_number_of_numbers"],
+            withSpecialChars=pwd_conf["with_special_chars"],
+            minimumNumberOfSpecialChars=pwd_conf["minimum_number_of_special_chars"],
+            lettersDict=pwd_conf["letters_dictionary"],
+            specialCharsDict=pwd_conf["special_chars_dictionary"],
+            avoidAmbigousChars=pwd_conf["avoid_ambigous_chars"],
+            ambigousCharsdict=pwd_conf["ambigous_chars_dictionary"],
+        )
 
     def __connect(self):
         if self.pool is not None:
@@ -130,23 +146,6 @@ class PypsrpADClient(GenericClient):
         # Always use single quoted string, easier to escape
         # https://www.rlmueller.net/PowerShellEscape.htm
         return arg.replace("'", "''")
-
-    @staticmethod
-    def generateRandomPassword(length: int = 32) -> str:
-        lower = "aàäâbcçdeéèêëfghiîïjklmnoôöpqrstuùûüvwxyz"
-        upper = "AÀÄÂBCÇDEÉÈÊËFGHIÎÏJKLMNOÔÖPQRSTUÙÛÜVWXYZ"
-        numbers = "0123456789"
-        specials = "#{}()[]_@°=+-*.,?:!§%$£"
-        chars = lower + upper + numbers + specials
-        srcs = [lower, upper, numbers, specials, chars]
-
-        pw = ""
-        for i in range(0, length):
-            # Ensure at least on char of each type is used in returned password
-            if i < len(srcs):
-                src = srcs[i]
-            pw += random.choice(src)
-        return pw
 
     @ensureIsConnected
     def run_ps(self, script: str):
@@ -265,7 +264,8 @@ class PypsrpADClient(GenericClient):
             f"-Name '{self.escape(newobj.SamAccountName)}'",
             (
                 f"-AccountPassword (ConvertTo-SecureString"
-                f" '{self.escape(self.generateRandomPassword())}' -AsPlainText -force)"
+                f" '{self.escape(self._randomPassword.generate())}'"
+                " -AsPlainText -force)"
             ),
             "-Confirm:$False",
         ]
@@ -610,7 +610,7 @@ class PypsrpADClient(GenericClient):
         if hasattr(newobj, "password"):
             cacheduser = self.getObjectFromCache("Users", newobj.user_pkey)
             self.changePasswordSecure(
-                userdn=f"CN={cacheduser.SamAccountName},{self.users_ou}",
+                userdn=f"CN={self.escape(cacheduser.SamAccountName)},{self.users_ou}",
                 password=newobj.password,
             )
 
@@ -634,7 +634,7 @@ class PypsrpADClient(GenericClient):
         cacheduser = self.getObjectFromCache("Users", cachedobj.user_pkey)
         self.changePasswordSecure(
             userdn=f"CN={self.escape(cacheduser.SamAccountName)},{self.users_ou}",
-            password=self.escape(self.generateRandomPassword()),
+            password=self.escape(self._randomPassword.generate()),
         )
 
     def on_save(self):

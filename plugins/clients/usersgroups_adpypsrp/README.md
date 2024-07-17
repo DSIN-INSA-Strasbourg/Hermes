@@ -142,6 +142,37 @@ hermes-client-usersgroups_adpypsrp:
       otherMobile: "<String[]>"
       otherTelephone: "<String[]>"
       url: "<String[]>"
+
+  # Optional random password generation settings. Default: values specified below
+  # Random password is generated to initialize a user whose password is not yet available,
+  # or when the user password is removed but the user still exists
+  random_passwords:
+    # Password length
+    length: 32
+    # If true, the generated password may contains some upper cased letters
+    with_upper_letters: true
+    # The generated password will contain at least this number of upper cased letters
+    minimum_number_of_upper_letters: 1
+    # If true, the generated password may contains some lower cased letters
+    with_lower_letters: true
+    # The generated password will contain at least this number of lower cased letters
+    minimum_number_of_lower_letters: 1
+    # If true, the generated password may contains some numbers
+    with_numbers: true
+    # The generated password will contain at least this number of numbers
+    minimum_number_of_numbers: 1
+    # If true, the generated password may contains some special chars
+    with_special_chars: true
+    # The generated password will contain at least this number of special chars
+    minimum_number_of_special_chars: 1
+    # If true, the generated password won't contains the chars specified in 'ambigous_chars_dictionary'
+    avoid_ambigous_chars: false
+    # The dictionary of ambigous chars (case sensitive) that may be forbidden in password, even if some are present in other dictionnaries
+    ambigous_chars_dictionary: "lIO01"
+    # The dictionary of letters (case unsensitive) allowed in password
+    letters_dictionary: "abcdefghijklmnopqrstuvwxyz"
+    # The dictionary of special chars allowed in password
+    special_chars_dictionary: "!@#$%^&*"
 ```
 
 ## Datamodel

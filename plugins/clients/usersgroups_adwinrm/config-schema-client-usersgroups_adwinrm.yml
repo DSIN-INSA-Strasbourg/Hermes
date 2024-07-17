@@ -54,6 +54,7 @@ hermes-client-usersgroups_adwinrm:
             - ignore
             - validate
           default: validate
+
     AD_domain:
       type: dict
       required: true
@@ -75,6 +76,7 @@ hermes-client-usersgroups_adwinrm:
           type: string
           required: true
           empty: false
+
     standardAttributes:
       type: dict
       required: true
@@ -99,6 +101,7 @@ hermes-client-usersgroups_adwinrm:
             type: string
           valuesrules:
             type: string
+
     otherAttributes:
       type: dict
       required: true
@@ -121,3 +124,98 @@ hermes-client-usersgroups_adwinrm:
             type: string
           valuesrules:
             type: string
+
+    random_passwords:
+      type: dict
+      required: false
+      empty: false
+      default: {}
+      schema:
+        length:
+          type: integer
+          required: true
+          empty: false
+          nullable: false
+          default: 32
+          min: 1
+          max: 1024
+        with_upper_letters:
+          type: boolean
+          required: true
+          empty: false
+          nullable: false
+          default: true
+        minimum_number_of_upper_letters:
+          type: integer
+          required: true
+          empty: false
+          nullable: false
+          default: 1
+          min: 0
+          max: 1024
+        with_lower_letters:
+          type: boolean
+          required: true
+          empty: false
+          nullable: false
+          default: true
+        minimum_number_of_lower_letters:
+          type: integer
+          required: true
+          empty: false
+          nullable: false
+          default: 1
+          min: 0
+          max: 1024
+        with_numbers:
+          type: boolean
+          required: true
+          empty: false
+          nullable: false
+          default: true
+        minimum_number_of_numbers:
+          type: integer
+          required: true
+          empty: false
+          nullable: false
+          default: 1
+          min: 0
+          max: 1024
+        with_special_chars:
+          type: boolean
+          required: true
+          empty: false
+          nullable: false
+          default: true
+        minimum_number_of_special_chars:
+          type: integer
+          required: true
+          empty: false
+          nullable: false
+          default: 1
+          min: 0
+          max: 1024
+        avoid_ambigous_chars:
+          type: boolean
+          required: true
+          empty: false
+          nullable: false
+          default: false
+        ambigous_chars_dictionary:
+          type: string
+          required: true
+          empty: false
+          nullable: false
+          default: "lIO01"
+        letters_dictionary:
+          type: string
+          required: true
+          empty: false
+          nullable: false
+          default: "abcdefghijklmnopqrstuvwxyz"
+        special_chars_dictionary:
+          type: string
+          required: true
+          empty: false
+          nullable: false
+          default: "!@#$%^&*"
