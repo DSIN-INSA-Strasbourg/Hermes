@@ -38,8 +38,6 @@ The `GroupMembers` will only store data (typically LDAP `member` attribute) in L
 
 ## Configuration
 
-Nothing to configure for the plugin.
-
 ```yaml
 hermes-client-usersgroups_ldap:
     # MANDATORY: LDAP server URI

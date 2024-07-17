@@ -26,8 +26,6 @@ This client will generate a flat txt file by `Groups`, containing the e-mail add
 
 ## Configuration
 
-Nothing to configure for the plugin.
-
 ```yaml
 hermes-client-usersgroups_flatfiles_emails_of_groups:
   # MANDATORY

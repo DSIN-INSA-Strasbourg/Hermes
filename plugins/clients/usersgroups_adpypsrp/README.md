@@ -37,8 +37,6 @@ The trashbin will only disable the account.
 
 ## Configuration
 
-Nothing to configure for the plugin.
-
 ```yaml
 hermes-client-usersgroups_adpypsrp:
   WinRM:  # For options details, you may look at https://pypi.org/project/pypsrp/ - "Connection"

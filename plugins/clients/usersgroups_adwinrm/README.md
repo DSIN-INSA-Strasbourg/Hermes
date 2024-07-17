@@ -43,8 +43,6 @@ The trashbin will only disable the account.
 
 ## Configuration
 
-Nothing to configure for the plugin.
-
 ```yaml
 hermes-client-usersgroups_adwinrm:
   WinRM:  # For options details, you may look at https://github.com/diyan/pywinrm/#run-process-with-low-level-api-with-domain-user-disabling-https-cert-validation
