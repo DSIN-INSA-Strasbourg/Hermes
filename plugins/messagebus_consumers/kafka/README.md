@@ -38,6 +38,13 @@ hermes:
           servers:
             - dummy.example.com:9093
 
+          # Facultative: which Kafka API version to use. If unset, the
+          # api version will be detected at startup and reported in the logs.
+          # Don't set this directive unless you encounter some
+          # "kafka.errors.NoBrokersAvailable: NoBrokersAvailable" errors raised
+          # by a "self.check_version()" call.
+          api_version: [2, 6, 0]
+
           # Facultative: enables SSL authentication. If set, the 3 options below
           # must be defined
           ssl:

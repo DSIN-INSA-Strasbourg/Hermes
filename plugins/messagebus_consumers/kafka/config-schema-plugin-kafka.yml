@@ -28,6 +28,14 @@ servers:
   minlength: 1
   schema:
     type: string
+api_version:
+  type: list
+  required: false
+  empty: false
+  nullable: false
+  minlength: 1
+  schema:
+    type: integer
 ssl:
   type: dict
   required: false

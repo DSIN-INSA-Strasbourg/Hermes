@@ -39,22 +39,36 @@ class KafkaProducerPlugin(AbstractMessageBusProducerPlugin):
         self._settings"""
         super().__init__(settings)
         self._kafka: KafkaProducer | None = None
+        self._kafkaconfig: dict[str, Any] = {
+            "bootstrap_servers": self._settings["servers"],
+            "security_protocol": "PLAINTEXT",
+        }
+
+        if "ssl" in self._settings:
+            self._kafkaconfig.update(
+                {
+                    "security_protocol": "SSL",
+                    "ssl_check_hostname": True,
+                    "ssl_certfile": self._settings["ssl"]["certfile"],
+                    "ssl_keyfile": self._settings["ssl"]["keyfile"],
+                    "ssl_cafile": self._settings["ssl"]["cafile"],
+                }
+            )
+
+        if "api_version" in self._settings:
+            self._kafkaconfig["api_version"] = tuple(self._settings["api_version"])
 
     def open(self) -> Any:
         """Establish connection with messagebus"""
-        if "ssl" in self._settings:
-            self._kafka = KafkaProducer(
-                bootstrap_servers=self._settings["servers"],
-                security_protocol="SSL",
-                ssl_check_hostname=True,
-                ssl_certfile=self._settings["ssl"]["certfile"],
-                ssl_keyfile=self._settings["ssl"]["keyfile"],
-                ssl_cafile=self._settings["ssl"]["cafile"],
-            )
-        else:
-            self._kafka = KafkaProducer(
-                bootstrap_servers=self._settings["servers"],
-                security_protocol="PLAINTEXT",
+        self._kafka = KafkaProducer(**self._kafkaconfig)
+        if "api_version" not in self._kafkaconfig:
+            # Save the identified value to skip future Kafka check_version calls
+            self._kafkaconfig["api_version"] = self._kafka.config["api_version"]
+            __hermes__.logger.info(
+                "Kafka broker version identified. "
+                """Set "plugins.messagebus.kafka.settings.api_version: """
+                f"""{list(self._kafka.config["api_version"])}" in your config file """
+                "to skip Kafka auto check_version requests"
             )
 
     def close(self):

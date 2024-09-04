@@ -61,9 +61,21 @@ class KafkaConsumerPlugin(AbstractMessageBusConsumerPlugin):
                 }
             )
 
+        if "api_version" in self._settings:
+            self._kafkaconfig["api_version"] = tuple(self._settings["api_version"])
+
     def open(self) -> Any:
         """Establish connection with messagebus"""
         self._kafka = KafkaConsumer(**self._kafkaconfig)
+        if "api_version" not in self._kafkaconfig:
+            # Save the identified value to skip future Kafka check_version calls
+            self._kafkaconfig["api_version"] = self._kafka.config["api_version"]
+            __hermes__.logger.info(
+                "Kafka broker version identified. "
+                """Set "plugins.messagebus.kafka.settings.api_version: """
+                f"""{list(self._kafka.config["api_version"])}" in your config file """
+                "to skip Kafka auto check_version requests"
+            )
         self.__kafkapartition = TopicPartition(
             self._settings["topic"],
             self._kafka.partitions_for_topic(self._settings["topic"]).pop(),
