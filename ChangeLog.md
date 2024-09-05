@@ -11,6 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Kafka messagebus consumer and producer plugins: fixed occasional `kafka.errors.NoBrokersAvailable: NoBrokersAvailable` errors caused by a timeout while detecting the Kafka broker API version. Now the broker API version is only detected at application startup and reported in the logs, allowing to declare it using a new optional `plugins.messagebus.kafka.settings.api_version` configuration directive, which will disable the broker API version detection.
 
+### Security
+
+- Bumped python dependencies to their latest version :
+  - PyYAML
+  - cryptography (used by plugins/clients/usersgroups_adwinrm)
+  - pywinrm (used by plugins/clients/usersgroups_adwinrm)
+  - oracledb (used by plugins/datasources/oracle)
+
 ## [1.0.0-alpha.4] - 2024-07-17
 
 ### Added
