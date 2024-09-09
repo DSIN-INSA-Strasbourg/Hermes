@@ -23,6 +23,8 @@ jobs:
       - name: Install python-ldap requirements
         run: sudo apt install -y libldap-dev libsasl2-dev
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
