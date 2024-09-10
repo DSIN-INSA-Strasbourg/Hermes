@@ -52,6 +52,7 @@ class KafkaProducerPlugin(AbstractMessageBusProducerPlugin):
                     "ssl_certfile": self._settings["ssl"]["certfile"],
                     "ssl_keyfile": self._settings["ssl"]["keyfile"],
                     "ssl_cafile": self._settings["ssl"]["cafile"],
+                    "max_request_size": self._settings["max_request_size"],
                 }
             )
 

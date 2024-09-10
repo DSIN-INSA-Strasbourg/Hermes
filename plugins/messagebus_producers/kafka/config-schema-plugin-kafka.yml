@@ -36,6 +36,13 @@ api_version:
   minlength: 1
   schema:
     type: integer
+max_request_size:
+  type: integer
+  required: true
+  empty: false
+  nullable: false
+  default: 1048576
+  min: 1
 ssl:
   type: dict
   required: false

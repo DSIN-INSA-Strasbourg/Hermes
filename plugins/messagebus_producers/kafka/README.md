@@ -45,6 +45,15 @@ hermes:
           # by a "self.check_version()" call.
           api_version: [2, 6, 0]
 
+          # Facultative: Hard limit on the size of a message sent to Kafka.
+          # You should set a higher value if your Kafka messages are likely to
+          # exceed the default of 1MB or if you encountered the error
+          #   "MessageSizeTooLargeError: The message is xxx bytes when
+          #    serialized which is larger than the maximum request size you
+          #    have configured with the max_request_size configuration".
+          # Default: 1048576.
+          max_request_size: 1048576
+
           # Facultative: enables SSL authentication. If set, the 3 options below
           # must be defined
           ssl:
