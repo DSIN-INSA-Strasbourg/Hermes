@@ -42,6 +42,7 @@ class KafkaProducerPlugin(AbstractMessageBusProducerPlugin):
         self._kafkaconfig: dict[str, Any] = {
             "bootstrap_servers": self._settings["servers"],
             "security_protocol": "PLAINTEXT",
+            "max_request_size": self._settings["max_request_size"],
         }
 
         if "ssl" in self._settings:
@@ -52,7 +53,6 @@ class KafkaProducerPlugin(AbstractMessageBusProducerPlugin):
                     "ssl_certfile": self._settings["ssl"]["certfile"],
                     "ssl_keyfile": self._settings["ssl"]["keyfile"],
                     "ssl_cafile": self._settings["ssl"]["cafile"],
-                    "max_request_size": self._settings["max_request_size"],
                 }
             )
 
