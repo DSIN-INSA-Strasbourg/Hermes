@@ -597,10 +597,6 @@ class ErrorQueue(LocalCache):
         """Indicate if object of specified event exists in current instance"""
         return self.containsObject(event.objtype, event.objpkey, isLocalEvent)
 
-    def containsObjectByDataobject(self, obj: DataObject, isLocalObjtype: bool) -> bool:
-        """Indicate if specified obj exists in current instance"""
-        return self.containsObject(obj.getType(), obj.getPKey(), isLocalObjtype)
-
     def purgeAllEvents(self, objtype: str, objpkey: Any, isLocalObjtype: bool):
         """Delete all events of specified objpkey of specified objtype from current
         instance"""

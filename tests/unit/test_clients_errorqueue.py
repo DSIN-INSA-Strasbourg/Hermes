@@ -2973,23 +2973,3 @@ class TestErrorQueueClass(HermesServerTestCase):
         self.assertTrue(eq.containsObjectByEvent(ev, isLocalEvent=False))
         eq.purgeAllEvents("TestObj1", 3, isLocalObjtype=False)
         self.assertFalse(eq.containsObjectByEvent(ev, isLocalEvent=False))
-
-    def test_containsObjectByDataobject(self):
-        eq = ErrorQueue(
-            typesMapping=self.typesMapping,
-            autoremediate="disabled",
-            from_json_dict={"_queue": self.queue},
-        )
-
-        objvals = {
-            "OBJ_ID": 3,
-            "NAME": "Object3",
-            "DESCRIPTION": "Test Object3",
-            "NEW_ATTR1": "new_attr1_value",
-            "NEW_ATTR2": "new_attr2_value",
-            "NEW_ATTR3": "new_attr3_value",
-        }
-        obj = self.TestObj1(from_remote=objvals)
-        self.assertTrue(eq.containsObjectByDataobject(obj, isLocalObjtype=False))
-        eq.purgeAllEventsOfDataObject(obj, isLocalObjtype=False)
-        self.assertFalse(eq.containsObjectByDataobject(obj, isLocalObjtype=False))
