@@ -132,7 +132,7 @@ class Dataschema(LocalCache):
 
     def _setupDataobjects(self):
         """Set up dynamic subclasses according to schema"""
-        self.fillObjectTypes(self._schema.keys())
+        self._fillObjectTypes(self._schema.keys())
 
         for objname, objcls in self.objectTypes.items():
             objcls.HERMES_ATTRIBUTES = set(self._schema[objname]["HERMES_ATTRIBUTES"])
@@ -153,7 +153,7 @@ class Dataschema(LocalCache):
                 f" - LOCAL_ATTRIBUTES={objcls.LOCAL_ATTRIBUTES}"
             )
 
-    def fillObjectTypes(self, objnames: list[str]):
+    def _fillObjectTypes(self, objnames: list[str]):
         """Create empty dynamic subclasses from list of datamodel object types names"""
         # Delete old and unused classes if schema has changed
         for objname in self.objectTypes.keys() - set(objnames):
