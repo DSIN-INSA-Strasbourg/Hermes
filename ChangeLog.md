@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed a KeyError exception that could only occur on client primary keys update, if a removed event was in error queue.
 - kafka-python-ng set a default hard limit of 1MB for each message (event) sent to Kafka message bus. This limit can now be overriden by setting the new optional `plugins.messagebus.kafka.settings.max_request_size` configuration directive for `plugins.messagebus_producers.kafka` used only by `hermes-server`.
 
 ## [1.0.0-alpha.5] - 2024-09-05

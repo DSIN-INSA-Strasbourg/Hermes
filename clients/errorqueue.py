@@ -626,8 +626,10 @@ class ErrorQueue(LocalCache):
         self,
         new_remote_pkeys: dict[str, str],
         remote_data: Datasource,
+        remote_data_complete: Datasource,
         new_local_pkeys: dict[str, str],
         local_data: Datasource,
+        local_data_complete: Datasource,
     ):
         """Will update primary keys. new_remote_pkeys is a dict with remote objtype as
         key, and the new remote primary key attribute name as value. new_local_pkeys is
@@ -649,7 +651,11 @@ class ErrorQueue(LocalCache):
                     # Objtype of remote event has no pkey update
                     newRemoteEvent = remoteEvent
                 else:
-                    oldobj = remote_data[remoteEvent.objtype][remoteEvent.objpkey]
+                    oldobj = remote_data[remoteEvent.objtype].get(remoteEvent.objpkey)
+                    if oldobj is None:
+                        oldobj = remote_data_complete[remoteEvent.objtype][
+                            remoteEvent.objpkey
+                        ]
                     if type(new_remote_pkeys[remoteEvent.objtype]) is tuple:
                         # New pkey is a tuple, loop over each attr
                         newpkey = []
@@ -668,7 +674,9 @@ class ErrorQueue(LocalCache):
                 # Objtype of local event has no pkey update
                 newLocalEvent = localEvent
             else:
-                oldobj = local_data[localEvent.objtype][localEvent.objpkey]
+                oldobj = local_data[localEvent.objtype].get(localEvent.objpkey)
+                if oldobj is None:
+                    oldobj = local_data_complete[localEvent.objtype][localEvent.objpkey]
                 if type(new_local_pkeys[localEvent.objtype]) is tuple:
                     # New pkey is a tuple, loop over each attr
                     newpkey = []

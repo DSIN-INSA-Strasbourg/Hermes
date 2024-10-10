@@ -342,8 +342,10 @@ class Datamodel:
             __hermes__.logger.info("Updating changed primary keys in error queue")
             self.errorqueue.updatePrimaryKeys(
                 new_remote_pkeys,
+                self.remotedata,
                 self.remotedata_complete,
                 new_local_pkeys,
+                self.localdata,
                 self.localdata_complete,
             )
 
