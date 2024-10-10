@@ -388,11 +388,19 @@ class Datamodel:
     def __setupSchema(self) -> Dataschema:
         """Consolidate _fragments data to set up the Dataschema"""
         schema: dict[str, Any] = {}
+        datamodel: dict[str, Any] = self._config["hermes-server"]["datamodel"]
+
         for objtype in self._fragments.keys():
             count: dict[str, int] = {}
             secrets_attrs = set()
             cacheonly_attrs = set()
             local_attrs = set()
+            foreign_keys: dict[str, list[str]] = {}
+
+            # Save foreign keys, they'll be checked later
+            for localkey, v in datamodel[objtype]["foreignkeys"].items():
+                foreign_keys[localkey] = [v["from_objtype"], v["from_attr"]]
+
             # Ensure primarykey is in attrsmapping of each sources
             for fragment in self._fragments[objtype]:
                 objcls = fragment.getDataobjClass()
@@ -442,6 +450,7 @@ class Datamodel:
                 "CACHEONLY_ATTRIBUTES": cacheonly_attrs,
                 "LOCAL_ATTRIBUTES": local_attrs,
                 "PRIMARYKEY_ATTRIBUTE": pkey,
+                "FOREIGN_KEYS": foreign_keys,
                 "TOSTRING": tostringTpl,
             }
 

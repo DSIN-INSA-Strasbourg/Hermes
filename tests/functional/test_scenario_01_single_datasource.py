@@ -744,6 +744,11 @@ class TestScenarioSingle(HermesIntegrationTestCase):
             "group_simpleid",
             "user_simpleid",
         ]
+        del conf["hermes-server"]["datamodel"]["SRVGroupsMembers"]["foreignkeys"]
+        conf["hermes-server"]["datamodel"]["SRVGroupsMembers"]["foreignkeys"] = {
+            "group_simpleid": {"from_objtype": "SRVGroups", "from_attr": "simpleid"},
+            "user_simpleid": {"from_objtype": "SRVUsers", "from_attr": "simpleid"},
+        }
         conf["hermes-server"]["datamodel"]["SRVGroupsMembers"][
             "integrity_constraints"
         ] = [
@@ -798,6 +803,11 @@ class TestScenarioSingle(HermesIntegrationTestCase):
             "user_simpleid",
             "group_simpleid",
         ]
+        del conf["hermes-server"]["datamodel"]["SRVGroupsMembers"]["foreignkeys"]
+        conf["hermes-server"]["datamodel"]["SRVGroupsMembers"]["foreignkeys"] = {
+            "group_simpleid": {"from_objtype": "SRVGroups", "from_attr": "simpleid"},
+            "user_simpleid": {"from_objtype": "SRVUsers", "from_attr": "simpleid"},
+        }
         conf["hermes-server"]["datamodel"]["SRVGroupsMembers"][
             "integrity_constraints"
         ] = [
@@ -1448,3 +1458,912 @@ class TestScenarioSingle(HermesIntegrationTestCase):
             "[hermes-client-usersgroups_null] no more objects in error queue",
         )
         self.assertClientdataLen(Users=+2, Groups=+2)
+
+    # Tests with foreignkeys_policy=on_every_event
+    def test_510a_server_add_error_with_foreignkey_on_every_event(self):
+        self.log_current_test_name(myself())
+
+        groupmember = [
+            deepcopy(entry)
+            for entry in self.fixtures["groupmembers"]
+            if entry["user_login"] == "snewton"
+            and entry["group_name"] == "industrial_engineering"
+        ][0]
+        groupmember["errorattr"] = "error"
+
+        self.updateEntry(
+            self.databases["db_single"],
+            "groupmembers",
+            ["user_login", "group_name"],
+            groupmember,
+        )
+
+        self.serverthread.update()
+        self.assertServerdataLen()
+        self.assertServerIntegrityfiltered()
+
+    def test_510b_client_add_error_with_foreignkey_on_every_event(
+        self,
+    ):
+        self.log_current_test_name(myself())
+        conf = self.loadYamlClient("single")
+        conf["hermes-client"]["foreignkeys_policy"] = "on_every_event"
+        self.clientthread.restart_client(conf)
+        self.assertRaises(NewPendingEmail, self.clientthread.update)
+        self.assertEqual(EmailFixture.numberOfUnreadEmails(), 1)
+        self.assertEqual(
+            EmailFixture.emails[0].subject,
+            "[hermes-client-usersgroups_null] objects in error queue have changed",
+        )
+        self.assertClientdataLen()
+        self.assertEqual(1, len(self.clienterrorqueue()))  # 1 GroupMember in errorqueue
+
+    def test_511a_server_modify_obj_that_is_foreignkey_parent_on_every_event(self):
+        self.log_current_test_name(myself())
+
+        snewton = [
+            deepcopy(entry)
+            for entry in self.fixtures["users_all"]
+            if entry["login"] == "snewton"
+        ][0]
+        snewton["middle_name"] = "Isaac"  # Add a middle name
+
+        self.updateEntry(self.databases["db_single"], "users_all", ["login"], snewton)
+
+        self.serverthread.update()
+        self.assertServerdataLen()
+        self.assertServerIntegrityfiltered()
+
+    def test_511b_client_modify_obj_that_is_foreignkey_parent_on_every_event(
+        self,
+    ):
+        self.log_current_test_name(myself())
+        self.assertRaises(NewPendingEmail, self.clientthread.update)
+        self.assertEqual(EmailFixture.numberOfUnreadEmails(), 1)
+        self.assertEqual(
+            EmailFixture.emails[0].subject,
+            "[hermes-client-usersgroups_null] objects in error queue have changed",
+        )
+        self.assertClientdataLen()
+        # 1 GroupMember in errorqueue, 1 User
+        self.assertEqual(2, len(self.clienterrorqueue()))
+
+        # Retry error queue and ensure parent won't be retried
+        with self.assertLogs(self.clientthread.logger, level="INFO") as cm:
+            self.clientthread.update()
+        self.assertClientdataLen()
+        # 1 GroupMember in errorqueue, 1 User
+        self.assertEqual(2, len(self.clienterrorqueue()))
+        self.assertIn(
+            "INFO:hermes-client-functional-tests:Won't retry remote event"
+            " <Event(SRVUsers_modified[49e64c22-89a0-47eb-b98f-569b465cc2cb])> from"
+            " error queue as it is still a dependency of another error",
+            cm.output,
+        )
+
+    def test_512a_server_delete_obj_that_is_foreignkey_parent_on_every_event(self):
+        self.log_current_test_name(myself())
+
+        snewton = [
+            entry for entry in self.fixtures["users_all"] if entry["login"] == "snewton"
+        ][0]
+        self.deleteEntry(self.databases["db_single"], "users_all", ["login"], snewton)
+
+        # Disable integrity constraints to permit user deletion without removing its
+        #  SRVGroupsMembers entries
+        conf = self.loadYamlServer("single")
+        del conf["hermes-server"]["datamodel"]["SRVGroupsMembers"][
+            "integrity_constraints"
+        ]
+        self.serverthread.restart_server(conf)
+        self.serverthread.update()
+        self.assertServerdataLen(SRVUsers=-1, SRVGroupsMembers=+3)
+        self.assertServerIntegrityfiltered(SRVGroupsMembers=-3)
+
+    def test_512b_client_delete_obj_that_is_foreignkey_parent_on_every_event(
+        self,
+    ):
+        self.log_current_test_name(myself())
+        self.clientthread.update()
+        self.assertClientdataLen()
+        # 1 GroupMember in errorqueue, 1 User twice (modified then removed)
+        self.assertEqual(3, len(self.clienterrorqueue()))
+
+        # Retry error queue and ensure parent won't be retried
+        with self.assertLogs(self.clientthread.logger, level="INFO") as cm:
+            self.clientthread.update()
+        self.assertClientdataLen()
+        # 1 GroupMember in errorqueue, 1 User twice (modified then removed
+        self.assertEqual(3, len(self.clienterrorqueue()))
+        self.assertIn(
+            "INFO:hermes-client-functional-tests:Won't retry remote event"
+            " <Event(SRVUsers_modified[49e64c22-89a0-47eb-b98f-569b465cc2cb])>"
+            " from error queue as it is still a dependency of another error",
+            cm.output,
+        )
+
+    def test_513a_server_foreignkey_fixerrors_on_every_event(self):
+        self.log_current_test_name(myself())
+
+        snewton = [
+            entry for entry in self.fixtures["users_all"] if entry["login"] == "snewton"
+        ][0]
+        self.insertEntry(self.databases["db_single"], "users_all", snewton)
+
+        groupmember = [
+            deepcopy(entry)
+            for entry in self.fixtures["groupmembers"]
+            if entry["user_login"] == "snewton"
+            and entry["group_name"] == "industrial_engineering"
+        ][0]
+
+        self.updateEntry(
+            self.databases["db_single"],
+            "groupmembers",
+            ["user_login", "group_name"],
+            groupmember,
+        )
+
+        # Restore integrity constraints on SRVGroupsMembers entries
+        conf = self.loadYamlServer("single")
+        self.serverthread.restart_server(conf)
+        self.serverthread.update()
+        self.assertServerdataLen(SRVUsers=+1, SRVGroupsMembers=-3)
+        self.assertServerIntegrityfiltered(SRVGroupsMembers=+3)
+
+    def test_513b_client_foreignkey_fixerrors_on_every_event(
+        self,
+    ):
+        self.log_current_test_name(myself())
+        self.clientthread.update()
+        self.assertClientdataLen()
+        # 1 GroupMember in errorqueue, 1 User thrice (modified then removed, then added)
+        self.assertEqual(4, len(self.clienterrorqueue()))
+
+        # Second loop to retry error queue
+        self.assertRaises(NewPendingEmail, self.clientthread.update)
+        self.assertEqual(EmailFixture.numberOfUnreadEmails(), 1)
+        self.assertEqual(
+            EmailFixture.emails[0].subject,
+            "[hermes-client-usersgroups_null] no more objects in error queue",
+        )
+        self.assertClientdataLen()
+        self.assertEqual(0, len(self.clienterrorqueue()))  # empty errorqueue
+
+    # Tests with foreignkeys_policy=on_remove_event
+    def test_520a_server_add_error_with_foreignkey_on_remove_event(self):
+        self.log_current_test_name(myself())
+
+        groupmember = [
+            deepcopy(entry)
+            for entry in self.fixtures["groupmembers"]
+            if entry["user_login"] == "snewton"
+            and entry["group_name"] == "industrial_engineering"
+        ][0]
+        groupmember["errorattr"] = "error"
+
+        self.updateEntry(
+            self.databases["db_single"],
+            "groupmembers",
+            ["user_login", "group_name"],
+            groupmember,
+        )
+
+        self.serverthread.update()
+        self.assertServerdataLen()
+        self.assertServerIntegrityfiltered()
+
+    def test_520b_client_add_error_with_foreignkey_on_remove_event(
+        self,
+    ):
+        self.log_current_test_name(myself())
+        conf = self.loadYamlClient("single")
+        conf["hermes-client"]["foreignkeys_policy"] = "on_remove_event"
+        self.clientthread.restart_client(conf)
+        self.assertRaises(NewPendingEmail, self.clientthread.update)
+        self.assertEqual(EmailFixture.numberOfUnreadEmails(), 1)
+        self.assertEqual(
+            EmailFixture.emails[0].subject,
+            "[hermes-client-usersgroups_null] objects in error queue have changed",
+        )
+        self.assertClientdataLen()
+        self.assertEqual(1, len(self.clienterrorqueue()))  # 1 GroupMember in errorqueue
+
+    def test_521a_server_modify_obj_that_is_foreignkey_parent_on_remove_event(self):
+        self.log_current_test_name(myself())
+
+        snewton = [
+            deepcopy(entry)
+            for entry in self.fixtures["users_all"]
+            if entry["login"] == "snewton"
+        ][0]
+        snewton["middle_name"] = "Isaac"  # Add a middle name
+
+        self.updateEntry(self.databases["db_single"], "users_all", ["login"], snewton)
+
+        self.serverthread.update()
+        self.assertServerdataLen()
+        self.assertServerIntegrityfiltered()
+
+    def test_521b_client_modify_obj_that_is_foreignkey_parent_on_remove_event(
+        self,
+    ):
+        self.log_current_test_name(myself())
+        self.clientthread.update()
+        self.assertClientdataLen()
+        self.assertEqual(1, len(self.clienterrorqueue()))  # 1 GroupMember in errorqueue
+
+    def test_522a_server_delete_obj_that_is_foreignkey_parent_on_remove_event(self):
+        self.log_current_test_name(myself())
+
+        snewton = [
+            entry for entry in self.fixtures["users_all"] if entry["login"] == "snewton"
+        ][0]
+        self.deleteEntry(self.databases["db_single"], "users_all", ["login"], snewton)
+
+        # Disable integrity constraints to permit user deletion without removing its
+        #  SRVGroupsMembers entries
+        conf = self.loadYamlServer("single")
+        del conf["hermes-server"]["datamodel"]["SRVGroupsMembers"][
+            "integrity_constraints"
+        ]
+        self.serverthread.restart_server(conf)
+        self.serverthread.update()
+        self.assertServerdataLen(SRVUsers=-1, SRVGroupsMembers=+3)
+        self.assertServerIntegrityfiltered(SRVGroupsMembers=-3)
+
+    def test_522b_client_delete_obj_that_is_foreignkey_parent_on_remove_event(
+        self,
+    ):
+        self.log_current_test_name(myself())
+        self.assertRaises(NewPendingEmail, self.clientthread.update)
+        self.assertEqual(EmailFixture.numberOfUnreadEmails(), 1)
+        self.assertEqual(
+            EmailFixture.emails[0].subject,
+            "[hermes-client-usersgroups_null] objects in error queue have changed",
+        )
+        self.assertClientdataLen()
+        # 1 GroupMember in errorqueue, 1 User
+        self.assertEqual(2, len(self.clienterrorqueue()))
+
+        # Retry error queue and ensure parent won't be retried
+        with self.assertLogs(self.clientthread.logger, level="INFO") as cm:
+            self.clientthread.update()
+        self.assertClientdataLen()
+        # 1 GroupMember in errorqueue, 1 User
+        self.assertEqual(2, len(self.clienterrorqueue()))
+        self.assertIn(
+            "INFO:hermes-client-functional-tests:Won't retry remote event"
+            " <Event(SRVUsers_removed[49e64c22-89a0-47eb-b98f-569b465cc2cb])>"
+            " from error queue as it is still a dependency of another error",
+            cm.output,
+        )
+
+    def test_523a_server_foreignkey_fixerrors_on_remove_event(self):
+        self.log_current_test_name(myself())
+
+        snewton = [
+            entry for entry in self.fixtures["users_all"] if entry["login"] == "snewton"
+        ][0]
+        self.insertEntry(self.databases["db_single"], "users_all", snewton)
+
+        groupmember = [
+            deepcopy(entry)
+            for entry in self.fixtures["groupmembers"]
+            if entry["user_login"] == "snewton"
+            and entry["group_name"] == "industrial_engineering"
+        ][0]
+
+        self.updateEntry(
+            self.databases["db_single"],
+            "groupmembers",
+            ["user_login", "group_name"],
+            groupmember,
+        )
+
+        # Restore integrity constraints on SRVGroupsMembers entries
+        conf = self.loadYamlServer("single")
+        self.serverthread.restart_server(conf)
+        self.serverthread.update()
+        self.assertServerdataLen(SRVUsers=+1, SRVGroupsMembers=-3)
+        self.assertServerIntegrityfiltered(SRVGroupsMembers=+3)
+
+    def test_523b_client_foreignkey_fixerrors_on_remove_event(
+        self,
+    ):
+        self.log_current_test_name(myself())
+        self.clientthread.update()
+        self.assertClientdataLen()
+        # 1 GroupMember in errorqueue, 1 User twice (removed then added)
+        self.assertEqual(3, len(self.clienterrorqueue()))
+
+        # Second loop to retry error queue
+        self.assertRaises(NewPendingEmail, self.clientthread.update)
+        self.assertEqual(EmailFixture.numberOfUnreadEmails(), 1)
+        self.assertEqual(
+            EmailFixture.emails[0].subject,
+            "[hermes-client-usersgroups_null] no more objects in error queue",
+        )
+        self.assertClientdataLen()
+        self.assertEqual(0, len(self.clienterrorqueue()))  # empty errorqueue
+
+    # Tests with foreignkeys_policy=disabled
+    def test_530a_server_add_error_with_foreignkey_disabled(self):
+        self.log_current_test_name(myself())
+
+        groupmember = [
+            deepcopy(entry)
+            for entry in self.fixtures["groupmembers"]
+            if entry["user_login"] == "snewton"
+            and entry["group_name"] == "industrial_engineering"
+        ][0]
+        groupmember["errorattr"] = "error"
+
+        self.updateEntry(
+            self.databases["db_single"],
+            "groupmembers",
+            ["user_login", "group_name"],
+            groupmember,
+        )
+
+        self.serverthread.update()
+        self.assertServerdataLen()
+        self.assertServerIntegrityfiltered()
+
+    def test_530b_client_add_error_with_foreignkey_disabled(
+        self,
+    ):
+        self.log_current_test_name(myself())
+        conf = self.loadYamlClient("single")
+        conf["hermes-client"]["foreignkeys_policy"] = "disabled"
+        self.clientthread.restart_client(conf)
+        self.assertRaises(NewPendingEmail, self.clientthread.update)
+        self.assertEqual(EmailFixture.numberOfUnreadEmails(), 1)
+        self.assertEqual(
+            EmailFixture.emails[0].subject,
+            "[hermes-client-usersgroups_null] objects in error queue have changed",
+        )
+        self.assertClientdataLen()
+        self.assertEqual(1, len(self.clienterrorqueue()))  # 1 GroupMember in errorqueue
+
+    def test_531a_server_modify_obj_that_is_foreignkey_parent_disabled(self):
+        self.log_current_test_name(myself())
+
+        snewton = [
+            deepcopy(entry)
+            for entry in self.fixtures["users_all"]
+            if entry["login"] == "snewton"
+        ][0]
+        snewton["middle_name"] = "Isaac"  # Add a middle name
+
+        self.updateEntry(self.databases["db_single"], "users_all", ["login"], snewton)
+
+        self.serverthread.update()
+        self.assertServerdataLen()
+        self.assertServerIntegrityfiltered()
+
+    def test_531b_client_modify_obj_that_is_foreignkey_parent_disabled(
+        self,
+    ):
+        self.log_current_test_name(myself())
+        self.clientthread.update()
+        self.assertClientdataLen()
+        self.assertEqual(1, len(self.clienterrorqueue()))  # 1 GroupMember in errorqueue
+
+    def test_532a_server_delete_obj_that_is_foreignkey_parent_disabled(self):
+        self.log_current_test_name(myself())
+
+        snewton = [
+            entry for entry in self.fixtures["users_all"] if entry["login"] == "snewton"
+        ][0]
+        self.deleteEntry(self.databases["db_single"], "users_all", ["login"], snewton)
+
+        # Disable integrity constraints to permit user deletion without removing its
+        #  SRVGroupsMembers entries
+        conf = self.loadYamlServer("single")
+        del conf["hermes-server"]["datamodel"]["SRVGroupsMembers"][
+            "integrity_constraints"
+        ]
+        self.serverthread.restart_server(conf)
+        self.serverthread.update()
+        self.assertServerdataLen(SRVUsers=-1, SRVGroupsMembers=+3)
+        self.assertServerIntegrityfiltered(SRVGroupsMembers=-3)
+
+    def test_532b_client_delete_obj_that_is_foreignkey_parent_disabled(
+        self,
+    ):
+        self.log_current_test_name(myself())
+        self.clientthread.update()
+        self.assertClientdataLen()
+        self.assertEqual(1, len(self.clienterrorqueue()))  # 1 GroupMember in errorqueue
+
+    def test_533a_server_foreignkey_fixerrors_disabled(self):
+        self.log_current_test_name(myself())
+
+        snewton = [
+            entry for entry in self.fixtures["users_all"] if entry["login"] == "snewton"
+        ][0]
+        self.insertEntry(self.databases["db_single"], "users_all", snewton)
+
+        groupmember = [
+            deepcopy(entry)
+            for entry in self.fixtures["groupmembers"]
+            if entry["user_login"] == "snewton"
+            and entry["group_name"] == "industrial_engineering"
+        ][0]
+
+        self.updateEntry(
+            self.databases["db_single"],
+            "groupmembers",
+            ["user_login", "group_name"],
+            groupmember,
+        )
+
+        # Restore integrity constraints on SRVGroupsMembers entries
+        conf = self.loadYamlServer("single")
+        self.serverthread.restart_server(conf)
+        self.serverthread.update()
+        self.assertServerdataLen(SRVUsers=+1, SRVGroupsMembers=-3)
+        self.assertServerIntegrityfiltered(SRVGroupsMembers=+3)
+
+    def test_533b_client_foreignkey_fixerrors_disabled(
+        self,
+    ):
+        self.log_current_test_name(myself())
+        self.clientthread.update()
+        self.assertClientdataLen()
+        # 1 GroupMember in errorqueue,
+        # and 1 User(attr modification after trash recycling)
+        self.assertEqual(2, len(self.clienterrorqueue()))
+
+        # Second loop to retry error queue
+        self.assertRaises(NewPendingEmail, self.clientthread.update)
+        self.assertEqual(EmailFixture.numberOfUnreadEmails(), 1)
+        self.assertEqual(
+            EmailFixture.emails[0].subject,
+            "[hermes-client-usersgroups_null] no more objects in error queue",
+        )
+        self.assertClientdataLen()
+        self.assertEqual(0, len(self.clienterrorqueue()))  # empty errorqueue
+
+    # Tests with foreignkeys_policy=on_every_event,
+    # then migrate to foreignkeys_policy=disabled
+    def test_540a_server_add_error_with_foreignkey_on_every_event(self):
+        self.log_current_test_name(myself())
+
+        groupmember = [
+            deepcopy(entry)
+            for entry in self.fixtures["groupmembers"]
+            if entry["user_login"] == "snewton"
+            and entry["group_name"] == "industrial_engineering"
+        ][0]
+        groupmember["errorattr"] = "error"
+
+        self.updateEntry(
+            self.databases["db_single"],
+            "groupmembers",
+            ["user_login", "group_name"],
+            groupmember,
+        )
+
+        self.serverthread.update()
+        self.assertServerdataLen()
+        self.assertServerIntegrityfiltered()
+
+    def test_540b_client_add_error_with_foreignkey_on_every_event(
+        self,
+    ):
+        self.log_current_test_name(myself())
+        conf = self.loadYamlClient("single")
+        conf["hermes-client"]["foreignkeys_policy"] = "on_every_event"
+        self.clientthread.restart_client(conf)
+        self.assertRaises(NewPendingEmail, self.clientthread.update)
+        self.assertEqual(EmailFixture.numberOfUnreadEmails(), 1)
+        self.assertEqual(
+            EmailFixture.emails[0].subject,
+            "[hermes-client-usersgroups_null] objects in error queue have changed",
+        )
+        self.assertClientdataLen()
+        self.assertEqual(1, len(self.clienterrorqueue()))  # 1 GroupMember in errorqueue
+
+    def test_541a_server_modify_obj_that_is_foreignkey_parent_on_every_event(self):
+        self.log_current_test_name(myself())
+
+        snewton = [
+            deepcopy(entry)
+            for entry in self.fixtures["users_all"]
+            if entry["login"] == "snewton"
+        ][0]
+        snewton["middle_name"] = "Isaac"  # Add a middle name
+
+        self.updateEntry(self.databases["db_single"], "users_all", ["login"], snewton)
+
+        self.serverthread.update()
+        self.assertServerdataLen()
+        self.assertServerIntegrityfiltered()
+
+    def test_541b_client_modify_obj_that_is_foreignkey_parent_on_every_event(
+        self,
+    ):
+        self.log_current_test_name(myself())
+        self.assertRaises(NewPendingEmail, self.clientthread.update)
+        self.assertEqual(EmailFixture.numberOfUnreadEmails(), 1)
+        self.assertEqual(
+            EmailFixture.emails[0].subject,
+            "[hermes-client-usersgroups_null] objects in error queue have changed",
+        )
+        self.assertClientdataLen()
+        # 1 GroupMember in errorqueue, 1 User
+        self.assertEqual(2, len(self.clienterrorqueue()))
+
+        # Retry error queue and ensure parent won't be retried
+        with self.assertLogs(self.clientthread.logger, level="INFO") as cm:
+            self.clientthread.update()
+        self.assertClientdataLen()
+        # 1 GroupMember in errorqueue, 1 User
+        self.assertEqual(2, len(self.clienterrorqueue()))
+        self.assertIn(
+            "INFO:hermes-client-functional-tests:Won't retry remote event"
+            " <Event(SRVUsers_modified[49e64c22-89a0-47eb-b98f-569b465cc2cb])> from"
+            " error queue as it is still a dependency of another error",
+            cm.output,
+        )
+
+    def test_541c_client_reload_with_foreignkey_disabled(
+        self,
+    ):
+        self.log_current_test_name(myself())
+        conf = self.loadYamlClient("single")
+        conf["hermes-client"]["foreignkeys_policy"] = "disabled"
+        self.clientthread.restart_client(conf)
+        self.clientthread.update()
+        self.assertClientdataLen()
+        # 1 GroupMember in errorqueue, 1 User
+        self.assertEqual(2, len(self.clienterrorqueue()))
+
+    def test_542a_server_delete_obj_that_is_foreignkey_parent_disabled(self):
+        self.log_current_test_name(myself())
+
+        snewton = [
+            entry for entry in self.fixtures["users_all"] if entry["login"] == "snewton"
+        ][0]
+        self.deleteEntry(self.databases["db_single"], "users_all", ["login"], snewton)
+
+        # Disable integrity constraints to permit user deletion without removing its
+        #  SRVGroupsMembers entries
+        conf = self.loadYamlServer("single")
+        del conf["hermes-server"]["datamodel"]["SRVGroupsMembers"][
+            "integrity_constraints"
+        ]
+        self.serverthread.restart_server(conf)
+        self.serverthread.update()
+        self.assertServerdataLen(SRVUsers=-1, SRVGroupsMembers=+3)
+        self.assertServerIntegrityfiltered(SRVGroupsMembers=-3)
+
+    def test_542b_client_delete_obj_that_is_foreignkey_parent_disabled(
+        self,
+    ):
+        self.log_current_test_name(myself())
+        self.clientthread.update()
+        self.assertClientdataLen()
+        # 1 GroupMember in errorqueue, 1 User twice (modified then removed)
+        self.assertEqual(3, len(self.clienterrorqueue()))
+
+        # Retry error queue and ensure parent won't be retried
+        with self.assertLogs(self.clientthread.logger, level="INFO") as cm:
+            self.clientthread.update()
+        self.assertClientdataLen()
+        # 1 GroupMember in errorqueue, 1 User twice (modified then removed)
+        self.assertEqual(3, len(self.clienterrorqueue()))
+        self.assertIn(
+            "INFO:hermes-client-functional-tests:Won't retry remote event"
+            " <Event(SRVUsers_modified[49e64c22-89a0-47eb-b98f-569b465cc2cb])>"
+            " from error queue as it is still a dependency of another error",
+            cm.output,
+        )
+
+    def test_543a_server_foreignkey_fixerrors_on_disabled(self):
+        self.log_current_test_name(myself())
+
+        snewton = [
+            entry for entry in self.fixtures["users_all"] if entry["login"] == "snewton"
+        ][0]
+        self.insertEntry(self.databases["db_single"], "users_all", snewton)
+
+        groupmember = [
+            deepcopy(entry)
+            for entry in self.fixtures["groupmembers"]
+            if entry["user_login"] == "snewton"
+            and entry["group_name"] == "industrial_engineering"
+        ][0]
+
+        self.updateEntry(
+            self.databases["db_single"],
+            "groupmembers",
+            ["user_login", "group_name"],
+            groupmember,
+        )
+
+        # Restore integrity constraints on SRVGroupsMembers entries
+        conf = self.loadYamlServer("single")
+        self.serverthread.restart_server(conf)
+        self.serverthread.update()
+        self.assertServerdataLen(SRVUsers=+1, SRVGroupsMembers=-3)
+        self.assertServerIntegrityfiltered(SRVGroupsMembers=+3)
+
+    def test_543b_client_foreignkey_fixerrors_disabled(
+        self,
+    ):
+        self.log_current_test_name(myself())
+        self.clientthread.update()
+        self.assertClientdataLen()
+        # 1 GroupMember in errorqueue, 1 User thrice (modified then removed then added)
+        self.assertEqual(4, len(self.clienterrorqueue()))
+
+        # Second loop to retry error queue
+        self.assertRaises(NewPendingEmail, self.clientthread.update)
+        self.assertEqual(EmailFixture.numberOfUnreadEmails(), 1)
+        self.assertEqual(
+            EmailFixture.emails[0].subject,
+            "[hermes-client-usersgroups_null] no more objects in error queue",
+        )
+        self.assertClientdataLen()
+        self.assertEqual(0, len(self.clienterrorqueue()))  # empty errorqueue
+
+    # Tests with foreignkeys_policy=on_every_event, with a primary key update
+    def test_550a_server_add_error_with_foreignkey_on_every_event(self):
+        self.log_current_test_name(myself())
+
+        groupmember = [
+            deepcopy(entry)
+            for entry in self.fixtures["groupmembers"]
+            if entry["user_login"] == "snewton"
+            and entry["group_name"] == "industrial_engineering"
+        ][0]
+        groupmember["errorattr"] = "error"
+
+        self.updateEntry(
+            self.databases["db_single"],
+            "groupmembers",
+            ["user_login", "group_name"],
+            groupmember,
+        )
+
+        self.serverthread.update()
+        self.assertServerdataLen()
+        self.assertServerIntegrityfiltered()
+
+    def test_550b_client_add_error_with_foreignkey_on_every_event(
+        self,
+    ):
+        self.log_current_test_name(myself())
+        conf = self.loadYamlClient("single")
+        conf["hermes-client"]["foreignkeys_policy"] = "on_every_event"
+        self.clientthread.restart_client(conf)
+        self.assertRaises(NewPendingEmail, self.clientthread.update)
+        self.assertEqual(EmailFixture.numberOfUnreadEmails(), 1)
+        self.assertEqual(
+            EmailFixture.emails[0].subject,
+            "[hermes-client-usersgroups_null] objects in error queue have changed",
+        )
+        self.assertClientdataLen()
+        self.assertEqual(1, len(self.clienterrorqueue()))  # 1 GroupMember in errorqueue
+
+    def test_551a_server_modify_obj_that_is_foreignkey_parent_on_every_event(self):
+        self.log_current_test_name(myself())
+
+        snewton = [
+            deepcopy(entry)
+            for entry in self.fixtures["users_all"]
+            if entry["login"] == "snewton"
+        ][0]
+        snewton["middle_name"] = "Isaac"  # Add a middle name
+
+        self.updateEntry(self.databases["db_single"], "users_all", ["login"], snewton)
+
+        self.serverthread.update()
+        self.assertServerdataLen()
+        self.assertServerIntegrityfiltered()
+
+    def test_551b_client_modify_obj_that_is_foreignkey_parent_on_every_event(
+        self,
+    ):
+        self.log_current_test_name(myself())
+        self.assertRaises(NewPendingEmail, self.clientthread.update)
+        self.assertEqual(EmailFixture.numberOfUnreadEmails(), 1)
+        self.assertEqual(
+            EmailFixture.emails[0].subject,
+            "[hermes-client-usersgroups_null] objects in error queue have changed",
+        )
+        self.assertClientdataLen()
+        # 1 GroupMember in errorqueue, 1 User
+        self.assertEqual(2, len(self.clienterrorqueue()))
+
+        # Retry error queue and ensure parent won't be retried
+        with self.assertLogs(self.clientthread.logger, level="INFO") as cm:
+            self.clientthread.update()
+        self.assertClientdataLen()
+        # 1 GroupMember in errorqueue, 1 User
+        self.assertEqual(2, len(self.clienterrorqueue()))
+        self.assertIn(
+            "INFO:hermes-client-functional-tests:Won't retry remote event"
+            " <Event(SRVUsers_modified[49e64c22-89a0-47eb-b98f-569b465cc2cb])> from"
+            " error queue as it is still a dependency of another error",
+            cm.output,
+        )
+
+    def test_552a_server_primary_key_change_id_to_simpleid(self):
+        self.log_current_test_name(myself())
+        conf = self.loadYamlServer("single")
+        conf["hermes-server"]["datamodel"]["SRVGroups"]["primarykeyattr"] = "simpleid"
+        conf["hermes-server"]["datamodel"]["SRVUsers"]["primarykeyattr"] = "simpleid"
+        conf["hermes-server"]["datamodel"]["SRVGroupsMembers"]["primarykeyattr"] = [
+            "group_simpleid",
+            "user_simpleid",
+        ]
+        del conf["hermes-server"]["datamodel"]["SRVGroupsMembers"]["foreignkeys"]
+        conf["hermes-server"]["datamodel"]["SRVGroupsMembers"]["foreignkeys"] = {
+            "group_simpleid": {"from_objtype": "SRVGroups", "from_attr": "simpleid"},
+            "user_simpleid": {"from_objtype": "SRVUsers", "from_attr": "simpleid"},
+        }
+        conf["hermes-server"]["datamodel"]["SRVGroupsMembers"][
+            "integrity_constraints"
+        ] = [
+            "{{ _SELF.user_simpleid in SRVUsers_pkeys"
+            " and _SELF.group_simpleid in SRVGroups_pkeys }}"
+        ]
+        self.serverthread.restart_server(conf)
+        self.serverthread.update()
+
+        # Server consistency
+        self.assertServerdataLen()
+        self.assertServerIntegrityfiltered()
+
+        # Verify new primary key
+        for group in self.serverdata("SRVGroups"):
+            self.assertEqual(group.getPKey(), group.simpleid)
+        for user in self.serverdata("SRVUsers"):
+            self.assertEqual(user.getPKey(), user.simpleid)
+        for gm in self.serverdata("SRVGroupsMembers"):
+            self.assertTupleEqual(gm.getPKey(), (gm.group_simpleid, gm.user_simpleid))
+
+    def test_552b_client_primary_key_change_id_to_simpleid(self):
+        self.log_current_test_name(myself())
+        self.assertRaises(NewPendingEmail, self.clientthread.update)
+        self.assertEqual(EmailFixture.numberOfUnreadEmails(), 1)
+        # The error queue objects primary keys were changed, so a change notification
+        # will be sent
+        self.assertEqual(
+            EmailFixture.emails[0].subject,
+            "[hermes-client-usersgroups_null] objects in error queue have changed",
+        )
+        self.assertClientdataLen()
+        # 1 GroupMember in errorqueue, 1 User
+        self.assertEqual(2, len(self.clienterrorqueue()))
+
+        # Verify new primary key
+        for group in self.clientdata("Groups"):
+            self.assertEqual(group.getPKey(), group._pkey_simpleid)
+        for user in self.clientdata("Users"):
+            self.assertEqual(user.getPKey(), user._pkey_simpleid)
+        for gm in self.clientdata("GroupsMembers"):
+            self.assertTupleEqual(
+                gm.getPKey(), (gm._pkey_group_simpleid, gm._pkey_user_simpleid)
+            )
+
+        self.assertRaises(NewPendingEmail, self.clientthread.update)
+        self.assertEqual(EmailFixture.numberOfUnreadEmails(), 1)
+        # The error queue objects primary keys were changed, so a change notification
+        # will be sent
+        self.assertEqual(
+            EmailFixture.emails[0].subject,
+            "[hermes-client-usersgroups_null] objects in error queue have changed",
+        )
+
+    def test_553a_server_delete_obj_that_is_foreignkey_parent_on_every_event(self):
+        self.log_current_test_name(myself())
+
+        snewton = [
+            entry for entry in self.fixtures["users_all"] if entry["login"] == "snewton"
+        ][0]
+        self.deleteEntry(self.databases["db_single"], "users_all", ["login"], snewton)
+
+        # Disable integrity constraints to permit user deletion without removing its
+        #  SRVGroupsMembers entries
+        conf = self.loadYamlServer("single")
+        del conf["hermes-server"]["datamodel"]["SRVGroupsMembers"][
+            "integrity_constraints"
+        ]
+        # Keep the changed primary keys
+        conf["hermes-server"]["datamodel"]["SRVGroups"]["primarykeyattr"] = "simpleid"
+        conf["hermes-server"]["datamodel"]["SRVUsers"]["primarykeyattr"] = "simpleid"
+        conf["hermes-server"]["datamodel"]["SRVGroupsMembers"]["primarykeyattr"] = [
+            "group_simpleid",
+            "user_simpleid",
+        ]
+        del conf["hermes-server"]["datamodel"]["SRVGroupsMembers"]["foreignkeys"]
+        conf["hermes-server"]["datamodel"]["SRVGroupsMembers"]["foreignkeys"] = {
+            "group_simpleid": {"from_objtype": "SRVGroups", "from_attr": "simpleid"},
+            "user_simpleid": {"from_objtype": "SRVUsers", "from_attr": "simpleid"},
+        }
+        self.serverthread.restart_server(conf)
+        self.serverthread.update()
+        self.assertServerdataLen(SRVUsers=-1, SRVGroupsMembers=+3)
+        self.assertServerIntegrityfiltered(SRVGroupsMembers=-3)
+
+    def test_553b_client_delete_obj_that_is_foreignkey_parent_on_every_event(
+        self,
+    ):
+        self.log_current_test_name(myself())
+        self.clientthread.update()
+        self.assertClientdataLen()
+        # 1 GroupMember in errorqueue, 1 User twice (modified then removed)
+        self.assertEqual(3, len(self.clienterrorqueue()))
+
+        # Retry error queue and ensure parent won't be retried
+        with self.assertLogs(self.clientthread.logger, level="INFO") as cm:
+            self.clientthread.update()
+        self.assertClientdataLen()
+        # 1 GroupMember in errorqueue, 1 User twice (modified then removed
+        self.assertEqual(3, len(self.clienterrorqueue()))
+        self.assertIn(
+            "INFO:hermes-client-functional-tests:Won't retry remote event"
+            " <Event(SRVUsers_modified[185])>"
+            " from error queue as it is still a dependency of another error",
+            cm.output,
+        )
+
+    def test_554a_server_foreignkey_fixerrors_on_every_event(self):
+        self.log_current_test_name(myself())
+
+        snewton = [
+            entry for entry in self.fixtures["users_all"] if entry["login"] == "snewton"
+        ][0]
+        self.insertEntry(self.databases["db_single"], "users_all", snewton)
+
+        groupmember = [
+            deepcopy(entry)
+            for entry in self.fixtures["groupmembers"]
+            if entry["user_login"] == "snewton"
+            and entry["group_name"] == "industrial_engineering"
+        ][0]
+
+        self.updateEntry(
+            self.databases["db_single"],
+            "groupmembers",
+            ["user_login", "group_name"],
+            groupmember,
+        )
+
+        # Restore integrity constraints on SRVGroupsMembers entries
+        conf = self.loadYamlServer("single")
+        self.serverthread.restart_server(conf)
+        self.serverthread.update()
+        self.assertServerdataLen(SRVUsers=+1, SRVGroupsMembers=-3)
+        self.assertServerIntegrityfiltered(SRVGroupsMembers=+3)
+
+    def test_554b_client_foreignkey_fixerrors_on_every_event(
+        self,
+    ):
+        self.log_current_test_name(myself())
+        self.assertRaises(NewPendingEmail, self.clientthread.update)
+        self.assertEqual(EmailFixture.numberOfUnreadEmails(), 1)
+        # The error queue objects primary keys were changed, so a change notification
+        # will be sent
+        self.assertEqual(
+            EmailFixture.emails[0].subject,
+            "[hermes-client-usersgroups_null] objects in error queue have changed",
+        )
+        self.assertClientdataLen()
+        # 1 GroupMember in errorqueue, 1 User thrice (modified then removed, then added)
+        self.assertEqual(4, len(self.clienterrorqueue()))
+
+        # Second loop to retry error queue
+        self.assertRaises(NewPendingEmail, self.clientthread.update)
+        self.assertEqual(EmailFixture.numberOfUnreadEmails(), 1)
+        self.assertEqual(
+            EmailFixture.emails[0].subject,
+            "[hermes-client-usersgroups_null] no more objects in error queue",
+        )
+        self.assertClientdataLen()
+        self.assertEqual(0, len(self.clienterrorqueue()))  # empty errorqueue

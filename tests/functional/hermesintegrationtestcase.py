@@ -138,6 +138,49 @@ class NullClientFixture:
                 self.isPartiallyProcessed = True
             raise AssertionError(f"Group {newobj} has error")
 
+    def on_GroupsMembers_added(
+        self, objkey: Any, eventattrs: "dict[str, Any]", newobj: "DataObject"
+    ):
+        if (
+            hasattr(newobj, "errorattr")
+            and type(newobj.errorattr) is str
+            and "error" in newobj.errorattr
+        ):
+            if "error_on_second_step" in newobj.errorattr:
+                self.currentStep = 1
+                self.isPartiallyProcessed = True
+            raise AssertionError(f"GroupsMembers {newobj} has error")
+
+    def on_GroupsMembers_modified(
+        self,
+        objkey: Any,
+        eventattrs: "dict[str, Any]",
+        newobj: "DataObject",
+        cachedobj: "DataObject",
+    ):
+        if (
+            hasattr(newobj, "errorattr")
+            and type(newobj.errorattr) is str
+            and "error" in newobj.errorattr
+        ):
+            if "error_on_second_step" in newobj.errorattr:
+                self.currentStep = 1
+                self.isPartiallyProcessed = True
+            raise AssertionError(f"GroupsMembers {newobj} has error")
+
+    def on_GroupsMembers_removed(
+        self, objkey: Any, eventattrs: "dict[str, Any]", cachedobj: "DataObject"
+    ):
+        if (
+            hasattr(cachedobj, "errorattr")
+            and type(cachedobj.errorattr) is str
+            and "fail_on_remove" in cachedobj.errorattr
+        ):
+            if "fail_on_remove_second_step" in cachedobj.errorattr:
+                self.currentStep = 1
+                self.isPartiallyProcessed = True
+            raise AssertionError(f"GroupsMembers {cachedobj} has error")
+
 
 class EmailFixture:
     """Fixture class to intercept emails that server or client could send"""
@@ -484,7 +527,8 @@ class HermesIntegrationTestCase(unittest.TestCase):
                     "  group_name     TEXT, "
                     "  user_id        TEXT, "
                     "  user_simpleid  INTEGER, "
-                    "  user_login     TEXT"
+                    "  user_login     TEXT, "
+                    "  errorattr      TEXT"
                     ")"
                 )
                 cls.databases[dbname].execute(sql)
@@ -565,6 +609,12 @@ class HermesIntegrationTestCase(unittest.TestCase):
         # Monkey patch NullClient to generate some errors
         NullClient.on_Groups_added = NullClientFixture.on_Groups_added
         NullClient.on_Groups_modified = NullClientFixture.on_Groups_modified
+        NullClient.on_GroupsMembers_added = NullClientFixture.on_GroupsMembers_added
+        NullClient.on_GroupsMembers_modified = (
+            NullClientFixture.on_GroupsMembers_modified
+        )
+        NullClient.on_GroupsMembers_trashed = NullClientFixture.on_GroupsMembers_removed
+        NullClient.on_GroupsMembers_removed = NullClientFixture.on_GroupsMembers_removed
         NullClient.on_Users_added = NullClientFixture.on_Users_added
         NullClient.on_Users_modified = NullClientFixture.on_Users_modified
         NullClient.on_Users_trashed = NullClientFixture.on_Users_removed

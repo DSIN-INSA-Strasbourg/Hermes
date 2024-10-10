@@ -27,10 +27,15 @@ from lib.datamodel.serialization import LocalCache
 from lib.datamodel.dataobject import DataObject
 from lib.datamodel.dataobjectlist import DataObjectList
 from lib.datamodel.diffobject import DiffObject
+from lib.datamodel.foreignkey import ForeignKey
 
 
 class HermesInvalidDataschemaError(Exception):
     """Raised when the dataschema is invalid"""
+
+
+class HermesInvalidForeignkeysError(Exception):
+    """Raised when the dataschema contains invalid foreign keys"""
 
 
 class Dataschema(LocalCache):
@@ -39,9 +44,17 @@ class Dataschema(LocalCache):
     This class will offer the main datamodel types names and their corresponding
     DataObject and DataObjectList subclasses in 'objectTypes' and 'objectlistTypes'
     attributes.
-    These attributes will be set only once the class method 'fillObjectTypes' have been
-    called on server, or at Dataschema instantiation on clients
     """
+
+    @classmethod
+    def migrate_from_v1_0_0_alpha_5_to_v1_0_0_alpha_6(
+        cls: "Dataschema", jsondict: Any | dict[Any, Any]
+    ) -> Any | dict[Any, Any]:
+        # Initialize new FOREIGN_KEYS attribute
+        for objtypedata in jsondict.values():
+            if "FOREIGN_KEYS" not in objtypedata:
+                objtypedata["FOREIGN_KEYS"] = {}
+        return jsondict
 
     def __init__(
         self,
@@ -101,6 +114,7 @@ class Dataschema(LocalCache):
                 "CACHEONLY_ATTRIBUTES": [list, tuple, set],
                 "LOCAL_ATTRIBUTES": [list, tuple, set],
                 "PRIMARYKEY_ATTRIBUTE": [str, list, tuple],
+                "FOREIGN_KEYS": [dict],
             }.items():
                 if attr not in objdata:
                     if attr in ("CACHEONLY_ATTRIBUTES", "LOCAL_ATTRIBUTES"):
@@ -121,6 +135,7 @@ class Dataschema(LocalCache):
                 "CACHEONLY_ATTRIBUTES": objdata["CACHEONLY_ATTRIBUTES"],
                 "LOCAL_ATTRIBUTES": objdata["LOCAL_ATTRIBUTES"],
                 "PRIMARYKEY_ATTRIBUTE": objdata["PRIMARYKEY_ATTRIBUTE"],
+                "FOREIGN_KEYS": objdata["FOREIGN_KEYS"],
             }
 
             if "TOSTRING" in objdata:
@@ -129,6 +144,95 @@ class Dataschema(LocalCache):
                 self._schema[objtype]["TOSTRING"] = None
 
         self._setupDataobjects()
+        self._setupForeignKeys()
+
+    def _setupForeignKeys(self):
+        """Ensure that objtypes and attributes specified in FOREIGN_KEYS exist in
+        schema, and create ForeignKey instances"""
+
+        # List of errors met
+        errs: list[str] = []
+        fkeys: dict[str, list[ForeignKey]] = {}
+
+        for objname, objdata in self._schema.items():
+            fkeys[objname] = []
+            for attr, fk in objdata["FOREIGN_KEYS"].items():
+                # Validation
+                if len(fk) != 2:
+                    errs.append(
+                        f"<{objname}.{attr}>: invalid content. 2 items expected,"
+                        f" but {len(fk)} found. It is probably a bug."
+                    )
+                    continue
+                fkobjname, fkattr = fk
+                if attr not in objdata["HERMES_ATTRIBUTES"]:
+                    errs.append(
+                        f"<{objname}.{attr}>: the attribute '{attr}' doesn't exist in"
+                        f" '{objname}' in datamodel"
+                    )
+                    continue
+                if type(objdata["PRIMARYKEY_ATTRIBUTE"]) is str:
+                    if attr != objdata["PRIMARYKEY_ATTRIBUTE"]:
+                        errs.append(
+                            f"<{objname}.{attr}>: the attribute '{attr}' isn't the"
+                            f" primary key of '{objname}' in datamodel"
+                        )
+                        continue
+                else:
+                    if attr not in objdata["PRIMARYKEY_ATTRIBUTE"]:
+                        errs.append(
+                            f"<{objname}.{attr}>: the attribute '{attr}' isn't a"
+                            f" primary key of '{objname}' in datamodel"
+                        )
+                        continue
+                if fkobjname not in self._schema:
+                    errs.append(
+                        f"<{objname}.{attr}>: the objtype '{fkobjname}' doesn't exist"
+                        " in datamodel"
+                    )
+                    continue
+                if fkattr not in self._schema[fkobjname]["HERMES_ATTRIBUTES"]:
+                    errs.append(
+                        f"<{objname}.{attr}>: the attribute '{fkattr}' doesn't exist in"
+                        f" '{fkobjname}' in datamodel"
+                    )
+                    continue
+                if type(self._schema[fkobjname]["PRIMARYKEY_ATTRIBUTE"]) is not str:
+                    # Implementation may be possible, but with poor performances
+                    errs.append(
+                        f"<{objname}.{attr}>: the objtype '{fkobjname}' has a tuple as"
+                        " primary key, foreign keys can't currently be set on a tuple"
+                    )
+                    continue
+                if fkattr != self._schema[fkobjname]["PRIMARYKEY_ATTRIBUTE"]:
+                    errs.append(
+                        f"<{objname}.{attr}>: the attribute '{fkattr}' is not the"
+                        f" primary key of '{fkobjname}' in datamodel"
+                    )
+                    continue
+
+                # No errors, instanciate ForeignKey object
+                fk = ForeignKey(
+                    from_obj=objname,
+                    from_attr=attr,
+                    to_obj=fkobjname,
+                    to_attr=fkattr,
+                )
+                fkeys[objname].append(fk)
+
+            # Add fkeys to objects lists
+            self.objectlistTypes[objname].FOREIGNKEYS = fkeys[objname]
+
+        if errs:
+            errmsg = "Invalid foreignkeys:\n  - " + "\n  - ".join(errs)
+            __hermes__.logger.critical(errmsg)
+            raise HermesInvalidForeignkeysError(errmsg)
+
+        # No errors met, check for circular foreign keys references
+        for objname in self._schema:
+            ForeignKey.checkForCircularForeignKeysRefs(
+                fkeys, self.objectlistTypes[objname].FOREIGNKEYS
+            )
 
     def _setupDataobjects(self):
         """Set up dynamic subclasses according to schema"""

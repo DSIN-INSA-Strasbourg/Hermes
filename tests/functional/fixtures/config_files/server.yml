@@ -162,6 +162,13 @@ hermes-server:
 
     SRVGroupsMembers:
       primarykeyattr: [group_id, user_id]
+      foreignkeys:
+        group_id:
+          from_objtype: SRVGroups
+          from_attr: id
+        user_id:
+          from_objtype: SRVUsers
+          from_attr: id
       integrity_constraints:
         - "{{ _SELF.user_id in SRVUsers_pkeys and _SELF.group_id in SRVGroups_pkeys }}"
       sources:
@@ -178,6 +185,7 @@ hermes-server:
             user_id: user_id
             user_simpleid: user_simpleid
             user_login: user_login
+            errorattr: errorattr
 
   #####################################################################
 

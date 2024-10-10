@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added foreign keys support ([documentation](https://hermes.insa-strasbourg.fr/en/hermes/how-it-works/hermes-client/foreign-keys/)).
+  - Added a `hermes-server.datamodel.*objtype*.foreignkeys` configuration directive on server allowing to declare foreign keys, to improve error handling on client. The foreign keys will be propagated to clients.
+  - Added a `hermes-client.foreignkeys_policy` configuration directive on clients allowing to chose how to handle events on "parent objects" of objects with errors.
+
 ### Fixed
 
 - Fixed a KeyError exception that could only occur on client primary keys update, if a removed event was in error queue.

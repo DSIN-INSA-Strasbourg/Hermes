@@ -85,6 +85,7 @@ class TestDatamodelClass(HermesServerTestCase):
                 (
                     "group_id",
                     "user_id",
+                    "unnecessary",
                 ),
             ),
         }

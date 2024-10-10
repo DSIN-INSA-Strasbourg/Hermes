@@ -189,6 +189,10 @@ hermes-server:
 
     UserPasswords: # Settings for UserPasswords data type
       primarykeyattr: user_id # Attribute name that will be used as primary key
+      foreignkeys:
+        user_id:
+          from_objtype: Users
+          from_attr: user_id
       # Integrity constraints between datamodel type, in Jinja.
       # WARNING: could be very slow, keep it as simple as possible, and focused upon
       # primary keys
@@ -333,11 +337,17 @@ hermes-server:
           # Facultative. Define attributes that won't be sent to clients, cached or used to
           # diff with cache. The attribute names set here must exists as keys in attrsmapping.
           local_attrs:
-            - user_id
             - last_change
 
     GroupsMembers: # Settings for GroupsMembers data type
       primarykeyattr: [group_id, user_id]
+      foreignkeys:
+        group_id:
+          from_objtype: Groups
+          from_attr: group_id
+        user_id:
+          from_objtype: Users
+          from_attr: user_id
       integrity_constraints:
         - "{{ _SELF.user_id in Users_pkeys and _SELF.group_id in Groups_pkeys }}"
       sources:
@@ -350,3 +360,4 @@ hermes-server:
           attrsmapping:
             user_id: USER_ID
             group_id: GROUP_ID
+            unnecessary: UNNECESSARY

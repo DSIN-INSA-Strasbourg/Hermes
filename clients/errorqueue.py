@@ -26,6 +26,7 @@ from typing import Any, Iterable
 from lib.datamodel.event import Event
 from lib.datamodel.dataobject import DataObject
 from lib.datamodel.datasource import Datasource
+from lib.datamodel.foreignkey import ForeignKey
 from lib.datamodel.serialization import LocalCache
 
 
@@ -69,6 +70,17 @@ class ErrorQueue(LocalCache):
 
         self._index[localevent.objtype][localevent.objpkey] =
         set([eventNumber1, eventNumber2, ...])
+        """
+
+        self._parentObjs: dict[str, dict[Any, set[int]]] = {}
+        """Index of parent objects of objects in errors, with the eventNumber
+        list that have stored them in this state.
+        The keys are
+            1. the local object type (str)
+            2. the object primary key (Any)
+        The value is a set containing all eventNumber in queue for the keys
+
+        self._parentObjs[objtype][objpkey] = set([eventNumber1, eventNumber2, ...])
         """
 
         self._typesMapping = {
@@ -120,6 +132,11 @@ class ErrorQueue(LocalCache):
         self._localdata: Datasource | None = localdata
         self._localdata_complete: Datasource | None = localdata_complete
 
+        # Reset parentObjs and refill it
+        self._parentObjs = {}
+        for eventNumber in self._queue.keys():
+            self._addParentObjs(eventNumber)
+
     def append(
         self, remoteEvent: Event | None, localEvent: Event | None, errorMsg: str | None
     ):
@@ -157,6 +174,7 @@ class ErrorQueue(LocalCache):
 
         self._queue[eventNumber] = (remoteEvent, localEvent, errorMsg)
         self._addEventToIndex(eventNumber)
+        self._addParentObjs(eventNumber)
 
         if self._autoremediate:
             self._remediateWithPrevious(eventNumber)
@@ -479,6 +497,44 @@ class ErrorQueue(LocalCache):
             # Add specified eventNumber to the set
             self._index[objtype][localEvent.objpkey].add(eventNumber)
 
+    def _addParentObjs(self, eventNumber: int):
+        """Index parent objects of specified event"""
+        if self._localdata is None:
+            # Unable to proceed without a datasource
+            return
+
+        if eventNumber not in self._queue:
+            raise IndexError(f"Specified {eventNumber=} doesn't exist in queue")
+
+        remoteEvent: Event | None
+        localEvent: Event
+        remoteEvent, localEvent, errorMsg = self._queue[eventNumber]
+
+        fromobj: DataObject | None = self._localdata.get(localEvent.objtype, {}).get(
+            localEvent.objpkey, None
+        )
+        if fromobj is None:
+            fromobj = self._localdata_complete.get(localEvent.objtype, {}).get(
+                localEvent.objpkey, None
+            )
+        if fromobj is None:
+            return
+
+        parents = ForeignKey.fetchParentObjs(self._localdata, fromobj)
+
+        for parent in parents:
+            objtype = parent.getType()
+            # Create objtype sublevel if it doesn't exist yet
+            if objtype not in self._parentObjs:
+                self._parentObjs[objtype] = {}
+
+            if parent.getPKey() not in self._parentObjs[objtype]:
+                # Create the set with specified eventNumber
+                self._parentObjs[objtype][parent.getPKey()] = set([eventNumber])
+            else:
+                # Add specified eventNumber to the set
+                self._parentObjs[objtype][parent.getPKey()].add(eventNumber)
+
     def updateErrorMsg(self, eventNumber: int, errorMsg: str):
         """Update errorMsg of specified eventNumber"""
         if eventNumber not in self._queue:
@@ -514,6 +570,19 @@ class ErrorQueue(LocalCache):
 
             if not self._index[objtype]:
                 del self._index[objtype]
+
+        # Remove all references of specified eventNumber from _parentObjs
+        for objtype in tuple(self._parentObjs.keys()):
+            for objpkey in tuple(self._parentObjs[objtype].keys()):
+                # Remove from parentObjs
+                self._parentObjs[objtype][objpkey].discard(eventNumber)
+
+                # Purge index uplevels when empty
+                if not self._parentObjs[objtype][objpkey]:
+                    del self._parentObjs[objtype][objpkey]
+
+                    if not self._parentObjs[objtype]:
+                        del self._parentObjs[objtype]
 
     def __iter__(self) -> Iterable:
         """Returns an iterator of current instance events to process
@@ -575,6 +644,10 @@ class ErrorQueue(LocalCache):
         """Returns the number of Event in queue"""
         return len(self._queue)
 
+    def keys(self) -> set[int]:
+        """Returns a set with every event number in current instance"""
+        return set(self._queue.keys())
+
     def _getLocalObjtype(self, objtype: str, isLocalObjtype: bool) -> str | None:
         """Returns the local objtype, or None if it doesn't exist"""
         if isLocalObjtype:
@@ -596,6 +669,15 @@ class ErrorQueue(LocalCache):
     def containsObjectByEvent(self, event: Event, isLocalEvent: bool) -> bool:
         """Indicate if object of specified event exists in current instance"""
         return self.containsObject(event.objtype, event.objpkey, isLocalEvent)
+
+    def isEventAParentOfAnotherError(self, event: Event, isLocalEvent: bool) -> bool:
+        """Indicate if object of specified event is a parent (a foreign key) of
+        an object that exists in current instance"""
+        l_objtype = self._getLocalObjtype(event.objtype, isLocalEvent)
+        if l_objtype is None:
+            return False
+        parentEvs = self._parentObjs.get(l_objtype, {}).get(event.objpkey)
+        return parentEvs is not None
 
     def purgeAllEvents(self, objtype: str, objpkey: Any, isLocalObjtype: bool):
         """Delete all events of specified objpkey of specified objtype from current

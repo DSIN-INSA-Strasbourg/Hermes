@@ -1,5 +1,5 @@
 # Hermes : Change Data Capture (CDC) tool from any source(s) to any target
-# Copyright (C) 2023 INSA Strasbourg
+# Copyright (C) 2023, 2024 INSA Strasbourg
 #
 # This file is part of Hermes.
 #
@@ -46,6 +46,30 @@ hermes-server:
               - list
             required: true
             empty: false
+          foreignkeys:
+            type: dict
+            required: true
+            empty: true
+            nullable: false
+            default: {}
+            keysrules:
+              type: string
+            valuesrules:
+              type: dict
+              required: true
+              empty: false
+              nullable: false
+              schema:
+                from_objtype:
+                  type: string
+                  required: true
+                  empty: false
+                  nullable: false
+                from_attr:
+                  type: string
+                  required: true
+                  empty: false
+                  nullable: false
           toString:
             type: string
             required: false

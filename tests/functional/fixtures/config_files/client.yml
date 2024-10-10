@@ -94,6 +94,8 @@ hermes-client:
 
     GroupsMembers:
       hermesType: SRVGroupsMembers
+      attrsmapping:
+        errorattr: errorattr
 
   #####################################################################
 
@@ -121,6 +123,8 @@ hermes-client:
 
     GroupsMembers:
       hermesType: SRVGroupsMembers
+      attrsmapping:
+        errorattr: errorattr
 
   #####################################################################
 
@@ -146,3 +150,5 @@ hermes-client:
 
     GroupsMembers:
       hermesType: SRVGroupsMembers
+      attrsmapping:
+        errorattr: errorattr

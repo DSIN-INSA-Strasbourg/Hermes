@@ -769,6 +769,18 @@ class Datamodel:
             else:
                 pkey = f"_pkey_{pkeys}"
 
+            # Convert foreign keys dict
+            fkeys: dict[str, list[str]] = {}
+            for from_attr, (to_obj, to_attr) in self.remote_schema.schema[
+                remote_objtype
+            ]["FOREIGN_KEYS"].items():
+                # In current implementation, foreign key are always
+                # single primary keys (not a tuple)
+                fkeys[f"_pkey_{from_attr}"] = [
+                    self.typesmapping[to_obj],
+                    f"_pkey_{to_attr}",
+                ]
+
             schema[objtype] = {
                 "HERMES_ATTRIBUTES": set(
                     self._datamodel[objtype]["attrsmapping"].keys()
@@ -777,6 +789,7 @@ class Datamodel:
                 "CACHEONLY_ATTRIBUTES": set(),
                 "LOCAL_ATTRIBUTES": set(),
                 "PRIMARYKEY_ATTRIBUTE": pkey,
+                "FOREIGN_KEYS": fkeys,
                 "TOSTRING": self._datamodel[objtype]["toString"],
             }
 

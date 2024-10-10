@@ -26,6 +26,7 @@ import time
 
 from lib.datamodel.diffobject import DiffObject
 from lib.datamodel.dataobject import DataObject, HermesMergingConflictError
+from lib.datamodel.foreignkey import ForeignKey
 from lib.datamodel.serialization import LocalCache
 
 AnyDataObjectList = TypeVar("AnyDataObjectList", bound="DataObjectList")
@@ -51,6 +52,9 @@ class DataObjectList(LocalCache):
 
     OBJTYPE: "type[DataObject]" = DataObject
     """Object type stored by current class"""
+
+    FOREIGNKEYS: list[ForeignKey] = []
+    """Foreign keys of current OBJTYPE"""
 
     def __init__(
         self,

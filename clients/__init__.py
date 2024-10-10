@@ -132,6 +132,16 @@ class GenericClient:
     management, trashbin and converting messages from message bus into events handlers
     calls"""
 
+    __FOREIGNKEYS_POLICIES: dict[str, tuple[str]] = {
+        "disabled": tuple(),
+        "on_remove_event": ("removed",),
+        "on_every_event": ("added", "modified", "removed"),
+    }
+    """Different foreignkeys_policy settings : associate each foreignkeys_policy
+    (as key) with the list of event types that will be placed in the error queue if the
+    object concerning them is the parent (by foreign key) of an object already present
+    in the error queue"""
+
     def __init__(self, config: HermesConfig):
         """Instantiate a new client"""
 
@@ -250,6 +260,13 @@ class GenericClient:
         processing, set to True in order to save all cache at the loop end.
         Used to avoid expensive .save() calls when unnecessary
         """
+
+        self.__foreignkeys_events: tuple[str] = self.__FOREIGNKEYS_POLICIES[
+            self.__config["hermes-client"]["foreignkeys_policy"]
+        ]
+        """List of event types that will be placed in the error queue if the object
+        concerning them is the parent (by foreign key) of an object already present in
+        the error queue"""
 
     def getObjectFromCache(self, objtype: str, objpkey: Any) -> DataObject:
         """Returns a deepcopy of an object from cache.
@@ -600,66 +617,110 @@ class GenericClient:
         if now < self.__errorQueue_lastretry + self.__errorQueue_retryInterval:
             return  # Too early to process again
 
+        done = False
+        evNumbersToRetry: list[int] = []
         eventNumber: int
         localEvent: Event
         remoteEvent: Event | None
-        for (
-            eventNumber,
-            remoteEvent,
-            localEvent,
-            errorMsg,
-        ) in self.__datamodel.errorqueue:
-            if remoteEvent is not None:
-                __hermes__.logger.info(
-                    f"Retrying to process remote event {remoteEvent} from error queue"
-                )
-                try:
-                    self.__processRemoteEvent(
-                        remoteEvent, localEvent, enqueueEventWithError=False
-                    )
-                except HermesClientHandlerError as e:
+        while not done:
+            retryQueue: list[int] = []
+            previousKeys = self.__datamodel.errorqueue.keys()
+
+            for (
+                eventNumber,
+                remoteEvent,
+                localEvent,
+                errorMsg,
+            ) in self.__datamodel.errorqueue:
+                if evNumbersToRetry and eventNumber not in evNumbersToRetry:
+                    # Ignore eventNumber absent from evNumbersToRetry,
+                    # excepted on first iteration of while loop
+                    continue
+
+                if remoteEvent is not None:
+                    if self.__datamodel.errorqueue.isEventAParentOfAnotherError(
+                        remoteEvent, False
+                    ):
+                        __hermes__.logger.info(
+                            f"Won't retry remote event {remoteEvent} from error queue"
+                            " as it is still a dependency of another error"
+                        )
+                        retryQueue.append(eventNumber)
+                        continue
+
                     __hermes__.logger.info(
-                        f"... failed on step {self.currentStep}: {str(e)}"
+                        f"Retrying to process remote event {remoteEvent} from error"
+                        " queue"
                     )
-                    remoteEvent.step = self.currentStep
-                    remoteEvent.isPartiallyProcessed = self.isPartiallyProcessed
-                    localEvent.step = self.currentStep
-                    localEvent.isPartiallyProcessed = self.isPartiallyProcessed
-                    self.__datamodel.errorqueue.updateErrorMsg(eventNumber, e.msg)
+                    try:
+                        self.__processRemoteEvent(
+                            remoteEvent, localEvent, enqueueEventWithError=False
+                        )
+                    except HermesClientHandlerError as e:
+                        __hermes__.logger.info(
+                            f"... failed on step {self.currentStep}: {str(e)}"
+                        )
+                        remoteEvent.step = self.currentStep
+                        remoteEvent.isPartiallyProcessed = self.isPartiallyProcessed
+                        localEvent.step = self.currentStep
+                        localEvent.isPartiallyProcessed = self.isPartiallyProcessed
+                        self.__datamodel.errorqueue.updateErrorMsg(eventNumber, e.msg)
+                    else:
+                        # If event has suppressed object, eventNumber has already been
+                        # purged from queue
+                        self.__datamodel.errorqueue.remove(
+                            eventNumber, ignoreMissingEventNumber=True
+                        )
                 else:
-                    # If event has suppressed object, eventNumber has already been
-                    # purged from queue
-                    self.__datamodel.errorqueue.remove(
-                        eventNumber, ignoreMissingEventNumber=True
+                    if self.__datamodel.errorqueue.isEventAParentOfAnotherError(
+                        localEvent, True
+                    ):
+                        __hermes__.logger.info(
+                            f"Won't retry local event {localEvent} from error queue"
+                            " as it is still a dependency of another error"
+                        )
+                        retryQueue.append(eventNumber)
+                        continue
+                    __hermes__.logger.info(
+                        f"Retrying to process local event {localEvent} from error queue"
                     )
+                    try:
+                        self.__processLocalEvent(
+                            remoteEvent, localEvent, enqueueEventWithError=False
+                        )
+                    except HermesClientHandlerError as e:
+                        __hermes__.logger.info(
+                            f"... failed on step {self.currentStep}: {str(e)}"
+                        )
+                        localEvent.step = self.currentStep
+                        localEvent.isPartiallyProcessed = self.isPartiallyProcessed
+                        self.__datamodel.errorqueue.updateErrorMsg(eventNumber, e.msg)
+                    else:
+                        # If event has suppressed object, eventNumber has already been
+                        # purged from queue
+                        self.__datamodel.errorqueue.remove(
+                            eventNumber, ignoreMissingEventNumber=True
+                        )
+                while self.__isPaused and not self.__isStopped:
+                    sleep(1)  # Allow loop to be paused
+                if self.__isStopped:
+                    break  # Allow loop to be interrupted if requested
             else:
-                __hermes__.logger.info(
-                    f"Retrying to process local event {localEvent} from error queue"
+                # Update __errorQueue_lastretry only if loop hasn't been interrupted
+                self.__errorQueue_lastretry = now
+
+            done = previousKeys == self.__datamodel.errorqueue.keys() or not retryQueue
+            if done:
+                __hermes__.logger.debug(
+                    f"End of retryerrorqueue {previousKeys=}"
+                    f" {self.__datamodel.errorqueue.keys()=} - {retryQueue=}"
                 )
-                try:
-                    self.__processLocalEvent(
-                        remoteEvent, localEvent, enqueueEventWithError=False
-                    )
-                except HermesClientHandlerError as e:
-                    __hermes__.logger.info(
-                        f"... failed on step {self.currentStep}: {str(e)}"
-                    )
-                    localEvent.step = self.currentStep
-                    localEvent.isPartiallyProcessed = self.isPartiallyProcessed
-                    self.__datamodel.errorqueue.updateErrorMsg(eventNumber, e.msg)
-                else:
-                    # If event has suppressed object, eventNumber has already been
-                    # purged from queue
-                    self.__datamodel.errorqueue.remove(
-                        eventNumber, ignoreMissingEventNumber=True
-                    )
-            while self.__isPaused and not self.__isStopped:
-                sleep(1)  # Allow loop to be paused
-            if self.__isStopped:
-                break  # Allow loop to be interrupted if requested
-        else:
-            # Update __errorQueue_lastretry only if loop hasn't been interrupted
-            self.__errorQueue_lastretry = now
+            else:
+                __hermes__.logger.debug(
+                    "As some event have been processed, will retry ignored events"
+                    f" {retryQueue}"
+                )
+                evNumbersToRetry = retryQueue.copy()
 
     def __emptyTrashBin(self, force: bool = False):
         # Enforce purgeInterval
@@ -691,6 +752,8 @@ class GenericClient:
                     )
                     __hermes__.logger.info(f"Trying to purge {repr(obj)} from trashbin")
                     if self.__datamodel.errorqueue.containsObjectByEvent(
+                        event, isLocalEvent=False
+                    ) and not self.__datamodel.errorqueue.isEventAParentOfAnotherError(
                         event, isLocalEvent=False
                     ):
                         try:
@@ -907,34 +970,45 @@ class GenericClient:
             )
         trashbin = self.__datamodel.remotedata[f"trashbin_{remote_event.objtype}"]
 
-        if (
-            not simulateOnly
-            and enqueueEventWithError
-            and self.__datamodel.errorqueue.containsObjectByEvent(
+        if not simulateOnly and enqueueEventWithError:
+            hadErrors = self.__datamodel.errorqueue.containsObjectByEvent(
                 remote_event, isLocalEvent=False
             )
-        ):
-            secretAttrs = self.__datamodel.remote_schema.secretsAttributesOf(
-                remote_event.objtype
+            isParent = self.__datamodel.errorqueue.isEventAParentOfAnotherError(
+                remote_event, isLocalEvent=False
             )
-            errorMsg = (
-                f"Object in remote event {remote_event.toString(secretAttrs)} already"
-                " had unresolved errors: appending event to error queue"
-            )
-            __hermes__.logger.warning(errorMsg)
-            self.__processRemoteEvent(
-                remote_event,
-                local_event=None,
-                enqueueEventWithError=False,
-                simulateOnly=True,
-            )
-            if local_event is None:
-                # Force empty event generation when local_event doesn't change anything
-                local_event = self.__datamodel.convertEventToLocal(
-                    remote_event, r_obj_complete, allowEmptyEvent=True
+            if hadErrors or (
+                isParent and remote_event.eventtype in self.__foreignkeys_events
+            ):
+                secretAttrs = self.__datamodel.remote_schema.secretsAttributesOf(
+                    remote_event.objtype
                 )
-            self.__datamodel.errorqueue.append(remote_event, local_event, errorMsg)
-            return
+                if hadErrors:
+                    errorMsg = (
+                        f"Object in remote event {remote_event.toString(secretAttrs)}"
+                        " already had unresolved errors: appending event to error queue"
+                    )
+                else:
+                    errorMsg = (
+                        f"Object in remote event {remote_event.toString(secretAttrs)}"
+                        " is a dependency of an object that already had unresolved"
+                        " errors: appending event to error queue"
+                    )
+                __hermes__.logger.warning(errorMsg)
+                self.__processRemoteEvent(
+                    remote_event,
+                    local_event=None,
+                    enqueueEventWithError=False,
+                    simulateOnly=True,
+                )
+                if local_event is None:
+                    # Force empty event generation when local_event doesn't change
+                    # anything
+                    local_event = self.__datamodel.convertEventToLocal(
+                        remote_event, r_obj_complete, allowEmptyEvent=True
+                    )
+                self.__datamodel.errorqueue.append(remote_event, local_event, errorMsg)
+                return
 
         try:
             match remote_event.eventtype:
@@ -1013,26 +1087,36 @@ class GenericClient:
             self.currentStep = local_event.step
             self.isPartiallyProcessed = local_event.isPartiallyProcessed
 
-        if (
-            not simulateOnly
-            and enqueueEventWithError
-            and self.__datamodel.errorqueue.containsObjectByEvent(
+        if not simulateOnly and enqueueEventWithError:
+            hadErrors = self.__datamodel.errorqueue.containsObjectByEvent(
                 local_event, isLocalEvent=True
             )
-        ):
-            secretAttrs = self.__datamodel.local_schema.secretsAttributesOf(
-                local_event.objtype
+            isParent = self.__datamodel.errorqueue.isEventAParentOfAnotherError(
+                local_event, isLocalEvent=True
             )
-            errorMsg = (
-                f"Object in local event {local_event.toString(secretAttrs)} has"
-                " unresolved errors, appending event to error queue"
-            )
-            __hermes__.logger.info(errorMsg)
-            self.__processLocalEvent(
-                None, local_event, enqueueEventWithError=False, simulateOnly=True
-            )
-            self.__datamodel.errorqueue.append(remote_event, local_event, errorMsg)
-            return
+            if hadErrors or (
+                isParent and local_event.eventtype in self.__foreignkeys_events
+            ):
+                secretAttrs = self.__datamodel.local_schema.secretsAttributesOf(
+                    local_event.objtype
+                )
+                if hadErrors:
+                    errorMsg = (
+                        f"Object in local event {local_event.toString(secretAttrs)}"
+                        " already had unresolved errors: appending event to error queue"
+                    )
+                else:
+                    errorMsg = (
+                        f"Object in local event {local_event.toString(secretAttrs)}"
+                        " is a dependency of an object that already had unresolved"
+                        " errors: appending event to error queue"
+                    )
+                __hermes__.logger.warning(errorMsg)
+                self.__processLocalEvent(
+                    None, local_event, enqueueEventWithError=False, simulateOnly=True
+                )
+                self.__datamodel.errorqueue.append(remote_event, local_event, errorMsg)
+                return
 
         trashbin = self.__datamodel.localdata[f"trashbin_{local_event.objtype}"]
         try:
