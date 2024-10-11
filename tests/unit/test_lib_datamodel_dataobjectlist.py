@@ -30,7 +30,6 @@ class TestDataobjectlistClass(HermesServerTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        # logging.disable(logging.NOTSET)
 
     def setUp(self):
         super().setUp()

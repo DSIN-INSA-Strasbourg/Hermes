@@ -46,8 +46,6 @@ class HermesServerTestCase(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        logging.disable(logging.CRITICAL)
-
         # Global logger setup
         appname = "hermes-unit-tests"
         builtins.__hermes__ = threading.local()
@@ -65,7 +63,6 @@ class HermesServerTestCase(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        logging.disable(logging.NOTSET)
         __main__.__file__ = cls.main
         sys.argv = cls.argv
         os.chdir(cls.cwd)

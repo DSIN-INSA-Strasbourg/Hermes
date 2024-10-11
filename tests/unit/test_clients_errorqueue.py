@@ -25,8 +25,6 @@ from clients.errorqueue import ErrorQueue, HermesInvalidErrorQueueJSONError
 from lib.datamodel.dataobject import DataObject
 from lib.datamodel.event import Event
 
-import logging
-
 
 # Table of event flow in queue
 #
@@ -2505,7 +2503,6 @@ class TestErrorQueueClass(HermesServerTestCase):
 
     def setUp(self):
         super().setUp()
-        logging.disable(logging.NOTSET)
         confdata = self.loadYaml()
         self.config = self.saveYamlAndLoadConfig(confdata)
 
@@ -2742,7 +2739,6 @@ class TestErrorQueueClass(HermesServerTestCase):
         )
 
     def test_invalid_remediation_cases(self):
-        logging.disable(logging.CRITICAL)
         invalidcouples = [
             (self.singleAddedEvent, self.singleAddedEvent),
             (self.singleRemovedEvent, self.singleModifiedEvent),
@@ -2765,7 +2761,6 @@ class TestErrorQueueClass(HermesServerTestCase):
             )
 
     def test_unexpected_eventtype_in_remediation(self):
-        logging.disable(logging.CRITICAL)
         unexpectedcouples = [
             (self.singleModifiedEvent, self.singleUnexpectedEvent),
             (self.singleUnexpectedEvent, self.singleModifiedEvent),
@@ -2785,7 +2780,6 @@ class TestErrorQueueClass(HermesServerTestCase):
             )
 
     def test_remediation_inconsistency_between_merge_results(self):
-        logging.disable(logging.CRITICAL)
         eq = ErrorQueue(
             typesMapping={"TestObj1": "TestObj1"}, autoremediate="conservative"
         )

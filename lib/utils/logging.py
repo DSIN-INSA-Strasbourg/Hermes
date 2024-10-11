@@ -48,15 +48,17 @@ def setup_logger(config: "HermesConfig"):
         "%(levelname)s:%(asctime)s:%(filename)s:%(lineno)d:%(funcName)s():%(message)s"
     )
 
-    # stderr output (always except when executing unit tests)
-    if "unittest" not in sys.modules:  # pragma: no cover
+    # Disable stderr output when ran from unit tests
+    if "unittest" in sys.modules:
+        __hermes__.logger.addHandler(logging.NullHandler())
+    else:  # pragma: no cover
         stream_handler = logging.StreamHandler()
         stream_handler.setFormatter(log_format)
         stream_handler.setLevel(loglevels[config["hermes"]["logs"]["verbosity"]])
         __hermes__.logger.addHandler(stream_handler)
 
     # log file output when set up
-    if config["hermes"]["logs"]["logfile"] is not None:
+    if config["hermes"]["logs"]["logfile"] is not None:  # pragma: no cover
         file_handler = TimedRotatingFileHandler(
             config["hermes"]["logs"]["logfile"],
             when="midnight",

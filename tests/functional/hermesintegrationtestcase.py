@@ -628,7 +628,6 @@ class HermesIntegrationTestCase(unittest.TestCase):
             else:
                 cls.purgeDirContent(dirname)
         else:
-            logging.disable(logging.CRITICAL)
             cls.tmpdir = TemporaryDirectory()
             dirname = cls.tmpdir.name
 
@@ -660,7 +659,6 @@ class HermesIntegrationTestCase(unittest.TestCase):
     def tearDownClass(cls):
         cls.serverthread.stop_server()
         cls.clientthread.stop_client()
-        logging.disable(logging.NOTSET)
         os.chdir(cls.orig_cwd)
         if "HERMESFUNCTIONALTESTS_DEBUGTMPDIR" not in os.environ:
             cls.tmpdir.cleanup()

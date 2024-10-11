@@ -5,6 +5,12 @@ All notable changes to Hermes will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- Improved the way logs are handled in unit tests: now using a NullHandler instead of calls to logging.disable(). This fixes new functional tests that monitor logs, which were failing from github actions
+
 ## [1.0.0-alpha.6] - 2024-10-10
 
 ### Added

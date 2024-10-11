@@ -27,8 +27,6 @@ from lib.datamodel.jinja import HermesNativeEnvironment
 
 from jinja2 import StrictUndefined
 
-import logging
-
 
 class TestDataobjectClass(HermesServerTestCase):
     def setUp(self):
@@ -533,7 +531,6 @@ class TestDataobjectClass(HermesServerTestCase):
         )
 
     def test_mergeWith_conflict_error_noexception(self):
-        logging.disable(logging.NOTSET)
         user = self.TestUsers(from_json_dict={})
         user1 = self.TestUsersSource1(from_json_dict=self.validjson_src1)
         user2 = self.TestUsersSource2(from_json_dict=self.validjson_src2)

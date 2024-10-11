@@ -34,8 +34,6 @@ from lib.datamodel.serialization import (
     HermesUnspecifiedCacheFilename,
 )
 
-import logging
-
 
 class TestJSONEncoderClass(HermesServerTestCase):
     dict = {
@@ -73,7 +71,6 @@ class TestJSONEncoderClass(HermesServerTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        logging.disable(logging.NOTSET)
         confdata = cls.loadYaml()
         cls.saveYamlAndLoadConfig(confdata)
 
@@ -267,7 +264,6 @@ class TestLocalCacheClass(HermesServerTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        logging.disable(logging.NOTSET)
 
         class SerializationObj(LocalCache):
             def __init__(self, from_json_dict=None, from_raw_dict=None):
