@@ -607,6 +607,13 @@ class GenericClient:
                     self.__notifyQueueErrors()
                     self.__cache.savecachefile()
 
+                if self.__isStopped:
+                    # Only to ensure cache files version update is saved,
+                    # to avoid version migrations at each restart,
+                    # as those files aren't expected to be updated often
+                    self.__config.savecachefile()
+                    self.__datamodel.remote_schema.savecachefile()
+
             # Only used in functionnal tests
             if self.__numberOfLoopToProcess:
                 self.__numberOfLoopToProcess -= 1

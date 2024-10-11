@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Improved the way logs are handled in unit tests: now using a NullHandler instead of calls to logging.disable(). This fixes new functional tests that monitor logs, which were failing from github actions
+- Improved the way logs are handled in unit tests: now using a NullHandler instead of calls to logging.disable(). This fixes new functional tests that monitor logs, which were failing from github actions.
+- Force a save of `_hermesconfig.json` and `_dataschema.json` clients cache files at exit, to ensure cache files version update is saved, and avoid version migrations at each restart as those files aren't expected to be updated often.
 
 ## [1.0.0-alpha.6] - 2024-10-10
 
