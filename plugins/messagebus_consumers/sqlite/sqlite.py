@@ -105,6 +105,25 @@ class SqliteConsumerPlugin(AbstractMessageBusConsumerPlugin):
         if entry is None:
             raise IOError("Bus database seems invalid") from None
         else:
+            if (
+                entry["minmsgid"] is None
+                or entry["maxmsgid"] is None
+                or entry["nextmsgid"] is None
+            ):
+                # The bus seems empty, determine limits by autoincrement sequence number
+                sql = (
+                    "SELECT "
+                    "  seq+1 AS minmsgid, "
+                    "  seq+1 AS maxmsgid, "
+                    "  seq+1 AS nextmsgid "
+                    "FROM sqlite_sequence "
+                    "WHERE name = 'hermesmessages'"
+                )
+                cur = self._db.execute(sql)
+                entry = cur.fetchone()
+                if entry is None:
+                    raise IOError("Bus database seems invalid") from None
+
             if entry["minmsgid"] <= offset <= entry["nextmsgid"]:
                 self.__curoffset = offset
             else:
