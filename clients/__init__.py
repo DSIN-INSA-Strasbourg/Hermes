@@ -163,10 +163,12 @@ class GenericClient:
         )
         """Previous config (from cache)"""
 
-        self._msgbus: AbstractMessageBusConsumerPlugin = self.__config["hermes"][
+        self.__msgbus: AbstractMessageBusConsumerPlugin = self.__config["hermes"][
             "plugins"
         ]["messagebus"]["plugininstance"]
-        self._msgbus.setTimeout(self.__config["hermes-client"]["updateInterval"] * 1000)
+        self.__msgbus.setTimeout(
+            self.__config["hermes-client"]["updateInterval"] * 1000
+        )
 
         self.__cache: HermesClientCache = HermesClientCache.loadcachefile(
             f"_{self.__config['appname']}"
@@ -522,7 +524,7 @@ class GenericClient:
             self.__saveRequired = False
 
             try:
-                with self._msgbus:
+                with self.__msgbus:
                     if self.__isPaused or self.__numberOfLoopToProcess == 0:
                         sleep(sleepDuration)
                         continue
@@ -804,7 +806,7 @@ class GenericClient:
         )
 
     def __canBeInitialized(self) -> bool:
-        self._msgbus.seekToBeginning()
+        self.__msgbus.seekToBeginning()
 
         # List of (start, stop) offsets of initsync sequences found
         initSyncFound: list[tuple[Any, Any]] = []
@@ -812,7 +814,7 @@ class GenericClient:
         start = None
         stop = None
         event: Event
-        for event in self._msgbus:
+        for event in self.__msgbus:
             if event.evcategory != "initsync":
                 continue
             if event.eventtype == "init-start":
@@ -881,9 +883,9 @@ class GenericClient:
         schema: Dataschema | None = None
         evcategory: str = "initsync" if isInitSync else "base"
 
-        self._msgbus.seek(self.__cache.nextoffset)
+        self.__msgbus.seek(self.__cache.nextoffset)
 
-        for remote_event in self._msgbus:
+        for remote_event in self.__msgbus:
             self.__saveRequired = True
             if isInitSync and remote_event.offset > self.__cache.initstopoffset:
                 # Should never be called
