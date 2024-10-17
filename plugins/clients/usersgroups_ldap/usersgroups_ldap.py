@@ -27,6 +27,7 @@ from lib.datamodel.dataobject import DataObject
 from datetime import datetime
 
 import ldap
+import ldap.filter
 import ldap.modlist
 from ldap import LDAPError
 
@@ -197,10 +198,10 @@ class LdapClient(GenericClient):
         newobj: DataObject,
         cachedobj: DataObject,
     ):
-        dn = f"{self.dnAttrUsers}={getattr(newobj, self.dnAttrUsers)},{self.users_ou}"
-        prevdn = (
-            f"{self.dnAttrUsers}={getattr(cachedobj, self.dnAttrUsers)},{self.users_ou}"
-        )
+        userDnAttrValue = getattr(newobj, self.dnAttrUsers)
+        prevUserDnAttrValue = getattr(cachedobj, self.dnAttrUsers)
+        dn = f"{self.dnAttrUsers}={userDnAttrValue},{self.users_ou}"
+        prevdn = f"{self.dnAttrUsers}={prevUserDnAttrValue},{self.users_ou}"
 
         # Check if a rename is required
         if self.currentStep == 0:
@@ -220,13 +221,20 @@ class LdapClient(GenericClient):
         # If a rename was required, update groups member to reflect new dn
         if self.currentStep == 1:
             if dn != prevdn and self.propagateUserDNChangeOnGroupMember:
+                safe_prevUserDnAttrValue = ldap.filter.escape_filter_chars(
+                    prevUserDnAttrValue, escape_mode=1
+                )
+                safe_prevdn = (
+                    f"{self.dnAttrUsers}={safe_prevUserDnAttrValue},{self.users_ou}"
+                )
+
                 try:
                     groupsDNs = self.ldap.search_s(
                         base=self.groups_ou,
                         scope=ldap.SCOPE_SUBTREE,
                         filterstr=(
                             f"(&(objectClass={self.groups_objectclass})"
-                            f"({self.groupMemberAttr}={prevdn}))"
+                            f"({self.groupMemberAttr}={safe_prevdn}))"
                         ),
                         attrlist=[self.groupMemberAttr],
                         attrsonly=1,
