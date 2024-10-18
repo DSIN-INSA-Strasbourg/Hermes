@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Usergroups_LDAP client plugin: internal primary key attributes are now automatically added to the `attributesToIgnore` in `plugins.clients.usergroups_ldap`
 - Usergroups_LDAP client plugin: fixed missing escape of a value in LDAP search filter in `plugins.clients.usergroups_ldap`
 - SQLite messagebus consumer plugin `plugins.messagebus_consumers.sqlite`: fixed an error raised when the message bus was empty, *e.g.* when all events it contained had been purged because they had exceeded their retention duration.
 - Improved the way logs are handled in unit tests: now using a NullHandler instead of calls to logging.disable(). This fixes new functional tests that monitor logs, which were failing from github actions.

@@ -129,9 +129,7 @@ class LdapClient(GenericClient):
     def convertObjToLdap(self, obj: DataObject) -> dict[str, Any]:
         res = {}
 
-        attributesToIgnore: set[str] = set(
-            self.config["attributesToIgnore"].get(obj.getType(), [])
-        )
+        attributesToIgnore = self.__getAttributesToIgnoreOf(obj)
         defaultvalues: dict[str, Any] = self.config["defaultValues"].get(
             obj.getType(), {}
         )
@@ -146,6 +144,18 @@ class LdapClient(GenericClient):
 
         # Return result after type conversion
         return LdapClient.convertAttrDictTypes(res)
+
+    def __getAttributesToIgnoreOf(self, obj: DataObject) -> set[str]:
+        """Return a set of attributes to ignore that will contain the internal primary
+        key attributes, and the configured attributesToIgnore from config"""
+        if type(obj.PRIMARYKEY_ATTRIBUTE) is str:
+            pkey_attrs = set([obj.PRIMARYKEY_ATTRIBUTE])
+        else:
+            pkey_attrs = set(obj.PRIMARYKEY_ATTRIBUTE)
+
+        return pkey_attrs | set(
+            self.config["attributesToIgnore"].get(obj.getType(), [])
+        )
 
     @staticmethod
     def convertAttrDictTypes(
