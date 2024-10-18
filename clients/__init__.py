@@ -257,6 +257,10 @@ class GenericClient:
         """Store if some data has been processed during current event processing. Will
         be stored in events in error queue to handle autoremediation properly"""
 
+        self.__isAnErrorRetry: bool = False
+        """Indicate to handler whether the current event is being processed as part of
+        an error retry"""
+
         self.__saveRequired: bool = False
         """Reset to False at each loop start, and if any change is made during
         processing, set to True in order to save all cache at the loop end.
@@ -496,6 +500,12 @@ class GenericClient:
 
         self.__isPartiallyProcessed = value
 
+    @property
+    def isAnErrorRetry(self) -> bool:
+        """Read-only attribute that indicates to handler whether the current event is
+        being processed as part of an error retry"""
+        return self.__isAnErrorRetry
+
     def mainLoop(self):
         """Client main loop"""
         self.__startTime = datetime.now()
@@ -581,6 +591,9 @@ class GenericClient:
                         )
                     finally:
                         isFirstLoopIteration = False
+                        # Still could be True if an exception was raised in
+                        # __retryErrorQueue()
+                        self.__isAnErrorRetry = False
             except Exception as e:
                 __hermes__.logger.warning(
                     "Message bus seems to be unavailable."
@@ -625,6 +638,9 @@ class GenericClient:
         now = datetime.now()
         if now < self.__errorQueue_lastretry + self.__errorQueue_retryInterval:
             return  # Too early to process again
+
+        # All events processed in __retryErrorQueue() require this attribute to be True
+        self.__isAnErrorRetry = True
 
         done = False
         evNumbersToRetry: list[int] = []
@@ -730,6 +746,8 @@ class GenericClient:
                     f" {retryQueue}"
                 )
                 evNumbersToRetry = retryQueue.copy()
+
+        self.__isAnErrorRetry = False  # End of __retryErrorQueue()
 
     def __emptyTrashBin(self, force: bool = False):
         # Enforce purgeInterval
@@ -1607,7 +1625,8 @@ class GenericClient:
 
         __hermes__.logger.info(
             f"Calling '{handlerName}({kwargsstr})' - currentStep={self.currentStep},"
-            f" isPartiallyProcessed={self.isPartiallyProcessed}"
+            f" isPartiallyProcessed={self.isPartiallyProcessed},"
+            f" isAnErrorRetry={self.isAnErrorRetry}"
         )
 
         try:
