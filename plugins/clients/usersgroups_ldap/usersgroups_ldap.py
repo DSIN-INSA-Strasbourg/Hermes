@@ -192,8 +192,17 @@ class LdapClient(GenericClient):
         self, objkey: Any, eventattrs: "dict[str, Any]", newobj: DataObject
     ):
         newobj_ldapdata = self.convertObjToLdap(newobj)
+        userDnAttrValue = getattr(newobj, self.dnAttrUsers)
+
+        # Since python-ldap exceptions do not guarantee that processing has not been
+        # performed, it is safer to check that the entry does not already exist
+        if self.isAnErrorRetry and self.__doesEntryExist(
+            self.users_ou, ldap.SCOPE_SUBTREE, self.dnAttrUsers, userDnAttrValue
+        ):
+            return
+
         addlist = ldap.modlist.addModlist(newobj_ldapdata)
-        dn = f"{self.dnAttrUsers}={getattr(newobj, self.dnAttrUsers)},{self.users_ou}"
+        dn = f"{self.dnAttrUsers}={userDnAttrValue},{self.users_ou}"
         try:
             self.ldap.add_s(dn, addlist)
         except LDAPError as e:
@@ -216,16 +225,29 @@ class LdapClient(GenericClient):
         # Check if a rename is required
         if self.currentStep == 0:
             if dn != prevdn:
-                try:
-                    self.ldap.rename_s(
-                        prevdn,
-                        f"{self.dnAttrUsers}={getattr(newobj, self.dnAttrUsers)}",
+                # Since python-ldap exceptions do not guarantee that processing has not
+                # been performed, it is safer to check that the entry does not already
+                # exist
+                if not self.isAnErrorRetry or (
+                    self.isAnErrorRetry
+                    and not self.__doesEntryExist(
+                        self.users_ou,
+                        ldap.SCOPE_SUBTREE,
+                        self.dnAttrUsers,
+                        userDnAttrValue,
                     )
-                except LDAPError as e:
-                    self.__handleLDAPError(e)
-                    raise
+                ):
+                    try:
+                        self.ldap.rename_s(
+                            prevdn,
+                            f"{self.dnAttrUsers}={userDnAttrValue}",
+                        )
+                    except LDAPError as e:
+                        self.__handleLDAPError(e)
+                        raise
+                # Change login in cached instance to reflect renaming
+                setattr(cachedobj, self.dnAttrUsers, userDnAttrValue)
                 self.isPartiallyProcessed = True
-
             self.currentStep += 1
 
         # If a rename was required, update groups member to reflect new dn
@@ -265,17 +287,22 @@ class LdapClient(GenericClient):
                         raise
                     self.isPartiallyProcessed = True
 
-                # Change login in cached instance to reflect renaming
-                setattr(cachedobj, self.dnAttrUsers, getattr(newobj, self.dnAttrUsers))
-                self.isPartiallyProcessed = True
-
             self.currentStep += 1
 
         # Modify
         if self.currentStep == 2:
-            cachedobj_ldapdata = self.convertObjToLdap(cachedobj)
-            newobj_ldapdata = self.convertObjToLdap(newobj)
-            modlist = ldap.modlist.modifyModlist(cachedobj_ldapdata, newobj_ldapdata)
+            if not self.isAnErrorRetry:
+                cachedobj_ldapdata = self.convertObjToLdap(cachedobj)
+                newobj_ldapdata = self.convertObjToLdap(newobj)
+                modlist = ldap.modlist.modifyModlist(
+                    cachedobj_ldapdata, newobj_ldapdata
+                )
+            else:
+                # Since python-ldap exceptions do not guarantee that processing
+                # has not been performed, it is safer to compute modlist from
+                # current ldap entry
+                modlist = self.__getModlist(dn, newobj)
+
             if len(modlist) > 0:
                 try:
                     self.ldap.modify_s(dn, modlist)
@@ -289,9 +316,16 @@ class LdapClient(GenericClient):
     def on_Users_removed(
         self, objkey: Any, eventattrs: "dict[str, Any]", cachedobj: DataObject
     ):
-        userdn = (
-            f"{self.dnAttrUsers}={getattr(cachedobj, self.dnAttrUsers)},{self.users_ou}"
-        )
+        userDnAttrValue = getattr(cachedobj, self.dnAttrUsers)
+        userdn = f"{self.dnAttrUsers}={userDnAttrValue},{self.users_ou}"
+
+        # Since python-ldap exceptions do not guarantee that processing has not been
+        # performed, it is safer to check that the entry still exists
+        if self.isAnErrorRetry and not self.__doesEntryExist(
+            self.users_ou, ldap.SCOPE_SUBTREE, self.dnAttrUsers, userDnAttrValue
+        ):
+            return
+
         try:
             self.ldap.delete_s(userdn)
         except LDAPError as e:
@@ -304,9 +338,16 @@ class LdapClient(GenericClient):
     ):
         newobj_ldapdata = self.convertObjToLdap(newobj)
         addlist = ldap.modlist.addModlist(newobj_ldapdata)
-        dn = (
-            f"{self.dnAttrGroups}={getattr(newobj, self.dnAttrGroups)},{self.groups_ou}"
-        )
+        groupDnAttrValue = getattr(newobj, self.dnAttrGroups)
+        dn = f"{self.dnAttrGroups}={groupDnAttrValue},{self.groups_ou}"
+
+        # Since python-ldap exceptions do not guarantee that processing has not been
+        # performed, it is safer to check that the entry does not already exist
+        if self.isAnErrorRetry and self.__doesEntryExist(
+            self.groups_ou, ldap.SCOPE_SUBTREE, self.dnAttrGroups, groupDnAttrValue
+        ):
+            return
+
         try:
             self.ldap.add_s(dn, addlist)
         except LDAPError as e:
@@ -321,39 +362,53 @@ class LdapClient(GenericClient):
         newobj: DataObject,
         cachedobj: DataObject,
     ):
-        dn = (
-            f"{self.dnAttrGroups}={getattr(newobj, self.dnAttrGroups)},{self.groups_ou}"
-        )
+        groupDnAttrValue = getattr(newobj, self.dnAttrGroups)
+        prevGroupDnAttrValue = getattr(cachedobj, self.dnAttrGroups)
+        dn = f"{self.dnAttrGroups}={groupDnAttrValue},{self.groups_ou}"
+        prevdn = f"{self.dnAttrGroups}={prevGroupDnAttrValue},{self.groups_ou}"
 
         # Check if a rename is required
         if self.currentStep == 0:
-            if getattr(newobj, self.dnAttrGroups) != getattr(
-                cachedobj, self.dnAttrGroups
-            ):
-                prevdn = (
-                    f"{self.dnAttrGroups}"
-                    f"={getattr(cachedobj, self.dnAttrGroups)},{self.groups_ou}"
-                )
-                try:
-                    self.ldap.rename_s(
-                        prevdn,
-                        f"{self.dnAttrGroups}={getattr(newobj, self.dnAttrGroups)}",
+            if dn != prevdn:
+                # Since python-ldap exceptions do not guarantee that processing has not
+                # been performed, it is safer to check that the entry does not already
+                # exist
+                if not self.isAnErrorRetry or (
+                    self.isAnErrorRetry
+                    and not self.__doesEntryExist(
+                        self.groups_ou,
+                        ldap.SCOPE_SUBTREE,
+                        self.dnAttrGroups,
+                        groupDnAttrValue,
                     )
-                except LDAPError as e:
-                    self.__handleLDAPError(e)
-                    raise
+                ):
+                    try:
+                        self.ldap.rename_s(
+                            prevdn,
+                            f"{self.dnAttrGroups}={groupDnAttrValue}",
+                        )
+                    except LDAPError as e:
+                        self.__handleLDAPError(e)
+                        raise
                 # Change login in cached instance to reflect renaming
-                setattr(
-                    cachedobj, self.dnAttrGroups, getattr(newobj, self.dnAttrGroups)
-                )
+                setattr(cachedobj, self.dnAttrGroups, groupDnAttrValue)
                 self.isPartiallyProcessed = True
             self.currentStep += 1
 
         # Modify
         if self.currentStep == 1:
-            cachedobj_ldapdata = self.convertObjToLdap(cachedobj)
-            newobj_ldapdata = self.convertObjToLdap(newobj)
-            modlist = ldap.modlist.modifyModlist(cachedobj_ldapdata, newobj_ldapdata)
+            if not self.isAnErrorRetry:
+                cachedobj_ldapdata = self.convertObjToLdap(cachedobj)
+                newobj_ldapdata = self.convertObjToLdap(newobj)
+                modlist = ldap.modlist.modifyModlist(
+                    cachedobj_ldapdata, newobj_ldapdata
+                )
+            else:
+                # Since python-ldap exceptions do not guarantee that processing
+                # has not been performed, it is safer to compute modlist from
+                # current ldap entry
+                modlist = self.__getModlist(dn, newobj)
+
             if len(modlist) > 0:
                 try:
                     self.ldap.modify_s(dn, modlist)
@@ -367,10 +422,16 @@ class LdapClient(GenericClient):
     def on_Groups_removed(
         self, objkey: Any, eventattrs: "dict[str, Any]", cachedobj: DataObject
     ):
-        groupdn = (
-            f"{self.dnAttrGroups}"
-            f"={getattr(cachedobj, self.dnAttrGroups)},{self.groups_ou}"
-        )
+        groupDnAttrValue = getattr(cachedobj, self.dnAttrGroups)
+        groupdn = f"{self.dnAttrGroups}={groupDnAttrValue},{self.groups_ou}"
+
+        # Since python-ldap exceptions do not guarantee that processing has not been
+        # performed, it is safer to check that the entry still exists
+        if self.isAnErrorRetry and not self.__doesEntryExist(
+            self.groups_ou, ldap.SCOPE_SUBTREE, self.dnAttrGroups, groupDnAttrValue
+        ):
+            return
+
         try:
             self.ldap.delete_s(groupdn)
         except LDAPError as e:
@@ -392,6 +453,14 @@ class LdapClient(GenericClient):
             f"{self.dnAttrGroups}"
             f"={getattr(cachedgroup, self.dnAttrGroups)},{self.groups_ou}"
         )
+
+        # Since python-ldap exceptions do not guarantee that processing has not been
+        # performed, it is safer to check that the entry does not already exist
+        if self.isAnErrorRetry and self.__doesEntryExist(
+            groupdn, ldap.SCOPE_BASE, self.groupMemberAttr, userdn
+        ):
+            return
+
         modlist = [(ldap.MOD_ADD, self.groupMemberAttr, userdn.encode("utf-8"))]
         try:
             self.ldap.modify_s(groupdn, modlist)
@@ -414,6 +483,14 @@ class LdapClient(GenericClient):
             f"{self.dnAttrGroups}"
             f"={getattr(cachedgroup, self.dnAttrGroups)},{self.groups_ou}"
         )
+
+        # Since python-ldap exceptions do not guarantee that processing has not been
+        # performed, it is safer to check that the entry still exists
+        if self.isAnErrorRetry and not self.__doesEntryExist(
+            groupdn, ldap.SCOPE_BASE, self.groupMemberAttr, userdn
+        ):
+            return
+
         modlist = [(ldap.MOD_DELETE, self.groupMemberAttr, userdn.encode("utf-8"))]
         try:
             self.ldap.modify_s(groupdn, modlist)
@@ -428,6 +505,7 @@ class LdapClient(GenericClient):
         user_pkey = newobj.user_pkey
         self.__process_UserPasswords(
             user_pkey,
+            obj=newobj,
             newldapobj=self.convertObjToLdap(newobj),
             cachedldapobj={},
         )
@@ -443,6 +521,7 @@ class LdapClient(GenericClient):
         user_pkey = newobj.user_pkey
         self.__process_UserPasswords(
             user_pkey,
+            obj=newobj,
             newldapobj=self.convertObjToLdap(newobj),
             cachedldapobj=self.convertObjToLdap(cachedobj),
         )
@@ -453,11 +532,18 @@ class LdapClient(GenericClient):
     ):
         user_pkey = cachedobj.user_pkey
         self.__process_UserPasswords(
-            user_pkey, newldapobj={}, cachedldapobj=self.convertObjToLdap(cachedobj)
+            user_pkey,
+            obj=cachedobj,
+            newldapobj={},
+            cachedldapobj=self.convertObjToLdap(cachedobj),
         )
 
     def __process_UserPasswords(
-        self, user_pkey: Any, newldapobj: dict[str, Any], cachedldapobj: dict[str, Any]
+        self,
+        user_pkey: Any,
+        obj: DataObject,
+        newldapobj: dict[str, Any],
+        cachedldapobj: dict[str, Any],
     ):
         cacheduser = self.getObjectFromCache("Users", user_pkey)
         dn = (
@@ -467,7 +553,14 @@ class LdapClient(GenericClient):
 
         # Modify
         if self.currentStep == 0:
-            modlist = ldap.modlist.modifyModlist(cachedldapobj, newldapobj)
+            if not self.isAnErrorRetry:
+                modlist = ldap.modlist.modifyModlist(cachedldapobj, newldapobj)
+            else:
+                # Since python-ldap exceptions do not guarantee that processing
+                # has not been performed, it is safer to compute modlist from
+                # current ldap entry
+                modlist = self.__getModlist(dn, obj)
+
             if len(modlist) > 0:
                 try:
                     self.ldap.modify_s(dn, modlist)
@@ -476,3 +569,51 @@ class LdapClient(GenericClient):
                     raise
                 self.isPartiallyProcessed = True
             self.currentStep += 1
+
+    def __doesEntryExist(
+        self, basedn: str, scope: Any, attrname: str, attrvalue: str
+    ) -> bool:
+        """Check if at least an entry with specified attrname=attrvalue exist in
+        specified basedn, with specified ldapsearch scope
+        """
+        safe_attrvalue = ldap.filter.escape_filter_chars(attrvalue, escape_mode=1)
+        ldapfilter = f"({attrname}={safe_attrvalue})"
+
+        try:
+            entryExists = self.ldap.search_s(
+                base=basedn,
+                scope=scope,
+                filterstr=ldapfilter,
+                attrlist=[attrname],
+                attrsonly=1,
+            )
+        except LDAPError as e:
+            self.__handleLDAPError(e)
+            raise
+
+        return len(entryExists) > 0
+
+    def __getModlist(self, dn: str, newobj: DataObject) -> list:
+        """Generate an LDAP modlist between entry of specified dn and specified newobj
+        content. The modlist will ignore (won't change) the attributes that are not
+        part of newobj type in datamodel"""
+        attributesToIgnore = self.__getAttributesToIgnoreOf(newobj)
+        validldapattrs = list(newobj.HERMES_ATTRIBUTES - attributesToIgnore)
+
+        entries = self.ldap.search_s(dn, ldap.SCOPE_BASE, attrlist=validldapattrs)
+        if len(entries) == 0:
+            raise AssertionError(
+                f"No entry was found for {dn=} : the client content has probably been"
+                " modified by an external change, Hermes won't be able to fix it"
+            )
+        elif len(entries) > 1:
+            raise AssertionError(
+                f"{len(entries)} found for {dn=} instead of one. This should be"
+                " impossible. Hermes won't be able to fix it"
+            )
+
+        entryAttrs: dict
+        (_, entryAttrs) = entries[0]
+        newobj_ldapdata = self.convertObjToLdap(newobj)
+        modlist = ldap.modlist.modifyModlist(entryAttrs, newobj_ldapdata)
+        return modlist

@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Added `isAnErrorRetry` read-only attribute that can let client plugin handler know if the current event is being processed as part of an error retry. This can be useful for example to perform additional checks when a library happens to throw exceptions even though it has correctly processed the requested changes, as python-ldap sometimes does.
+- Usergroups_LDAP client plugin: Significantly improved reliability in case of error recovery, by adding specific checks to determine what may have already been processed in `plugins.clients.usergroups_ldap`
 
 ### Fixed
 
