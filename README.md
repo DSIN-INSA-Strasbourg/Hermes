@@ -50,7 +50,7 @@
 - [x] Write functional tests
 - [ ] Write more tests
 - [x] (Maybe) Force remote primary keys in client datamodel. Requires a lot of troubleshooting to safely update "internal" attrnames and values on Dataschema primary key change: in Datasources and Errorqueue
-- [ ] (Maybe) Provide information allowing client plugins to determine whether a handler is called following the reception of an event or for a retry after an error
+- [x] (Maybe) Provide information allowing client plugins to determine whether a handler is called following the reception of an event or for a retry after an error
 - [ ] (Maybe) Reduce RAM consumption by storing the cache in a SQLite database, which would allow loading objects only on demand, and no longer systematically
 - [ ] (Maybe) Design a generic way to handle adding a client whose target already contains data
 - [ ] (Maybe) Implement data consistency check when initsync sequence is met on an already initialized client (clients)
