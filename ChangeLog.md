@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed a bug in autoremediation: two modified events were previously merged incorrectly. Tests have been updated to ensure this does not happen again
 - Usergroups_LDAP client plugin: internal primary key attributes are now automatically added to the `attributesToIgnore` in `plugins.clients.usergroups_ldap`
 - Usergroups_LDAP client plugin: fixed missing escape of a value in LDAP search filter in `plugins.clients.usergroups_ldap`
 - SQLite messagebus consumer plugin `plugins.messagebus_consumers.sqlite`: fixed an error raised when the message bus was empty, *e.g.* when all events it contained had been purged because they had exceeded their retention duration.

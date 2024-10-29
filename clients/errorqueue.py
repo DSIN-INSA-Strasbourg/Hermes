@@ -345,28 +345,47 @@ class ErrorQueue(LocalCache):
             mergedEvent = deepcopy(prevEvent)
             objattrs = mergedEvent.objattrs
 
-            # Added
-            objattrs["added"] = objattrs.get("added", dict()) | lastEvent.objattrs.get(
-                "added", dict()
-            )
-            for key in objattrs["added"].keys() & lastEvent.objattrs.get(
-                "modified", dict()
-            ):
-                objattrs["added"][key] = lastEvent.objattrs["modified"][key]
+            lastAdded: dict[str, Any] = lastEvent.objattrs.get("added", dict())
+            lastModified: dict[str, Any] = lastEvent.objattrs.get("modified", dict())
+            lastRemoved: dict[str, Any] = lastEvent.objattrs.get("removed", dict())
 
-            # Modified
-            for key in (
-                lastEvent.objattrs.get("modified", dict()).keys()
-                - objattrs["added"].keys()
-            ):
-                objattrs["modified"][key] = lastEvent.objattrs["modified"][key]
+            # Newly added attributes
+            for attr, newval in lastAdded.items():
+                # # Newly added should not exist in prev modified
+                # if attr in objattrs["modified"]:
+                #     raise AssertionError
+                # Merge prev added with last added
+                objattrs["added"][attr] = newval
+                # As attr is now added, it should not be removed anymore
+                if attr in objattrs["removed"]:
+                    del objattrs["removed"][attr]
 
-            # Removed
-            for prevAction in ("added", "modified"):
-                for key in lastEvent.objattrs.get(
-                    "removed", dict()
-                ).keys() & objattrs.get(prevAction, dict()):
-                    del objattrs[prevAction][key]
+            # Newly modified attributes
+            for attr, newval in lastModified.items():
+                # # Newly modified should not exist in prev removed
+                # if attr in objattrs["removed"]:
+                #     raise AssertionError
+                # If was added in prev, keep it as added, but update its value
+                if attr in objattrs["added"]:
+                    objattrs["added"][attr] = newval
+                else:
+                    # Keep or update the last modified value
+                    objattrs["modified"][attr] = newval
+
+            # Newly removed attributes
+            for attr, newval in lastRemoved.items():
+                # # Newly removed should not exist in prev removed
+                # if attr in objattrs["removed"]:
+                #     raise AssertionError
+                if attr in objattrs["added"]:
+                    # Added + removed : nothing to keep
+                    del objattrs["added"][attr]
+                else:
+                    if attr in objattrs["modified"]:
+                        # Modified + removed : don't keep the modified
+                        del objattrs["modified"][attr]
+                    # Keep the removed
+                    objattrs["removed"][attr] = newval
 
             __hermes__.logger.info(
                 f"Merging modified {prevEvent.objattrs=} with modified"

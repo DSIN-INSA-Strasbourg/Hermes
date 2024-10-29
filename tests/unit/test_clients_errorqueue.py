@@ -1168,9 +1168,7 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "modified": {
                         "name": "Object2_modified_final"
                     },
-                    "removed": {
-                        "description": null
-                    }
+                    "removed": {}
                 },
                 "step": 0,
                 "isPartiallyProcessed": false
@@ -1572,9 +1570,7 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "modified": {
                         "name": "Object2_modified_final"
                     },
-                    "removed": {
-                        "description": null
-                    }
+                    "removed": {}
                 },
                 "step": 0,
                 "isPartiallyProcessed": false
@@ -1947,9 +1943,7 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "modified": {
                         "name": "Object2_modified_final"
                     },
-                    "removed": {
-                        "description": null
-                    }
+                    "removed": {}
                 },
                 "step": 0,
                 "isPartiallyProcessed": false
@@ -2217,9 +2211,7 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "modified": {
                         "name": "Object2_modified_final"
                     },
-                    "removed": {
-                        "description": null
-                    }
+                    "removed": {}
                 },
                 "step": 0,
                 "isPartiallyProcessed": false
@@ -2443,6 +2435,171 @@ class TestErrorQueueClass(HermesServerTestCase):
                     "obj_id": 5,
                     "name": "Object5 new",
                     "description": "Test Object5 new"
+                },
+                "step": 0,
+                "isPartiallyProcessed": false
+            },
+            "Fake error message"
+        ]
+    }
+}"""
+
+    mergemodifyqueue = {
+        "1": [
+            {
+                "evcategory": "base",
+                "eventtype": "modified",
+                "objtype": "TestObj1",
+                "objpkey": 1,
+                "objattrs": {
+                    "added": {
+                        "added_1": "val_added_1",
+                        "added_2": "val_added_2",
+                        "added_3": "val_added_3",
+                    },
+                    "modified": {
+                        "modified_1": "val_modified_1",
+                        "modified_2": "val_modified_2",
+                        "modified_3": "val_modified_3",
+                    },
+                    "removed": {
+                        "removed_1": None,
+                        "removed_2": None,
+                    },
+                },
+                "step": 0,
+                "isPartiallyProcessed": False,
+            },
+            {
+                "evcategory": "base",
+                "eventtype": "modified",
+                "objtype": "TestObj1_local",
+                "objpkey": 1,
+                "objattrs": {
+                    "added": {
+                        "local_added_1": "val_local_added_1",
+                        "local_added_2": "val_local_added_2",
+                        "local_added_3": "val_local_added_3",
+                    },
+                    "modified": {
+                        "local_modified_1": "val_local_modified_1",
+                        "local_modified_2": "val_local_modified_2",
+                        "local_modified_3": "val_local_modified_3",
+                    },
+                    "removed": {
+                        "local_removed_1": None,
+                        "local_removed_2": None,
+                    },
+                },
+                "step": 0,
+                "isPartiallyProcessed": False,
+            },
+            "Fake error message",
+        ],
+        "2": [
+            {
+                "evcategory": "base",
+                "eventtype": "modified",
+                "objtype": "TestObj1",
+                "objpkey": 1,
+                "objattrs": {
+                    "added": {
+                        "new_added_1": "val_new_added_1",
+                        "removed_2": "val_removed_2",
+                    },
+                    "modified": {
+                        "new_modified_1": "val_new_modified_1",
+                        "added_2": "new_val_added_2",
+                        "modified_2": "new_val_modified_2",
+                    },
+                    "removed": {
+                        "new_removed_1": None,
+                        "added_3": None,
+                        "modified_3": None,
+                    },
+                },
+                "step": 0,
+                "isPartiallyProcessed": False,
+            },
+            {
+                "evcategory": "base",
+                "eventtype": "modified",
+                "objtype": "TestObj1_local",
+                "objpkey": 1,
+                "objattrs": {
+                    "added": {
+                        "new_local_added_1": "val_new_local_added_1",
+                        "local_removed_2": "val_local_removed_2",
+                    },
+                    "modified": {
+                        "new_local_modified_1": "val_new_local_modified_1",
+                        "local_added_2": "new_val_local_added_2",
+                        "local_modified_2": "new_val_local_modified_2",
+                    },
+                    "removed": {
+                        "local_new_removed_1": None,
+                        "local_added_3": None,
+                        "local_modified_3": None,
+                    },
+                },
+                "step": 0,
+                "isPartiallyProcessed": False,
+            },
+            "Fake error message",
+        ],
+    }
+
+    mergemodifyqueue_remediatedjson = """{
+    "_queue": {
+        "1": [
+            {
+                "evcategory": "base",
+                "eventtype": "modified",
+                "objtype": "TestObj1",
+                "objpkey": 1,
+                "objattrs": {
+                    "added": {
+                        "added_1": "val_added_1",
+                        "added_2": "new_val_added_2",
+                        "new_added_1": "val_new_added_1",
+                        "removed_2": "val_removed_2"
+                    },
+                    "modified": {
+                        "modified_1": "val_modified_1",
+                        "modified_2": "new_val_modified_2",
+                        "new_modified_1": "val_new_modified_1"
+                    },
+                    "removed": {
+                        "removed_1": null,
+                        "new_removed_1": null,
+                        "modified_3": null
+                    }
+                },
+                "step": 0,
+                "isPartiallyProcessed": false
+            },
+            {
+                "evcategory": "base",
+                "eventtype": "modified",
+                "objtype": "TestObj1_local",
+                "objpkey": 1,
+                "objattrs": {
+                    "added": {
+                        "local_added_1": "val_local_added_1",
+                        "local_added_2": "new_val_local_added_2",
+                        "new_local_added_1": "val_new_local_added_1",
+                        "local_removed_2": "val_local_removed_2"
+                    },
+                    "modified": {
+                        "local_modified_1": "val_local_modified_1",
+                        "local_modified_2": "new_val_local_modified_2",
+                        "new_local_modified_1": "val_new_local_modified_1"
+                    },
+                    "removed": {
+                        "local_removed_1": null,
+                        "local_new_removed_1": null,
+                        "local_modified_3": null
+                    }
                 },
                 "step": 0,
                 "isPartiallyProcessed": false
@@ -2967,3 +3124,13 @@ class TestErrorQueueClass(HermesServerTestCase):
         self.assertTrue(eq.containsObjectByEvent(ev, isLocalEvent=False))
         eq.purgeAllEvents("TestObj1", 3, isLocalObjtype=False)
         self.assertFalse(eq.containsObjectByEvent(ev, isLocalEvent=False))
+
+    def test_merge_two_modified_events(self):
+        eq = ErrorQueue(
+            typesMapping=self.typesMapping,
+            autoremediate="conservative",
+            from_json_dict={"_queue": self.mergemodifyqueue},
+        )
+        self.assertEqual(len(eq), 1)  # Queue contains 1 item
+        self.assertEqual(len(list(eq.allEvents())), 1)  # Queue contains 1 item
+        self.assertEqual(eq.to_json(), self.mergemodifyqueue_remediatedjson)
