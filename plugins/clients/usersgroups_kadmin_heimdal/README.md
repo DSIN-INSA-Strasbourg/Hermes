@@ -68,13 +68,13 @@ hermes-client-usersgroups_kadmin_heimdal:
   random_passwords:
     # Password length
     length: 32
-    # If true, the generated password may contains some upper cased letters
+    # If true, the generated password may contains some upper case letters
     with_upper_letters: true
-    # The generated password will contain at least this number of upper cased letters
+    # The generated password will contain at least this number of upper case letters
     minimum_number_of_upper_letters: 1
-    # If true, the generated password may contains some lower cased letters
+    # If true, the generated password may contains some lower case letters
     with_lower_letters: true
-    # The generated password will contain at least this number of lower cased letters
+    # The generated password will contain at least this number of lower case letters
     minimum_number_of_lower_letters: 1
     # If true, the generated password may contains some numbers
     with_numbers: true
