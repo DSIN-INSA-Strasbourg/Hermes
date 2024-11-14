@@ -1,0 +1,235 @@
+# Hermes : Change Data Capture (CDC) tool from any source(s) to any target
+# Copyright (C) 2024 INSA Strasbourg
+#
+# This file is part of Hermes.
+#
+# Hermes is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Hermes is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Hermes. If not, see <https://www.gnu.org/licenses/>.
+
+# https://docs.python-cerberus.org/validation-rules.html
+
+hermes-client-usersgroups_bsspartage:
+  type: dict
+  required: true
+  nullable: false
+  schema:
+    authentication:
+      type: dict
+      required: true
+      empty: false
+      keysrules:
+        type: string
+        required: true
+        empty: false
+      valuesrules:
+        type: string
+        required: true
+        empty: false
+
+    default_removed_values:
+      type: dict
+      required: true
+      empty: false
+      default:
+        Users:
+          co: ""
+          company: ""
+          description: ""
+          displayName: ""
+          facsimileTelephoneNumber: ""
+          givenName: ""
+          homePhone: ""
+          initials: ""
+          l: ""
+          mobile: ""
+          name: ""
+          pager: ""
+          postalCode: ""
+          st: ""
+          street: ""
+          telephoneNumber: ""
+          title: ""
+          zimbraNotes: ""
+          zimbraPrefMailForwardingAddress: ""
+          zimbraMailCanonicalAddress: ""
+          zimbraPrefFromDisplay: ""
+          zimbraMailQuota: 0
+        Groups:
+          description: "-"
+          displayName: "-"
+          zimbraNotes: "-"
+        Resources:
+          co: ""
+          description: ""
+          l: ""
+          postalCode: ""
+          st: ""
+          street: ""
+          zimbraCalResBuilding: ""
+          zimbraCalResContactEmail: ""
+          zimbraCalResContactName: ""
+          zimbraCalResContactPhone: ""
+          zimbraCalResFloor: ""
+          zimbraCalResLocationDisplayName: ""
+          zimbraCalResRoom: ""
+          zimbraCalResSite: ""
+          zimbraNotes: ""
+          zimbraCalResCapacity: "-1"
+      schema:
+        Users:
+          type: dict
+          required: true
+          empty: false
+          keysrules:
+            type: string
+            required: true
+            empty: false
+            forbidden: [userPassword]
+          valuesrules:
+            type:
+              - string
+              - integer
+              - list
+            required: true
+            default: {}
+            empty: true
+            nullable: false
+        Groups:
+          type: dict
+          required: true
+          empty: false
+          keysrules:
+            type: string
+            required: true
+            empty: false
+          valuesrules:
+            type:
+              - string
+              - integer
+              - list
+            required: true
+            default: {}
+            empty: false
+        Resources:
+          type: dict
+          required: true
+          empty: false
+          keysrules:
+            type: string
+            required: true
+            empty: false
+            forbidden: [password, userPassword]
+          valuesrules:
+            type:
+              - string
+              - integer
+              - list
+            required: true
+            default: {}
+            empty: true
+            nullable: false
+
+    random_passwords:
+      type: dict
+      required: false
+      empty: false
+      default: {}
+      schema:
+        length:
+          type: integer
+          required: true
+          empty: false
+          nullable: false
+          default: 32
+          min: 1
+          max: 1024
+        with_upper_letters:
+          type: boolean
+          required: true
+          empty: false
+          nullable: false
+          default: true
+        minimum_number_of_upper_letters:
+          type: integer
+          required: true
+          empty: false
+          nullable: false
+          default: 1
+          min: 0
+          max: 1024
+        with_lower_letters:
+          type: boolean
+          required: true
+          empty: false
+          nullable: false
+          default: true
+        minimum_number_of_lower_letters:
+          type: integer
+          required: true
+          empty: false
+          nullable: false
+          default: 1
+          min: 0
+          max: 1024
+        with_numbers:
+          type: boolean
+          required: true
+          empty: false
+          nullable: false
+          default: true
+        minimum_number_of_numbers:
+          type: integer
+          required: true
+          empty: false
+          nullable: false
+          default: 1
+          min: 0
+          max: 1024
+        with_special_chars:
+          type: boolean
+          required: true
+          empty: false
+          nullable: false
+          default: true
+        minimum_number_of_special_chars:
+          type: integer
+          required: true
+          empty: false
+          nullable: false
+          default: 1
+          min: 0
+          max: 1024
+        avoid_ambigous_chars:
+          type: boolean
+          required: true
+          empty: false
+          nullable: false
+          default: false
+        ambigous_chars_dictionary:
+          type: string
+          required: true
+          empty: false
+          nullable: false
+          default: "lIO01"
+        letters_dictionary:
+          type: string
+          required: true
+          empty: false
+          nullable: false
+          default: "abcdefghijklmnopqrstuvwxyz"
+        special_chars_dictionary:
+          type: string
+          required: true
+          empty: false
+          nullable: false
+          default: "!@#$%^&*"

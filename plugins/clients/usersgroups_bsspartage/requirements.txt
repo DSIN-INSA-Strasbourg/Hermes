@@ -1,0 +1,3 @@
+# plugins/clients/usersgroups_bsspartage
+lib-Partage-BSS-univ-rennes==2.3.5
+
