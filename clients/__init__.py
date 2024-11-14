@@ -736,10 +736,11 @@ class GenericClient:
 
             done = previousKeys == self.__datamodel.errorqueue.keys() or not retryQueue
             if done:
-                __hermes__.logger.debug(
-                    f"End of retryerrorqueue {previousKeys=}"
-                    f" {self.__datamodel.errorqueue.keys()=} - {retryQueue=}"
-                )
+                if previousKeys:
+                    __hermes__.logger.debug(
+                        f"End of retryerrorqueue {previousKeys=}"
+                        f" {self.__datamodel.errorqueue.keys()=} - {retryQueue=}"
+                    )
             else:
                 __hermes__.logger.debug(
                     "As some event have been processed, will retry ignored events"
