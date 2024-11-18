@@ -28,13 +28,15 @@ The local Datamodel keys will be used as LDAP attributes names, without any cons
 
 The `GroupMembers` will only store data (typically LDAP `member` attribute) in LDAP group entries as it is possible to use LDAP overlays (`dynlist` or the deprecated `memberOf`) to dynamically generate the corresponding data in user entries. You should consider reading the `propagateUserDNChangeOnGroupMember` setting documentation.
 
-!!! warning Error recovery isn't fully guaranteed
-    In some cases (*e.g.* LDAP server shutdown), `python-ldap` reports a failure for an operation (*e.g.* entry added) but has still done it.
-    `Hermes` is unable to automatically recover consistent status as it will try to recreate the entry and fail because it already exists.
-    You will have to manage manually those cases when they'll occur.
+{{% notice style="tip" title="LDAP password hashes generation" %}}
+In some cases (*e.g.* LDAP server shutdown), `python-ldap` reports a failure for an operation (*e.g.* entry added) but has still done it.
+`Hermes` is unable to automatically recover consistent status as it will try to recreate the entry and fail because it already exists.
+You will have to manage manually those cases when they'll occur.
+{{% /notice %}}
 
-!!! tip LDAP password hashes generation
-    If you need to generate LDAP password hashes, you may consider looking at `ldapPasswordHash` attribute plugin.
+{{% notice style="tip" title="LDAP password hashes generation" %}}
+If you need to generate LDAP password hashes, you may consider looking at [ldapPasswordHash](../../attributes/ldappasswordhash/) attribute plugin.
+{{% /notice %}}
 
 ## Configuration
 
