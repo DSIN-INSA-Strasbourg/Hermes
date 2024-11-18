@@ -24,10 +24,6 @@ along with Hermes. If not, see <https://www.gnu.org/licenses/>.
 
 This plugin allows hermes-client to receive events from an SQLite database.
 
-{{% notice warning %}}
-This plugin is provided for testing but shouldn’t be used for production.
-{{% /notice %}}
-
 ## Configuration
 
 ```yaml

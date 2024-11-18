@@ -62,7 +62,7 @@ hermes-client-usersgroups_ldap:
       Groups: cn
 
     # Depending on group and group membership settings in LDAP, you may use another
-    # attribute than the default 'member' attribute to store the group member DN
+    # attribute than the default 'member' attribute to store the DN of group member
     # Facultative. Default value: "member"
     groupMemberAttribute: member
 

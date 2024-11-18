@@ -1,6 +1,6 @@
 <!--
 Hermes : Change Data Capture (CDC) tool from any source(s) to any target
-Copyright (C) 2023 INSA Strasbourg
+Copyright (C) 2023, 2024 INSA Strasbourg
 
 This file is part of Hermes.
 
@@ -56,7 +56,7 @@ Valid values for `default_hash_types` are:
 ldapPasswordHash(password: str, hashtypes: None | str | list[str] = None) → list[str]
 ```
 
-Once everything is set up, you can generate your hash list  `ldapPasswordHash` key like this  in a Jinja filter:
+Once everything is set up, you can generate your hash list like this in a Jinja filter:
 
 ```yaml
 # Will contain a list of hashes of PASSWORD_CLEAR according to

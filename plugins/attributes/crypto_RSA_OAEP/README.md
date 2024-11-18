@@ -1,6 +1,6 @@
 <!--
 Hermes : Change Data Capture (CDC) tool from any source(s) to any target
-Copyright (C) 2023 INSA Strasbourg
+Copyright (C) 2023, 2024 INSA Strasbourg
 
 This file is part of Hermes.
 
@@ -40,7 +40,7 @@ hermes:
               # Hash type, when decrypting, you must obviously use the same value
               # that was used for encrypting
               hash: SHA3_512
-              # Public RSA key used to decrypt
+              # Public RSA key used to encrypt
               # WARNING - THIS KEY IS WEAK AND PUBLIC, NEVER USE IT
               rsa_key: |-
                   -----BEGIN PUBLIC KEY-----
@@ -78,7 +78,7 @@ Valid values for `hash` are:
 crypto_RSA_OAEP(value: bytes | str, keyname: str) → str
 ```
 
-Once everything is set up, you can encrypt data with `encrypt_to_messagebus` key like this  in a Jinja filter:
+Once everything is set up, you can encrypt data with `encrypt_to_messagebus` key like this in a Jinja filter:
 
 ```yaml
 password_encrypted: "{{ PASSWORD_CLEAR | crypto_RSA_OAEP('encrypt_to_messagebus') }}"

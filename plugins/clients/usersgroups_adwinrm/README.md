@@ -52,7 +52,7 @@ hermes-client-usersgroups_adwinrm:
     # MANDATORY: AD server credentials
     login: administrator
     password: "s3cReT_p4s5w0rD"
-    # Default: validate. Set 'ignore' to disable
+    # Default: 'validate'. Set 'ignore' to disable
     server_cert_validation: ignore
 
   AD_domain:

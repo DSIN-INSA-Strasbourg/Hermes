@@ -52,11 +52,11 @@ hermes-client-usersgroups_adpypsrp:
     ssl_cert_validation: false
     # Default: true
     credssp_disable_tlsv1_2: true
-    # Default: auto. Valid values are [auto, always, never]
+    # Default: "auto". Valid values are [auto, always, never]
     encryption: always
     # Default: "wsman"
     path: "wsman"
-    # Default: negotiate. Valid values are [basic, certificate, negotiate, ntlm, kerberos, credssp]
+    # Default: "negotiate". Valid values are [basic, certificate, negotiate, ntlm, kerberos, credssp]
     auth: credssp
 
   AD_domain:
