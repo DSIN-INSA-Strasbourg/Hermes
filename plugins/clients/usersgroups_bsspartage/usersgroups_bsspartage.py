@@ -25,6 +25,7 @@ from clients.helpers.randompassword import RandomPassword
 from lib.config import HermesConfig
 from lib.datamodel.dataobject import DataObject
 
+from lib_Partage_BSS.exceptions.ServiceException import ServiceException
 from lib_Partage_BSS.models.Account import Account
 from lib_Partage_BSS.models.Group import Group
 from lib_Partage_BSS.models.Resource import Resource
@@ -34,6 +35,8 @@ from lib_Partage_BSS.services import ResourceService
 from lib_Partage_BSS.services.BSSConnexionService import BSSConnexion
 
 from passlib.hash import ldap_salted_sha512
+
+import re
 
 from typing import Any
 
@@ -75,6 +78,7 @@ class BSSPartageClient(GenericClient):
     def on_Users_added(
         self, objkey: Any, eventattrs: "dict[str, Any]", newobj: DataObject
     ):
+        isAlreadyCreated: bool = False
         account = Account(newobj.name)
         changes = eventattrs.copy()
 
@@ -94,9 +98,17 @@ class BSSPartageClient(GenericClient):
                 account.addZimbraZimletAvailableZimlets(zimlet)
 
         if self.currentStep == 0:
-            AccountService.createAccountExt(
-                account=account, password=changes["userPassword"]
-            )
+            if self.isAnErrorRetry:
+                # Test if account has already been created
+                bssAccount = AccountService.getAccount(name=newobj.name)
+                if bssAccount is not None:
+                    isAlreadyCreated = True
+            if isAlreadyCreated:
+                AccountService.modifyAccount(account)
+            else:
+                AccountService.createAccountExt(
+                    account=account, password=changes["userPassword"]
+                )
             self.isPartiallyProcessed = True
             self.currentStep += 1
 
@@ -178,9 +190,17 @@ class BSSPartageClient(GenericClient):
     def on_Users_removed(
         self, objkey: Any, eventattrs: "dict[str, Any]", cachedobj: DataObject
     ):
+        isAlreadyRemoved: bool = False
         if self.currentStep == 0:
-            AccountService.deleteAccount(cachedobj.name)
-            self.isPartiallyProcessed = True
+            if self.isAnErrorRetry:
+                # Test if account has already been removed
+                bssAccount = AccountService.getAccount(name=cachedobj.name)
+                if bssAccount is None:
+                    isAlreadyRemoved = True
+
+            if not isAlreadyRemoved:
+                AccountService.deleteAccount(cachedobj.name)
+                self.isPartiallyProcessed = True
             self.currentStep += 1
 
     def on_UserPasswords_added(
@@ -251,11 +271,22 @@ class BSSPartageClient(GenericClient):
             self.currentStep += 1
 
     def _addGroup(self, newobj: DataObject, startStep: int):
+        isAlreadyCreated: bool = False
         if self.currentStep == startStep:
-            # Create group
             group = Group(newobj.name)
             group.from_dict(newobj.toEvent())
-            GroupService.createGroup(group)
+
+            if self.isAnErrorRetry:
+                # Test if group has already been created
+                bssGroup = GroupService.getGroup(name=newobj.name)
+                if bssGroup is not None:
+                    isAlreadyCreated = True
+
+            if isAlreadyCreated:
+                GroupService.modifyGroup(group)
+            else:
+                # Create group
+                GroupService.createGroup(group)
             self.isPartiallyProcessed = True
             self.currentStep += 1
 
@@ -267,9 +298,17 @@ class BSSPartageClient(GenericClient):
             self.currentStep += 1
 
     def _deleteGroup(self, cachedobj: DataObject, startStep: int):
+        isAlreadyRemoved: bool = False
         if self.currentStep == startStep:
-            GroupService.deleteGroup(cachedobj.name)
-            self.isPartiallyProcessed = True
+            if self.isAnErrorRetry:
+                # Test if group has already been removed
+                bssGroup = GroupService.getGroup(name=cachedobj.name)
+                if bssGroup is None:
+                    isAlreadyRemoved = True
+
+            if not isAlreadyRemoved:
+                GroupService.deleteGroup(cachedobj.name)
+                self.isPartiallyProcessed = True
             self.currentStep += 1
 
     def on_Groups_added(
@@ -361,6 +400,8 @@ class BSSPartageClient(GenericClient):
         cacheduser = self.getObjectFromCache("Users", newobj.user_pkey)
 
         if self.currentStep == 0:
+            # As a groupmember can be re-added without error, no need to do
+            # more tests if self.isAnErrorRetry == True
             GroupService.addGroupMembers(cachedgroup.name, cacheduser.name)
             self.isPartiallyProcessed = True
             self.currentStep += 1
@@ -380,12 +421,18 @@ class BSSPartageClient(GenericClient):
     def on_GroupsMembers_removed(
         self, objkey: Any, eventattrs: "dict[str, Any]", cachedobj: DataObject
     ):
+        isAlreadyRemoved: bool = False
         cachedgroup = self.getObjectFromCache("Groups", cachedobj.group_pkey)
         cacheduser = self.getObjectFromCache("Users", cachedobj.user_pkey)
 
         if self.currentStep == 0:
-            GroupService.removeGroupMembers(cachedgroup.name, cacheduser.name)
-            self.isPartiallyProcessed = True
+            if self.isAnErrorRetry:
+                bssGroup = GroupService.getGroup(cachedgroup.name)
+                if cacheduser.name not in bssGroup.members:
+                    isAlreadyRemoved = True
+            if not isAlreadyRemoved:
+                GroupService.removeGroupMembers(cachedgroup.name, cacheduser.name)
+                self.isPartiallyProcessed = True
             self.currentStep += 1
 
     def on_GroupsSenders_added(
@@ -395,6 +442,8 @@ class BSSPartageClient(GenericClient):
         cacheduser = self.getObjectFromCache("Users", newobj.user_pkey)
 
         if self.currentStep == 0:
+            # As a groupsender can be re-added without error, no need to do
+            # more tests if self.isAnErrorRetry == True
             GroupService.addGroupSenders(cachedgroup.name, cacheduser.name)
             self.isPartiallyProcessed = True
             self.currentStep += 1
@@ -414,15 +463,38 @@ class BSSPartageClient(GenericClient):
     def on_GroupsSenders_removed(
         self, objkey: Any, eventattrs: "dict[str, Any]", cachedobj: DataObject
     ):
+        isAlreadyRemoved: bool = False
         cachedgroup = self.getObjectFromCache("Groups", cachedobj.group_pkey)
         cacheduser = self.getObjectFromCache("Users", cachedobj.user_pkey)
 
         if self.currentStep == 0:
-            GroupService.removeGroupSenders(cachedgroup.name, cacheduser.name)
-            self.isPartiallyProcessed = True
+            if self.isAnErrorRetry:
+                bssGroup = GroupService.getGroup(cachedgroup.name, full_info=True)
+                if cacheduser.name not in bssGroup.senders:
+                    isAlreadyRemoved = True
+            if not isAlreadyRemoved:
+                GroupService.removeGroupSenders(cachedgroup.name, cacheduser.name)
+                self.isPartiallyProcessed = True
             self.currentStep += 1
 
+    @staticmethod
+    def _ResourceService_getResource(name: str) -> Resource | None:
+        """Replacement method of ResourceService.getResource, that fixes its
+        behavior when a resource doesn't exist.
+        Indeed, the original method does not work as its documentation
+        indicates: it raises a ServiceException instead of returning None.
+        """
+        try:
+            bssResource = ResourceService.getResource(name=name)
+        except ServiceException as e:
+            if re.search("no such calendar resource", e.msg):
+                return None
+            raise
+        else:
+            return bssResource
+
     def _addRessource(self, newobj: DataObject, startStep: int):
+        isAlreadyCreated: bool = False
         if self.currentStep == startStep:
             # Re-create ressource
             resource = Resource(newobj.name)
@@ -445,7 +517,17 @@ class BSSPartageClient(GenericClient):
                 changes["zimbraCalResCapacity"] = str(changes["zimbraCalResCapacity"])
 
             resource.from_dict(changes)
-            ResourceService.createResourceExt(resource)
+
+            if self.isAnErrorRetry:
+                # Test if ressource has already been created
+                bssResource = self._ResourceService_getResource(name=newobj.name)
+                if bssResource is not None:
+                    isAlreadyCreated = True
+
+            if isAlreadyCreated:
+                ResourceService.modifyResource(resource)
+            else:
+                ResourceService.createResourceExt(resource)
             self.isPartiallyProcessed = True
             self.currentStep += 1
 
@@ -464,9 +546,17 @@ class BSSPartageClient(GenericClient):
             self.currentStep += 1
 
     def _deleteResource(self, cachedobj: DataObject, startStep: int):
+        isAlreadyRemoved: bool = False
         if self.currentStep == startStep:
-            ResourceService.deleteResource(cachedobj.name)
-            self.isPartiallyProcessed = True
+            if self.isAnErrorRetry:
+                # Test if ressource has already been removed
+                bssResource = self._ResourceService_getResource(name=cachedobj.name)
+                if bssResource is None:
+                    isAlreadyRemoved = True
+
+            if not isAlreadyRemoved:
+                ResourceService.deleteResource(cachedobj.name)
+                self.isPartiallyProcessed = True
             self.currentStep += 1
 
     def on_Resources_added(
