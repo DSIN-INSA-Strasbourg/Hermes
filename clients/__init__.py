@@ -99,9 +99,7 @@ class HermesClientCache(LocalCache):
             ],
         )
 
-        self.queueErrors: dict[str, dict[str, dict[str, Any]]] = from_json_dict.get(
-            "queueErrors", {}
-        )
+        self.queueErrors: dict[str, str] = from_json_dict.get("queueErrors", {})
         """Dictionary containing current objects in error queue, for notifications"""
 
         self.datamodelWarnings: dict[str, dict[str, dict[str, Any]]] = (
