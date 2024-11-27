@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Added a new client plugin `usersgroups_bsspartage` to manage Users, UserPasswords, Groups, GroupsMembers, GroupsSenders and Ressources on a RENATER's PARTAGE instance.
+- Added the `ldaphash` helper that replace the passlib dependency in `plugins.attributes.ldapPasswordHash` and `plugins.clients.usersgroups_bsspartage`
 
 ### Changed
 

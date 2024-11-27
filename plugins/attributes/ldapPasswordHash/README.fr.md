@@ -35,9 +35,8 @@ hermes:
       ldapPasswordHash:
         settings:
           default_hash_types:
-            - SMD5
-            - SSHA
             - SSHA256
+            - SSHA384
             - SSHA512
 ```
 
@@ -45,9 +44,13 @@ Les valeurs valides pour `default_hash_types` sont :
 
 - MD5
 - SHA
+- SHA256
+- SHA384
+- SHA512
 - SMD5
 - SSHA
 - SSHA256
+- SSHA384
 - SSHA512
 
 ## Utilisation

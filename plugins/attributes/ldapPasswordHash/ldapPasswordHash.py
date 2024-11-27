@@ -20,20 +20,10 @@
 # along with Hermes. If not, see <https://www.gnu.org/licenses/>.
 
 
-from typing import Type
 from jinja2 import Undefined
-from passlib.ifc import PasswordHash
-
-from passlib.hash import (
-    ldap_md5,
-    ldap_sha1,
-    ldap_salted_md5,
-    ldap_salted_sha1,
-    ldap_salted_sha256,
-    ldap_salted_sha512,
-)
 
 
+from helpers.ldaphash import LDAPHash
 from lib.plugins import AbstractAttributePlugin
 
 HERMES_PLUGIN_CLASSNAME: str | None = "LdapPasswordHashPlugin"
@@ -46,15 +36,6 @@ class InvalidLdapPasswordHashType(Exception):
 
 class LdapPasswordHashPlugin(AbstractAttributePlugin):
     """Plugin to generate LDAP password hashes"""
-
-    __hashclasses: dict[str, Type[PasswordHash]] = {
-        "MD5": ldap_md5,
-        "SHA": ldap_sha1,
-        "SMD5": ldap_salted_md5,
-        "SSHA": ldap_salted_sha1,
-        "SSHA256": ldap_salted_sha256,
-        "SSHA512": ldap_salted_sha512,
-    }
 
     def __init__(self, settings: dict[str, any]) -> None:
         """Instantiate new plugin and store a copy of its settings dict in
@@ -95,12 +76,10 @@ class LdapPasswordHashPlugin(AbstractAttributePlugin):
                     " Hashtype must be a string or a list of string"
                 )
 
-        unknownHashTypes = _hashtypes - self.__hashclasses.keys()
+        unknownHashTypes = _hashtypes - set(LDAPHash.getAvailableHashtypes())
         if unknownHashTypes:
             raise InvalidLdapPasswordHashType(
                 f"Invalid LDAP password hash type specified: {unknownHashTypes}"
             )
 
-        return [
-            self.__hashclasses[hashtype].hash(password) for hashtype in set(_hashtypes)
-        ]
+        return [LDAPHash.hash(password, hashtype) for hashtype in _hashtypes]

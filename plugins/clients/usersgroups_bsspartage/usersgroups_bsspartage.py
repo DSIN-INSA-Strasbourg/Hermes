@@ -21,6 +21,7 @@
 
 
 from clients import GenericClient
+from helpers.ldaphash import LDAPHash
 from helpers.randompassword import RandomPassword
 from lib.config import HermesConfig
 from lib.datamodel.dataobject import DataObject
@@ -33,8 +34,6 @@ from lib_Partage_BSS.services import AccountService
 from lib_Partage_BSS.services import GroupService
 from lib_Partage_BSS.services import ResourceService
 from lib_Partage_BSS.services.BSSConnexionService import BSSConnexion
-
-from passlib.hash import ldap_salted_sha512
 
 import re
 
@@ -85,8 +84,8 @@ class BSSPartageClient(GenericClient):
         if "userPassword" not in changes:
             # Password hash does not exist yet, generating the SSHA512 hash
             # of a random password
-            changes["userPassword"] = ldap_salted_sha512.hash(
-                self._randomPassword.generate()
+            changes["userPassword"] = LDAPHash.hash(
+                self._randomPassword.generate(), "SSHA512"
             )
         account.fillAccount(changes)
 
@@ -144,8 +143,8 @@ class BSSPartageClient(GenericClient):
             )
 
         if "userPassword" in changes and not changes["userPassword"]:
-            changes["userPassword"] = ldap_salted_sha512.hash(
-                self._randomPassword.generate()
+            changes["userPassword"] = LDAPHash.hash(
+                self._randomPassword.generate(), "SSHA512"
             )
 
         if self.currentStep == 0:
@@ -214,8 +213,8 @@ class BSSPartageClient(GenericClient):
         if "userPassword" in eventattrs and eventattrs["userPassword"]:
             changes["userPassword"] = eventattrs["userPassword"]
         else:
-            changes["userPassword"] = ldap_salted_sha512.hash(
-                self._randomPassword.generate()
+            changes["userPassword"] = LDAPHash.hash(
+                self._randomPassword.generate(), "SSHA512"
             )
 
         if self.currentStep == 0:
@@ -243,8 +242,8 @@ class BSSPartageClient(GenericClient):
             changes["userPassword"] = None
 
         if "userPassword" in changes and not changes["userPassword"]:
-            changes["userPassword"] = ldap_salted_sha512.hash(
-                self._randomPassword.generate()
+            changes["userPassword"] = LDAPHash.hash(
+                self._randomPassword.generate(), "SSHA512"
             )
 
         if self.currentStep == 0:
@@ -259,8 +258,8 @@ class BSSPartageClient(GenericClient):
     ):
         cacheduser = self.getObjectFromCache("Users", cachedobj.getPKey())
         changes = {}
-        changes["userPassword"] = ldap_salted_sha512.hash(
-            self._randomPassword.generate()
+        changes["userPassword"] = LDAPHash.hash(
+            self._randomPassword.generate(), "SSHA512"
         )
 
         if self.currentStep == 0:
@@ -506,8 +505,8 @@ class BSSPartageClient(GenericClient):
             if "userPassword" not in changes:
                 # Password hash does not exist yet, generating the SSHA512 hash
                 # of a random password
-                changes["userPassword"] = ldap_salted_sha512.hash(
-                    self._randomPassword.generate()
+                changes["userPassword"] = LDAPHash.hash(
+                    self._randomPassword.generate(), "SSHA512"
                 )
             if "zimbraCalResCapacity" in changes and type(
                 changes["zimbraCalResCapacity"] is int
@@ -605,8 +604,8 @@ class BSSPartageClient(GenericClient):
             del changes["zimbraPrefCalendarForwardInvitesTo"]
 
         if "userPassword" in changes and not changes["userPassword"]:
-            changes["userPassword"] = ldap_salted_sha512.hash(
-                self._randomPassword.generate()
+            changes["userPassword"] = LDAPHash.hash(
+                self._randomPassword.generate(), "SSHA512"
             )
 
         if "zimbraCalResCapacity" in changes and type(
