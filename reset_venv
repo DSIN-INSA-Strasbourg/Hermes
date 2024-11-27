@@ -24,7 +24,7 @@
 
 # Validated versions of python, space separated
 # Order from favorite to least favorite version
-validpythonversions="python3.12 python3.11 python3.10"
+validpythonversions="python3.13 python3.12 python3.11 python3.10"
 
 # Virtualenv directory name
 venvdir=".venv"

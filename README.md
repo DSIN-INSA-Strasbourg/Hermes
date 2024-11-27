@@ -12,7 +12,10 @@
 [![codecov py311](https://dsin-insa-strasbourg.github.io/Hermes/badges/coverage_py311.svg)](https://dsin-insa-strasbourg.github.io/Hermes/coverage_report_py311/)  
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue)](https://www.python.org/downloads/release/python-3120/)
 [![tests py312](https://dsin-insa-strasbourg.github.io/Hermes/badges/tests_py312.svg)](https://dsin-insa-strasbourg.github.io/Hermes/tests_reports/hermes_tests_py312.html)
-[![codecov py312](https://dsin-insa-strasbourg.github.io/Hermes/badges/coverage_py312.svg)](https://dsin-insa-strasbourg.github.io/Hermes/coverage_report_py312/)
+[![codecov py312](https://dsin-insa-strasbourg.github.io/Hermes/badges/coverage_py312.svg)](https://dsin-insa-strasbourg.github.io/Hermes/coverage_report_py312/)  
+[![Python 3.13](https://img.shields.io/badge/python-3.13-blue)](https://www.python.org/downloads/release/python-3130/)
+[![tests py313](https://dsin-insa-strasbourg.github.io/Hermes/badges/tests_py313.svg)](https://dsin-insa-strasbourg.github.io/Hermes/tests_reports/hermes_tests_py313.html)
+[![codecov py313](https://dsin-insa-strasbourg.github.io/Hermes/badges/coverage_py313.svg)](https://dsin-insa-strasbourg.github.io/Hermes/coverage_report_py313/)
 
 ---
 
