@@ -21,6 +21,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Removed passlib dependency, which is incompatible with Python 3.13
 
+### Security
+
+- Bumped python dependencies to their latest version:
+  - cryptography (used by plugins/clients/usersgroups_adwinrm)
+  - oracledb (used by plugins/datasources/oracle)
+
 ## [1.0.0-alpha.7] - 2024-10-29
 
 ### Added
