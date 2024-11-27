@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Moved helpers classes from `clients.helpers` to `helpers`, as helpers can be useful to other types of plugins
 
+### Removed
+
+- Removed passlib dependency, which is incompatible with Python 3.13
+
 ## [1.0.0-alpha.7] - 2024-10-29
 
 ### Added

@@ -1,3 +1,2 @@
 # plugins/attributes/ldapPasswordHash
-passlib==1.7.4
 
