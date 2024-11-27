@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added a new client plugin `usersgroups_bsspartage` to manage Users, UserPasswords, Groups, GroupsMembers, GroupsSenders and Ressources on a RENATER's PARTAGE instance.
 
+### Changed
+
+- Moved helpers classes from `clients.helpers` to `helpers`, as helpers can be useful to other types of plugins
+
 ## [1.0.0-alpha.7] - 2024-10-29
 
 ### Added

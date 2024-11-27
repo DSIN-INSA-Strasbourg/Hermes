@@ -21,7 +21,7 @@
 
 
 from clients import GenericClient
-from clients.helpers.randompassword import RandomPassword
+from helpers.randompassword import RandomPassword
 from lib.config import HermesConfig
 from lib.datamodel.dataobject import DataObject
 
