@@ -78,7 +78,8 @@ class JSONEncoder(json.JSONEncoder):
     def default(self, obj: Any) -> Any:
         # If object to encode is a datetime, convert it to an internal isoformat string
         if isinstance(obj, datetime):
-            return f"HermesDatetime({obj.isoformat(timespec='seconds')}Z)"
+            obj_notz = obj.replace(tzinfo=None)
+            return f"HermesDatetime({obj_notz.isoformat(timespec='seconds')}Z)"
         if isinstance(obj, bytes):
             return f"HermesBytes({base64.b64encode(obj).decode('ascii')})"
         if isinstance(obj, JSONSerializable):
