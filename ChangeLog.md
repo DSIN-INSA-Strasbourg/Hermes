@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added the `ldaphash` helper that replace the passlib dependency in `plugins.attributes.ldapPasswordHash` and `plugins.clients.usersgroups_bsspartage`
 - Added Python 3.13 to compatibility list
 
+### Fixed
+
+- The `plugins.attributes.ldapPasswordHash` plugin now provides the hash list in the same order as the different algorithms were specified to it
+
 ### Changed
 
 - Moved helpers classes from `clients.helpers` to `helpers`, as helpers can be useful to other types of plugins

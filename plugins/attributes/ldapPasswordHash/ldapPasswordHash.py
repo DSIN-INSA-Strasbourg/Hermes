@@ -41,7 +41,7 @@ class LdapPasswordHashPlugin(AbstractAttributePlugin):
         """Instantiate new plugin and store a copy of its settings dict in
         self._settings"""
         super().__init__(settings)
-        self._defaulthashtypes: set[str] = set(self._settings["default_hash_types"])
+        self._defaulthashtypes: list[str] = self._settings["default_hash_types"]
 
     def filter(
         self, password: str | None | Undefined, hashtypes: None | str | list[str] = None
@@ -62,21 +62,21 @@ class LdapPasswordHashPlugin(AbstractAttributePlugin):
 
         if hashtypes is None:
             # No type(s) explicitly specified, use default values specified in config
-            _hashtypes: set[str] = self._defaulthashtypes
+            _hashtypes: list[str] = self._defaulthashtypes
         else:
             # Use specified type(s), and ensure to store values in a set to filter
             # duplicates
             if type(hashtypes) is str:
-                _hashtypes = set([hashtypes])
+                _hashtypes = [hashtypes]
             elif type(hashtypes) is list:
-                _hashtypes = set(hashtypes)
+                _hashtypes = hashtypes
             else:
                 raise TypeError(
                     f"Invalid type for hashtypes: {type(hashtypes)=}."
                     " Hashtype must be a string or a list of string"
                 )
 
-        unknownHashTypes = _hashtypes - set(LDAPHash.getAvailableHashtypes())
+        unknownHashTypes = set(_hashtypes) - set(LDAPHash.getAvailableHashtypes())
         if unknownHashTypes:
             raise InvalidLdapPasswordHashType(
                 f"Invalid LDAP password hash type specified: {unknownHashTypes}"
