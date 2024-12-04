@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The `plugins.attributes.ldapPasswordHash` plugin now provides the hash list in the same order as the different algorithms were specified to it
 - Ensure the timezone info of datetime instances is discarded during serialization
+- `plugins.datasources.ldap` : when converting LDAP datetime string to datetime instance, discard the timezone info
 
 ### Changed
 

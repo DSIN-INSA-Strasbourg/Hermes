@@ -278,7 +278,7 @@ class DatasourceLdap(AbstractDataSourcePlugin):
     def _convertdatetime_from_ldap(cls, val: str) -> datetime:
         """Try to convert specified val to datetime returns it.
         Raise ValueError if conversion failed"""
-        res = datetime.strptime(val, "%Y%m%d%H%M%S%z")
+        res = datetime.strptime(val, "%Y%m%d%H%M%S%z").replace(tzinfo=None)
         return res
 
     @staticmethod
