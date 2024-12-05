@@ -1,0 +1,80 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+
+jobs:
+  release:
+    env:
+      HUGO_VERSION: 0.139.2
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Hermes-doc sources
+        uses: actions/checkout@v4
+        with:
+          repository: 'Boris-INSA/Hermes-doc'
+          path: Hermes-doc
+          ref: "${{ github.ref_name }}"
+          persist-credentials: false
+
+      - name: Install Hugo CLI
+        run: |
+          wget -O ${{ runner.temp }}/hugo.deb https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.deb \
+          && sudo dpkg -i ${{ runner.temp }}/hugo.deb
+
+      - name: Build file browseable site with Hugo
+        env:
+          HUGO_UGLYURLS: true
+          HUGO_RELATIVEURLS: true
+          HUGO_PARAMS_DISABLEEXPLICITINDEXURLS: false
+          # For maximum backward compatibility with Hugo modules
+          HUGO_ENVIRONMENT: production
+          HUGO_ENV: production
+        run: |
+          hugo \
+            --gc
+        working-directory: ./Hermes-doc
+
+      - name: Replace absolutes window.location.replace url by relatives
+        run: sed -i "s#'\\\\/#'.\\\\/#" ./Hermes-doc/public/index.html
+
+      - name: Rename public dir to Hermes-doc-vX.Y.Z
+        run: mv "./Hermes-doc/public/" "./Hermes-doc/Hermes-doc-${{ github.ref_name }}/"
+
+      - name: Create Hermes-doc tgz file
+        run: tar -czf "../Hermes-doc-${{ github.ref_name }}.tgz" "Hermes-doc-${{ github.ref_name }}/"
+        working-directory: ./Hermes-doc
+
+
+
+      - name: Checkout Hermes code
+        uses: actions/checkout@v4
+        with:
+          repository: 'Boris-INSA/Hermes'
+          path: "Hermes-${{ github.ref_name }}"
+          ref: "${{ github.ref_name }}"
+          persist-credentials: false
+
+      - name: Remove useless files and dirs
+        run: rm -Rf ".git" ".github" ".gitignore" "tests" "tox.ini"
+        working-directory: "./Hermes-${{ github.ref_name }}"
+
+      - name: Create Hermes tgz file
+        run: tar -czf "./Hermes-${{ github.ref_name }}.tgz" "Hermes-${{ github.ref_name }}/"
+
+
+
+      - name: Reduce changelog only to release content
+        run: |
+          sed -n '/^## \[${{ github.ref_name }}\]/,/^## \[v[0-9]\+\.[0-9]\+\.[0-9]\+\]/ p' < "./Hermes-${{ github.ref_name }}/ChangeLog.md" > ChangeLog.tmp.md
+          tail -n -1 ChangeLog.tmp.md | grep -q '^## \[v[0-9]\+\.[0-9]\+\.[0-9]\+\]' && head -n -1 < ChangeLog.tmp.md > ChangeLog.md || mv ChangeLog.tmp.md ChangeLog.md
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: ChangeLog.md
+          files: |
+            Hermes-${{ github.ref_name }}.tgz
+            Hermes-doc-${{ github.ref_name }}.tgz
