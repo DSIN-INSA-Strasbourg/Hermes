@@ -5,7 +5,7 @@ All notable changes to Hermes will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0-alpha.8] - 2024-12-04
+## [v1.0.0-alpha.8] - 2024-12-04
 
 ### Added
 
@@ -33,7 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - cryptography (used by plugins/clients/usersgroups_adwinrm)
   - oracledb (used by plugins/datasources/oracle)
 
-## [1.0.0-alpha.7] - 2024-10-29
+## [v1.0.0-alpha.7] - 2024-10-29
 
 ### Added
 
@@ -55,7 +55,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - kafka-python-ng (used by plugins/messagebus_consumers kafka and plugins/messagebus_producers/kafka)
   - pycryptodomex (used by plugins/attributes/crypto_RSA_OAEP)
 
-## [1.0.0-alpha.6] - 2024-10-10
+## [v1.0.0-alpha.6] - 2024-10-10
 
 ### Added
 
@@ -68,7 +68,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed a KeyError exception that could only occur on client primary keys update, if a removed event was in error queue.
 - kafka-python-ng set a default hard limit of 1MB for each message (event) sent to Kafka message bus. This limit can now be overriden by setting the new optional `plugins.messagebus.kafka.settings.max_request_size` configuration directive for `plugins.messagebus_producers.kafka` used only by `hermes-server`.
 
-## [1.0.0-alpha.5] - 2024-09-05
+## [v1.0.0-alpha.5] - 2024-09-05
 
 ### Fixed
 
@@ -82,7 +82,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - pywinrm (used by plugins/clients/usersgroups_adwinrm)
   - oracledb (used by plugins/datasources/oracle)
 
-## [1.0.0-alpha.4] - 2024-07-17
+## [v1.0.0-alpha.4] - 2024-07-17
 
 ### Added
 
@@ -92,7 +92,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Client plugins `usersgroups_adpypsrp` and `usersgroups_adwinrm`: replaced the random generation of non-configurable passwords with the `clients.helper.randompassword` helper, and added the possibility of configuring it using the client plugin configuration file.
 - Added a new client plugin `usersgroups_kadmin_heimdal` to manage users and their passwords in an Heimdal Kerberos server.
 
-## [1.0.0-alpha.3] - 2024-07-12
+## [v1.0.0-alpha.3] - 2024-07-12
 
 ### Added
 
@@ -100,7 +100,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added the support of the python type `bytes` from datasources. It works, but should be used only for small binary content.
 - Added the BLOB support in the Oracle datasource plugin (plugins/datasources/oracle/), now that `bytes` are supported.
 
-## [1.0.0-alpha.2] - 2024-07-11
+## [v1.0.0-alpha.2] - 2024-07-11
 
 ### Added
 
@@ -131,7 +131,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - oracledb (used by plugins/datasources/oracle)
   - kafka-python isn't maintained anymore : replaced by kafka-python-ng (used by plugins/messagebus_consumers kafka and plugins/messagebus_producers/kafka)
 
-## [1.0.0-alpha.1] - 2024-04-29
+## [v1.0.0-alpha.1] - 2024-04-29
 
 ### Added
 
