@@ -21,9 +21,6 @@
 
 [Change Data Capture (CDC)](https://medium.com/event-driven-utopia/a-gentle-introduction-to-event-driven-change-data-capture-683297625f9b) tool from any source(s) to any target.
 
-> [!CAUTION]
-> :warning: **The code is considered stable enough to be evaluated but needs more testing to ensure its stability** :warning:
-
 ## Features
 
 - Does not require any change to sources data model (*e.g.* no need to add a `last_updated` column)
