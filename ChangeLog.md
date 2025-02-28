@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Bumped python dependencies to their latest version:
   - Cerberus
+  - cryptography (used by plugins/clients/usersgroups_adwinrm)
   - Jinja2
   - oracledb (used by plugins/datasources/oracle)
 
