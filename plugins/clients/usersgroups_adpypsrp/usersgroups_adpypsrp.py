@@ -107,6 +107,18 @@ class PypsrpADClient(GenericClient):
             ambigousCharsdict=pwd_conf["ambigous_chars_dictionary"],
         )
 
+        if len(self.config["Users_mandatory_groups"]) == 0:
+            self.users_mandatory_groups: str | None = None
+            """ String containing escaped and quoted group from Users_mandatory_groups
+                config, or None if empty"""
+        else:
+            self.users_mandatory_groups = ", ".join(
+                [
+                    f"'{self.escape(grp)}'"
+                    for grp in self.config["Users_mandatory_groups"]
+                ]
+            )
+
     def __connect(self):
         if self.pool is not None:
             if self.pool.state == 2:  # Connection is up
@@ -256,38 +268,57 @@ class PypsrpADClient(GenericClient):
     def on_Users_added(
         self, objkey: Any, eventattrs: "dict[str, Any]", newobj: DataObject
     ):
-        std_attrs = eventattrs.keys() & self.standardAttrs["Users"].keys()
-        other_attrs = eventattrs.keys() & self.otherAttrs["Users"].keys()
-        cmd = [
-            "New-ADUser",
-            f"-Path '{self.users_ou}'",
-            f"-Name '{self.escape(newobj.SamAccountName)}'",
-            (
-                f"-AccountPassword (ConvertTo-SecureString"
-                f" '{self.escape(self._randomPassword.generate())}'"
-                " -AsPlainText -force)"
-            ),
-            "-Confirm:$False",
-        ]
-        cmd += [
-            f"-{k} {
-                self.convertAttrToPS(k, eventattrs[k], self.standardAttrs['Users'])
-            }"
-            for k in std_attrs
-        ]
+        if self.currentStep == 0:
+            std_attrs = eventattrs.keys() & self.standardAttrs["Users"].keys()
+            other_attrs = eventattrs.keys() & self.otherAttrs["Users"].keys()
+            cmd = [
+                "New-ADUser",
+                f"-Path '{self.users_ou}'",
+                f"-Name '{self.escape(newobj.SamAccountName)}'",
+                (
+                    f"-AccountPassword (ConvertTo-SecureString"
+                    f" '{self.escape(self._randomPassword.generate())}'"
+                    " -AsPlainText -force)"
+                ),
+                "-Confirm:$False",
+            ]
+            cmd += [
+                f"-{k} {
+                    self.convertAttrToPS(k, eventattrs[k], self.standardAttrs['Users'])
+                }"
+                for k in std_attrs
+            ]
 
-        if other_attrs:
-            other_attrs_str = "; ".join(
-                [
-                    f"'{k}'={
-                        self.convertAttrToPS(k, eventattrs[k], self.otherAttrs['Users'])
-                    }"
-                    for k in other_attrs
+            if other_attrs:
+                other_attrs_str = "; ".join(
+                    [
+                        f"'{k}'={
+                            self.convertAttrToPS(
+                                k,
+                                eventattrs[k],
+                                self.otherAttrs['Users']
+                            )
+                        }"
+                        for k in other_attrs
+                    ]
+                )
+                cmd.append(f"""-OtherAttributes @{{ {other_attrs_str} }}""")
+
+            self.run_ps(" `\n  ".join(cmd))
+            self.isPartiallyProcessed = True
+            self.currentStep += 1
+
+        if self.currentStep == 1:
+            if self.users_mandatory_groups is not None:
+                cmd = [
+                    "Add-ADPrincipalGroupMembership",
+                    f"-Identity '{self.escape(newobj.SamAccountName)}'",
+                    f"-MemberOf {self.users_mandatory_groups}",
+                    "-Confirm:$False",
                 ]
-            )
-            cmd.append(f"""-OtherAttributes @{{ {other_attrs_str} }}""")
-
-        self.run_ps(" `\n  ".join(cmd))
+                self.run_ps(" `\n  ".join(cmd))
+                self.isPartiallyProcessed = True
+            self.currentStep += 1
 
     def on_Users_recycled(
         self, objkey: Any, eventattrs: "dict[str, Any]", newobj: DataObject

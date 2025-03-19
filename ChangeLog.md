@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Client plugins `usersgroups_adpypsrp`: added a new optional setting `Users_mandatory_groups` that allows to force each new user to be added to the specified group list
+
 ### Security
 
 - Bumped python dependencies to their latest version:

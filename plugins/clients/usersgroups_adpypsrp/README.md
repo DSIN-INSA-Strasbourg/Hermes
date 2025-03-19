@@ -57,7 +57,7 @@ hermes-client-usersgroups_adpypsrp:
     # Default: "wsman"
     path: "wsman"
     # Default: "negotiate". Valid values are [basic, certificate, negotiate, ntlm, kerberos, credssp]
-    auth: credssp
+    auth: ntlm
 
   AD_domain:
     # MANDATORY: AD domain name and DN
@@ -66,6 +66,13 @@ hermes-client-usersgroups_adpypsrp:
     # MANDATORY: OUs where Users and Groups will be stored
     users_ou: OU=INSA,OU=People,DC=in,DC=insa-strasbourg,DC=fr
     groups_ou: OU=INSA,OU=Groups,DC=in,DC=insa-strasbourg,DC=fr
+
+  # Optional, allows to force each user to be added to the specified group list.
+  # Group membership is only added when the user is created: any change to this parameter's value
+  # will only impact users created subsequently
+  Users_mandatory_groups:
+    - MandatoryGroup1
+    - MandatoryGroup2
 
   # Defines cmdlet parameters that can be set, and the valid type of the associated value
   # You really should set it as is.

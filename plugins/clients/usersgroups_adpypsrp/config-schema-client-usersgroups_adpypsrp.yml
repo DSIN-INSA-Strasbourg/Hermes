@@ -116,6 +116,15 @@ hermes-client-usersgroups_adpypsrp:
           required: true
           empty: false
 
+    Users_mandatory_groups:
+      type: list
+      required: false
+      empty: true
+      nullable: false
+      default: []
+      schema:
+        type: string
+
     standardAttributes:
       type: dict
       required: true
