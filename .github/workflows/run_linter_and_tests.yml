@@ -20,8 +20,8 @@ jobs:
       contents: read
     runs-on: ubuntu-latest
     steps:
-      - name: Install python-ldap requirements
-        run: sudo apt install -y libldap-dev libsasl2-dev
+      - name: Install gssapi/krb5 and python-ldap requirements
+        run: sudo apt install -y libkrb5-dev libldap-dev libsasl2-dev
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
