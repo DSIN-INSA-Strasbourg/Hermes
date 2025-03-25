@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Client plugins `usersgroups_adpypsrp`: added installation of Kerberos authentication dependencies
+
 ### Removed
 
 - Removed client plugin `usersgroups_adwinrm` as it has poor performances and was redundant with `usersgroups_adpypsrp`
