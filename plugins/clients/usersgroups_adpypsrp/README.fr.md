@@ -57,7 +57,11 @@ hermes-client-usersgroups_adpypsrp:
     # Par défaut : "wsman"
     path: "wsman"
     # Par défaut : "negotiate". Les valeurs valides sont [basic, certificate, negotiate, ntlm, kerberos, credssp]
-    auth: ntlm
+    auth: kerberos
+    # Par défaut : "WSMAN". Permet de définir la partie service du SPN calculé, utilisée lors de l'authentification au serveur.
+    # Ceci n'est valide que si l'authentification négociée est Kerberos, ou si Kerberos a été explicitement choisi.
+    # Si vous obtenez l'erreur "Server not found in Kerberos database", vous pouvez essayer de définir "HTTP" ici.
+    negotiate_service: WSMAN
 
   AD_domain:
     # OBLIGATOIRE : nom de domaine AD et DN

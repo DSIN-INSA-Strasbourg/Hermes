@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Client plugins `usersgroups_adpypsrp`: added a new optional setting `negotiate_service` that allows to override the service part of the calculated SPN used when authenticating the Kerberos server
+
 ### Changed
 
 - Client plugins `usersgroups_adpypsrp`: added installation of Kerberos authentication dependencies

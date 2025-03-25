@@ -62,6 +62,7 @@ class PypsrpADClient(GenericClient):
         self.winrm_encryption = self.config["WinRM"]["encryption"]
         self.winrm_path = self.config["WinRM"]["path"]
         self.winrm_auth = self.config["WinRM"]["auth"]
+        self.winrm_negotiate_service = self.config["WinRM"]["negotiate_service"]
 
         ###################
         # Domain settings #
@@ -136,6 +137,7 @@ class PypsrpADClient(GenericClient):
             encryption=self.winrm_encryption,
             path=self.winrm_path,
             auth=self.winrm_auth,
+            negotiate_service=self.winrm_negotiate_service,
         )
 
         self.pool = RunspacePool(self.wsman)

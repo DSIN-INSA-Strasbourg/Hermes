@@ -93,6 +93,12 @@ hermes-client-usersgroups_adpypsrp:
             - ntlm
             - kerberos
             - credssp
+        negotiate_service:
+          type: string
+          required: true
+          empty: false
+          nullable: false
+          default: WSMAN
 
     AD_domain:
       type: dict
