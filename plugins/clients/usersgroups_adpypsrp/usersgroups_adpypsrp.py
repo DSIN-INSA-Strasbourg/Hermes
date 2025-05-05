@@ -599,8 +599,8 @@ class PypsrpADClient(GenericClient):
 
         cmd = [
             "Add-ADGroupMember",
-            "-Identity"
-            f" 'CN={self.escape(cachedgroup.SamAccountName)},{self.groups_ou}'",
+            "-Identity",
+            f"'CN={self.escape(cachedgroup.SamAccountName)},{self.groups_ou}'",
             f"-Members 'CN={self.escape(cacheduser.SamAccountName)},{self.users_ou}'",
             "-DisablePermissiveModify:$False",
             "-Confirm:$False",
@@ -629,6 +629,49 @@ class PypsrpADClient(GenericClient):
             "Remove-ADGroupMember",
             f"-Identity 'CN={cachedgroup.SamAccountName},{self.groups_ou}'",
             f"-Members 'CN={cacheduser.SamAccountName},{self.users_ou}'",
+            "-DisablePermissiveModify:$False",
+            "-Confirm:$False",
+        ]
+        self.run_ps(" `\n  ".join(cmd))
+
+    def on_SubGroupsMembers_added(
+        self, objkey: Any, eventattrs: "dict[str, Any]", newobj: DataObject
+    ):
+        cachedgroup = self.getObjectFromCache("Groups", newobj.group_pkey)
+        cachedsubgr = self.getObjectFromCache("Groups", newobj.subgroup_pkey)
+
+        cmd = [
+            "Add-ADGroupMember",
+            "-Identity",
+            f"'CN={self.escape(cachedgroup.SamAccountName)},{self.groups_ou}'",
+            f"-Members 'CN={self.escape(cachedsubgr.SamAccountName)},{self.groups_ou}'",
+            "-DisablePermissiveModify:$False",
+            "-Confirm:$False",
+        ]
+        self.run_ps(" `\n  ".join(cmd))
+
+    def on_SubGroupsMembers_recycled(
+        self, objkey: Any, eventattrs: "dict[str, Any]", newobj: DataObject
+    ):
+        # Won't generate an error if called several times
+        self.on_SubGroupsMembers_added(objkey, eventattrs, newobj)
+
+    def on_SubGroupsMembers_trashed(
+        self, objkey: Any, eventattrs: "dict[str, Any]", cachedobj: DataObject
+    ):
+        # Won't generate an error if called several times
+        self.on_SubGroupsMembers_removed(objkey, eventattrs, cachedobj)
+
+    def on_SubGroupsMembers_removed(
+        self, objkey: Any, eventattrs: "dict[str, Any]", cachedobj: DataObject
+    ):
+        cachedgroup = self.getObjectFromCache("Groups", cachedobj.group_pkey)
+        cachedsubgr = self.getObjectFromCache("Groups", cachedobj.subgroup_pkey)
+
+        cmd = [
+            "Remove-ADGroupMember",
+            f"-Identity 'CN={cachedgroup.SamAccountName},{self.groups_ou}'",
+            f"-Members 'CN={cachedsubgr.SamAccountName},{self.groups_ou}'",
             "-DisablePermissiveModify:$False",
             "-Confirm:$False",
         ]

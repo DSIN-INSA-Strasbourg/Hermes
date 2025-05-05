@@ -29,7 +29,8 @@ The settings list `otherAttributes` may contains available LDAP display name (`l
 
 The local Datamodel keys MUST exist in `standardAttributes` or `otherAttributes`, and will be used as cmdlet parameters with associated values, allowing to handle every AD attributes.
 
-The `GroupMembers` will only associate a `User` with a `Group` and can't handle nested groups.
+The `GroupsMembers` will only associate a `User` with a `Group`.
+The `SubGroupsMembers` will only associate a `Group` with a `Group`, allowing to handle nested groups.
 
 To avoid security issues and corner cases with trashbin, a complex random password is set when user is created. This unknown password will be overwritten by the next `UserPassword` event of the `User`. This avoids having an enabled account with no password.
 
@@ -191,9 +192,10 @@ hermes-client-usersgroups_adpypsrp:
 The following data types may be set up:
 
 - `Users`: requires the attribute `SamAccountName` to be set
-- `UserPasswords`: obviously require `Users`, and requires the attribute `user_pkey` corresponding to the primary keys of `Users`, and the attribute `password`. All other attributes will be ignored
+- `UserPasswords`: obviously requires `Users`, and requires the attribute `user_pkey` corresponding to the primary keys of `Users`, and the attribute `password`. All other attributes will be ignored
 - `Groups`: requires the attribute `SamAccountName` to be set
-- `GroupsMembers`: obviously require `Users` and `Groups`, and requires the attributes `user_pkey` and `group_pkey` corresponding to the primary keys of `Users` and `Groups`. All other attributes will be ignored
+- `GroupsMembers`: obviously requires `Users` and `Groups`, and requires the attributes `user_pkey` and `group_pkey` corresponding to the primary keys of `Users` and `Groups`. All other attributes will be ignored
+- `SubGroupsMembers`: obviously requires `Groups`, and requires that the `subgroup_pkey` and `group_pkey` attributes match the primary key of the subgroup to be assigned, and that of the assignment group, respectively. All other attributes will be ignored
 
 ```yaml
   datamodel:
@@ -226,6 +228,13 @@ The following data types may be set up:
       hermesType: your_server_GroupsMembers_type_name
       attrsmapping:
         user_pkey: user_primary_key_on_server
+        group_pkey: group_primary_key_on_server
+        # ...
+
+    SubGroupsMembers:
+      hermesType: your_server_SubGroupsMembers_type_name
+      attrsmapping:
+        subgroup_pkey: subgroup_primary_key_on_server
         group_pkey: group_primary_key_on_server
         # ...
 ```

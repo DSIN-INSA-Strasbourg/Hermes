@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Client plugins `usersgroups_adpypsrp`: added a new optional type `SubGroupsMembers` that allows to handle nested groups
+
 ### Security
 
 - Bumped python dependencies to their latest version:

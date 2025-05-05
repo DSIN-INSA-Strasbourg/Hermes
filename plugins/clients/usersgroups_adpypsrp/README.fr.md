@@ -29,7 +29,8 @@ La liste de paramètres `otherAttributes` peut contenir des noms d'attributs LDA
 
 Les clés du modèle de données local DOIVENT exister dans `standardAttributes` ou `otherAttributes`, et seront utilisées comme paramètres de cmdlet avec leurs valeurs associées, permettant de gérer tous les attributs AD.
 
-`GroupMembers` associera uniquement un `User` à un `Group` et ne pourra pas gérer les groupes imbriqués.
+`GroupsMembers` associera uniquement un `User` à un `Group`.
+`SubGroupsMembers` associera uniquement un `Group` à un `Group`, permettant ainsi de gérer les groupes imbriqués.
 
 Pour éviter les problèmes de sécurité et les cas particuliers avec la corbeille, un mot de passe aléatoire complexe est défini lors de la création de l'utilisateur. Ce mot de passe inconnu sera écrasé par le prochain événement `UserPassword` de `User`. Cela évite d'avoir un compte activé sans mot de passe.
 
@@ -193,6 +194,7 @@ Les types de données suivants peuvent être configurés :
 - `UserPasswords` : nécessite évidemment `Users`, et que l'attribut `user_pkey` corresponde aux clés primaires de `Users`, et nécessite l'attribut `password`. Tous les autres attributs seront ignorés
 - `Groups` : nécessite que l'attribut `SamAccountName` soit défini
 - `GroupsMembers` : nécessite évidemment `Users` et `Groups`, et nécessite que les attributs `user_pkey` et `group_pkey` correspondent aux clés primaires de `Users` et `Groups`. Tous les autres attributs seront ignorés
+- `SubGroupsMembers` : nécessite évidemment `Groups`, et nécessite que les attributs `subgroup_pkey` et `group_pkey` correspondent respectivement à la clé primaire du sous-groupe à affecter, et à celle du groupe d'affectation. Tous les autres attributs seront ignorés
 
 ```yaml
   datamodel:
@@ -225,6 +227,13 @@ Les types de données suivants peuvent être configurés :
       hermesType: your_server_GroupsMembers_type_name
       attrsmapping:
         user_pkey: user_primary_key_on_server
+        group_pkey: group_primary_key_on_server
+        # ...
+
+    SubGroupsMembers:
+      hermesType: your_server_SubGroupsMembers_type_name
+      attrsmapping:
+        subgroup_pkey: subgroup_primary_key_on_server
         group_pkey: group_primary_key_on_server
         # ...
 ```
