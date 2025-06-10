@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Hermes : Change Data Capture (CDC) tool from any source(s) to any target
-# Copyright (C) 2024 INSA Strasbourg
+# Copyright (C) 2024, 2025 INSA Strasbourg
 #
 # This file is part of Hermes.
 #
