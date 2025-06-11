@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- New `regex_search` attribute plugin that allows to search in a string to extract the part that matches the specified regular expression. See https://hermes.insa-strasbourg.fr/en/setup/configuration/plugins/attributes/regex_search/ for details.
+
 ### Fixed
 
 - Fixed improper handling of a plugin's empty configuration schema file
