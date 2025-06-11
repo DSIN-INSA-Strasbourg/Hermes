@@ -22,6 +22,8 @@ concurrency:
 jobs:
   run_linter_and_tests:
     uses: ./.github/workflows/run_linter_and_tests.yml
+    permissions:
+      contents: read
 
   # Publish job
   publish_reports_and_badges:
