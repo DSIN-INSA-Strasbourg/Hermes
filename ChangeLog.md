@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed improper handling of a plugin's empty configuration schema file
+
 ### Security
 
 - Bumped python dependencies to their latest version:

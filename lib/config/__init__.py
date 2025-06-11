@@ -367,6 +367,10 @@ class HermesConfig(LocalCache):
         with open(path) as f:
             schema = yaml.load(f, Loader=YAMLUniqueKeyCSafeLoader)
 
+        if schema is None:
+            # Only when the schema file is empty, meaning there's no possible settings
+            schema = {}
+
         validator = Validator(schema)
         if not validator.validate(pluginSubDictInConf["settings"]):
             raise HermesConfigError(f"{pluginSettingsDotPath}: {validator.errors}")
