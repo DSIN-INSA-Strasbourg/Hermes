@@ -5,6 +5,14 @@ All notable changes to Hermes will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Security
+
+- Bumped python dependencies to their latest version:
+  - oracledb (used by plugins/datasources/oracle)
+  - kafka-python-ng isn't maintained anymore: replaced by kafka-python that is maintained again (used by plugins/messagebus_consumers kafka and plugins/messagebus_producers/kafka)
+
 ## [v1.0.4] - 2025-06-11
 
 ### Added
