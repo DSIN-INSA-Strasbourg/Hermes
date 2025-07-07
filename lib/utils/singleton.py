@@ -55,14 +55,14 @@ class SingleInstance(object):
     amounts of time.
 
     Remember that this works by creating a lock file with a filename based on the
-    full dir path to the script file and the specified appname.
+    current work dir path of the script file and the specified appname.
     """
 
     def __init__(self, appname: str):
         self.initialized = False
-        basename = (
-            os.path.dirname(os.path.abspath(sys.argv[0])) + "/" + appname
-        ).replace("/", "-").replace(":", "").replace("\\", "-") + ".lock"
+        basename = (os.getcwd() + "/" + appname).replace("/", "-").replace(
+            ":", ""
+        ).replace("\\", "-") + ".lock"
         self.lockfile = os.path.normpath(tempfile.gettempdir() + "/" + basename)
 
         __hermes__.logger.debug("SingleInstance lockfile: " + self.lockfile)

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed the lockfile name that prevented multiple instances of the same plugin from being started from the same source code. Previously, the lockfile was named with the concatenation of the path of the folder containing the source code and the name of the executed plugin. Now the lockfile is named with the concatenation of the current working dir and the plugin name.
+
 ### Security
 
 - Bumped python dependencies to their latest version:
