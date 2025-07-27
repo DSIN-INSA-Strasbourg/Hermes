@@ -306,8 +306,6 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         self.clientthread.update()
         self.assertClientdataLen()
 
-        self.maxDiff = None
-
         expectedjvang["_pkey_id"] = jvanguid
         del expectedjvang["id"]
         del expectedjvang["simpleid"]
@@ -1402,7 +1400,6 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         expectedtwagner["_pkey_id"] = twagneruid
         del expectedtwagner["id"]
         del expectedtwagner["simpleid"]
-        self.maxDiff = None
         self.assertDictEqual(
             expectedtwagner, self.clientdata("Users")[twagneruid].toNative()
         )
