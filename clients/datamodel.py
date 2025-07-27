@@ -509,13 +509,13 @@ class Datamodel:
         # Handle that event.objattrs is 1 depth deeper for "modified" events
         if event.eventtype == "modified":
             sources = ("added", "modified", "removed")
+            objattrs = {"added": {}, "modified": {}, "removed": {}}
         else:
             sources = (None,)
+            objattrs = {}
 
         hasContent: bool = False
-        objattrs = {}
         for source in sources:
-            attrs = {}
             if source is None:
                 src = event.objattrs
             else:
@@ -549,17 +549,43 @@ class Datamodel:
                             if type(val) is list:
                                 val = [v for v in val if v is not None]
 
-                            if source == "removed" or (val is not None and val != []):
-                                attrs[dest] = val
-                        else:
-                            attrs[dest] = v
-            if attrs:
-                hasContent = True
+                            if val is None or val == []:
+                                # No value
+                                if event.eventtype == "modified":
+                                    objattrs["removed"].update({dest: val})
+                                elif event.eventtype == "removed":
+                                    objattrs.update({dest: val})
+                            else:
+                                # In modified events, we have to determine if the
+                                # attribute is added or modified
+                                if event.eventtype == "modified":
+                                    _, cachedObj = self.getObjectFromCacheOrTrashbin(
+                                        self.localdata_complete,
+                                        self.typesmapping[event.objtype],
+                                        event.objpkey,
+                                    )
 
-            if source is None:
-                objattrs = attrs
-            else:
-                objattrs[source] = attrs
+                                    if cachedObj is not None and hasattr(
+                                        cachedObj, dest
+                                    ):
+                                        # Ensure the value has changed
+                                        previousVal = getattr(cachedObj, dest)
+                                        if DataObject.isDifferent(previousVal, val):
+                                            objattrs["modified"].update({dest: val})
+                                            hasContent = True
+                                    else:
+                                        # Attr is added
+                                        objattrs["added"].update({dest: val})
+                                        hasContent = True
+                                else:
+                                    objattrs.update({dest: val})
+                                    hasContent = True
+                        else:
+                            if source is None:
+                                objattrs.update({dest: v})
+                            else:
+                                objattrs[source].update({dest: v})
+                            hasContent = True
 
         res = None
         if hasContent or allowEmptyEvent or event.eventtype == "removed":

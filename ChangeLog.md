@@ -5,6 +5,15 @@ All notable changes to Hermes will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- [Clients] Fixed Jinja expressions relying on multiple attributes not rendered properly when one of them was removed (#1).
+  **IMPORTANT NOTE** This bug only affects clients that contain Jinja expressions that rely on multiple attributes from the server. If your clients are likely to be impacted, here are the steps to fix invalid values (proceed on each client):
+    1. Edit the client's config file, and in each data-type declared and maybe impacted, insert a non-significant space into the Jinja expression : e.g. replace `{{ attr1 ~ attr2 }}` by `{{  attr1 ~ attr2 }}`. This simple change will trigger a datamodel update on the next client startup, which will recalculate the values of all Jinja expressions and propagate the new (good) values if they differ from the previous ones.
+    2. Restart your client.
+
 ## [v1.0.5] - 2025-07-08
 
 ### Fixed
