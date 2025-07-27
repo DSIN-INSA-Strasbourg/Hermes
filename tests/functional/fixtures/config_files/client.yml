@@ -86,6 +86,7 @@ hermes-client:
         first_name: first_name
         middle_name: middle_name
         last_name: last_name
+        displayname: "{{ (first_name ~ ' ' ~ last_name ~ ' (Engineering)') if 'engineering' in (specialty|default('')) else first_name ~ ' ' ~ last_name }}"
         dateOfBirth: dateOfBirth
         login: login
         specialty: specialty
@@ -113,6 +114,7 @@ hermes-client:
         first_name: first_name
         middle_name: middle_name
         last_name: last_name
+        displayname: "{{ (first_name ~ ' ' ~ last_name ~ ' (Engineering)') if 'engineering' in (specialty|default('')) else first_name ~ ' ' ~ last_name }}"
         dateOfBirth: dateOfBirth
         login: login
         specialty: specialty
@@ -142,6 +144,7 @@ hermes-client:
         first_name: first_name
         middle_name: middle_name
         last_name: last_name
+        displayname: "{{ (first_name ~ ' ' ~ last_name ~ ' (Engineering)') if 'engineering' in (specialty|default('')) else first_name ~ ' ' ~ last_name }}"
         dateOfBirth: dateOfBirth
         login: login
         specialty: specialty

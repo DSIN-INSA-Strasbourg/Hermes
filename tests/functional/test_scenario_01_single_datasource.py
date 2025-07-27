@@ -257,12 +257,14 @@ class TestScenarioSingle(HermesIntegrationTestCase):
             "dateOfBirth": "1965-01-13T12:34:56",  # Modify time
             "desired_jobs_joined": "Arboriculturist",  # Remove Copywriter, advertising
             "desired_job_1": None,  # Remove Copywriter, advertising
+            "specialty": None,  # Remove Automotive engineering
         }
         expectedjvang = deepcopy(self.serverdata("SRVUsers")[jvanguid].toNative())
         expectedjvang["middle_name"] = "Jack"
         expectedjvang["dateOfBirth"] = datetime(1965, 1, 13, 12, 34, 56)
         expectedjvang["desired_jobs_joined"].remove("Copywriter, advertising")
         expectedjvang["desired_jobs_columns"].remove("Copywriter, advertising")
+        del expectedjvang["specialty"]
 
         mpateluid = "97fe56c5-4c9a-4f24-97b4-c294bd44089d"
         mpatel = {
@@ -307,12 +309,14 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         self.assertClientdataLen()
 
         expectedjvang["_pkey_id"] = jvanguid
+        expectedjvang["displayname"] = "Joe Vang"
         del expectedjvang["id"]
         del expectedjvang["simpleid"]
         self.assertDictEqual(
             expectedjvang, self.clientdata("Users")[jvanguid].toNative()
         )
         expectedmpatel["_pkey_id"] = mpateluid
+        expectedmpatel["displayname"] = "Maria Patel"
         del expectedmpatel["id"]
         del expectedmpatel["simpleid"]
         self.assertDictEqual(
@@ -1130,6 +1134,7 @@ class TestScenarioSingle(HermesIntegrationTestCase):
             "_pkey_id": tmays_id,
             "first_name": "Troy",
             "last_name": "Mays",
+            "displayname": "Troy Mays",
             "dateOfBirth": datetime(1977, 12, 9, 0, 0),
             "login": "tmays",
             "specialty": "Mechatronics",
@@ -1162,6 +1167,7 @@ class TestScenarioSingle(HermesIntegrationTestCase):
             "_pkey_id": tmays_id,
             "first_name": "Troy",
             "last_name": "Mays",
+            "displayname": "Troy Mays",
             "login": "tmays_modified",
             "specialty": "Mechatronics",
             "desired_jobs_joined": [
@@ -1294,6 +1300,7 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         # Verify that cached data is expected data
         expectedtwagner = deepcopy(self.serverdata("SRVUsers")[twagneruid].toNative())
         expectedtwagner["_pkey_id"] = twagneruid
+        expectedtwagner["displayname"] = "Tamara Wagner (Engineering)"
         del expectedtwagner["id"]
         del expectedtwagner["simpleid"]
         self.assertDictEqual(
@@ -1398,6 +1405,7 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         # Verify that cached data is expected data
         expectedtwagner = deepcopy(self.serverdata("SRVUsers")[twagneruid].toNative())
         expectedtwagner["_pkey_id"] = twagneruid
+        expectedtwagner["displayname"] = "Tamara Wagner (Engineering)"
         del expectedtwagner["id"]
         del expectedtwagner["simpleid"]
         self.assertDictEqual(
