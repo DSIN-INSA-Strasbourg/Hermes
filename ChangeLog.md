@@ -5,6 +5,15 @@ All notable changes to Hermes will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Security
+
+- Bumped python dependencies to their latest version:
+  - PyYAML
+  - oracledb (used by plugins/datasources/oracle)
+  - python-ldap (used by plugins/datasources/ldap and plugins/clients/usersgroups_ldap)
+
 ## [v1.0.6] - 2025-07-08
 
 ### Fixed
