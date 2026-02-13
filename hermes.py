@@ -52,6 +52,17 @@ if __name__ == "__main__":
     __hermes__.appname = appname
     __hermes__.logger = logging.getLogger(appname)
 
+    # Python version compatibility check
+    if not (
+        sys.version_info.major == 3 and sys.version_info.minor in (10, 11, 12, 13, 14)
+    ):
+        __hermes__.logger.critical(
+            "CRITICAL: Invalid Python version"
+            f" {sys.version_info.major}.{sys.version_info.minor}."
+            " Python 3.10 to 3.14 is required"
+        )
+        sys.exit(1)
+
     try:
         #######
         # CLI #
