@@ -624,7 +624,13 @@ class GenericClient:
                     # Only to ensure cache files version update is saved,
                     # to avoid version migrations at each restart,
                     # as those files aren't expected to be updated often
-                    self.__config.savecachefile()
+                    if (
+                        self.__hasAtLeastBeganInitialization()
+                        and self.__cache.nextoffset is not None
+                        and self.__cache.nextoffset > self.__cache.initstartoffset
+                    ):
+                        # Do not save until a first event has been properly handled
+                        self.__config.savecachefile()
                     self.__datamodel.remote_schema.savecachefile()
 
             # Only used in functionnal tests

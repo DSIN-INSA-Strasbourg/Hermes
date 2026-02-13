@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - now failing when ran from an incompatible Python version (#3)
+- client no longer saves its configuration cache file until a first event has been properly processed, thus preventing it from getting permanently stuck when it is started with a configuration containing Jinja syntax errors (#4)
 
 ## [v1.0.8] - 2025-12-19
 
