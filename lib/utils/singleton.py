@@ -31,7 +31,6 @@ import os
 import sys
 import tempfile
 
-
 if sys.platform != "win32":
     import fcntl
 

@@ -285,7 +285,7 @@ class Datamodel:
                                 local_types[l_objtype].add(type(obj))
                                 type(obj).HERMES_ATTRIBUTES |= l_pkeys_to_add[l_objtype]
                             # Get corresponding remote object from cache
-                            (_, r_obj) = Datamodel.getObjectFromCacheOrTrashbin(
+                            _, r_obj = Datamodel.getObjectFromCacheOrTrashbin(
                                 self.remotedata_complete, r_objtype, obj.getPKey()
                             )
                             if r_obj is None:

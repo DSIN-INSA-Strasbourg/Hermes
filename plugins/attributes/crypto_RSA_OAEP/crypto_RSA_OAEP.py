@@ -41,7 +41,6 @@ import base64
 
 from lib.plugins import AbstractAttributePlugin
 
-
 HERMES_PLUGIN_CLASSNAME: str | None = "Attribute_Crypto_RSA_OAEP_Plugin"
 """The plugin class name defined in this module file"""
 

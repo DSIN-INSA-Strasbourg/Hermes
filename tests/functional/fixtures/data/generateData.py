@@ -40,7 +40,6 @@ from typing import Any
 import unicodedata
 import uuid
 
-
 specialization_provider = DynamicProvider(
     provider_name="specialization",
     elements=[

@@ -245,7 +245,7 @@ class HermesConfig(LocalCache):
             "appname",
             help="The Hermes application to launch ('server', 'client-ldap', ...)",
         )
-        (args, _) = parser.parse_known_args()
+        args, _ = parser.parse_known_args()
         self._validateAppname(args.appname)
         self._config["appname"] = f"hermes-{args.appname}"
 

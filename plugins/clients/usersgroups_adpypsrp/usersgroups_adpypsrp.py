@@ -284,26 +284,18 @@ class PypsrpADClient(GenericClient):
                 ),
                 "-Confirm:$False",
             ]
-            cmd += [
-                f"-{k} {
-                    self.convertAttrToPS(k, eventattrs[k], self.standardAttrs['Users'])
-                }"
-                for k in std_attrs
-            ]
+            cmd += [f"-{k} {
+                self.convertAttrToPS(k, eventattrs[k], self.standardAttrs['Users'])
+            }" for k in std_attrs]
 
             if other_attrs:
-                other_attrs_str = "; ".join(
-                    [
-                        f"'{k}'={
-                            self.convertAttrToPS(
-                                k,
-                                eventattrs[k],
-                                self.otherAttrs['Users']
-                            )
-                        }"
-                        for k in other_attrs
-                    ]
-                )
+                other_attrs_str = "; ".join([f"'{k}'={
+                    self.convertAttrToPS(
+                        k,
+                        eventattrs[k],
+                        self.otherAttrs['Users']
+                    )
+                }" for k in other_attrs])
                 cmd.append(f"""-OtherAttributes @{{ {other_attrs_str} }}""")
 
             self.run_ps(" `\n  ".join(cmd))
@@ -387,33 +379,25 @@ class PypsrpADClient(GenericClient):
             std_attrs = (
                 eventattrs["added"].keys() | eventattrs["modified"].keys()
             ) & self.standardAttrs["Users"].keys()
-            cmd += [
-                f"-{k} {
-                    self.convertAttrToPS(
-                        k,
-                        getattr(newobj, k),
-                        self.standardAttrs['Users']
-                    )
-                }"
-                for k in std_attrs
-            ]
+            cmd += [f"-{k} {
+                self.convertAttrToPS(
+                    k,
+                    getattr(newobj, k),
+                    self.standardAttrs['Users']
+                )
+            }" for k in std_attrs]
 
             other_attrs = (
                 eventattrs["added"].keys() | eventattrs["modified"].keys()
             ) & self.otherAttrs["Users"].keys()
             if other_attrs:
-                other_attrs_str = "; ".join(
-                    [
-                        f"'{k}'={
-                            self.convertAttrToPS(
-                                k,
-                                getattr(newobj, k),
-                                self.otherAttrs['Users']
-                            )
-                        }"
-                        for k in other_attrs
-                    ]
-                )
+                other_attrs_str = "; ".join([f"'{k}'={
+                    self.convertAttrToPS(
+                        k,
+                        getattr(newobj, k),
+                        self.otherAttrs['Users']
+                    )
+                }" for k in other_attrs])
                 cmd.append(f"""-Replace @{{ {other_attrs_str} }}""")
 
             # removed attributes
@@ -462,26 +446,18 @@ class PypsrpADClient(GenericClient):
             f"-Name '{self.escape(newobj.SamAccountName)}'",
             "-Confirm:$False",
         ]
-        cmd += [
-            f"-{k} {
-                self.convertAttrToPS(k, eventattrs[k], self.standardAttrs['Groups'])
-            }"
-            for k in std_attrs
-        ]
+        cmd += [f"-{k} {
+            self.convertAttrToPS(k, eventattrs[k], self.standardAttrs['Groups'])
+        }" for k in std_attrs]
 
         if other_attrs:
-            other_attrs_str = "; ".join(
-                [
-                    f"'{k}'={
-                        self.convertAttrToPS(
-                            k,
-                            eventattrs[k],
-                            self.otherAttrs['Groups']
-                        )
-                    }"
-                    for k in other_attrs
-                ]
-            )
+            other_attrs_str = "; ".join([f"'{k}'={
+                self.convertAttrToPS(
+                    k,
+                    eventattrs[k],
+                    self.otherAttrs['Groups']
+                )
+            }" for k in other_attrs])
             cmd.append(f"""-OtherAttributes @{{ {other_attrs_str} }}""")
 
         self.run_ps(" `\n  ".join(cmd))
@@ -536,33 +512,25 @@ class PypsrpADClient(GenericClient):
             std_attrs = (
                 eventattrs["added"].keys() | eventattrs["modified"].keys()
             ) & self.standardAttrs["Groups"].keys()
-            cmd += [
-                f"-{k} {
-                    self.convertAttrToPS(
-                        k,
-                        getattr(newobj, k),
-                        self.standardAttrs['Groups']
-                    )
-                }"
-                for k in std_attrs
-            ]
+            cmd += [f"-{k} {
+                self.convertAttrToPS(
+                    k,
+                    getattr(newobj, k),
+                    self.standardAttrs['Groups']
+                )
+            }" for k in std_attrs]
 
             other_attrs = (
                 eventattrs["added"].keys() | eventattrs["modified"].keys()
             ) & self.otherAttrs["Groups"].keys()
             if other_attrs:
-                other_attrs_str = "; ".join(
-                    [
-                        f"'{k}'={
-                            self.convertAttrToPS(
-                                k,
-                                getattr(newobj, k),
-                                self.otherAttrs['Groups']
-                            )
-                        }"
-                        for k in other_attrs
-                    ]
-                )
+                other_attrs_str = "; ".join([f"'{k}'={
+                    self.convertAttrToPS(
+                        k,
+                        getattr(newobj, k),
+                        self.otherAttrs['Groups']
+                    )
+                }" for k in other_attrs])
                 cmd.append(f"""-Replace @{{ {other_attrs_str} }}""")
 
             # removed attributes

@@ -613,7 +613,7 @@ class LdapClient(GenericClient):
             )
 
         entryAttrs: dict
-        (_, entryAttrs) = entries[0]
+        _, entryAttrs = entries[0]
         newobj_ldapdata = self.convertObjToLdap(newobj)
         modlist = ldap.modlist.modifyModlist(entryAttrs, newobj_ldapdata)
         return modlist

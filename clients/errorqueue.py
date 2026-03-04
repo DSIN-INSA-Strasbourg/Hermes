@@ -413,7 +413,7 @@ class ErrorQueue(LocalCache):
 
     def _remediateWithPrevious(self, eventNumber: int):
         lastEventNumber = eventNumber
-        (lastRemoteEvent, lastLocalEvent, lastErrorMsg) = self._queue[lastEventNumber]
+        lastRemoteEvent, lastLocalEvent, lastErrorMsg = self._queue[lastEventNumber]
 
         allEventNumbers = sorted(
             self._index[lastLocalEvent.objtype][lastLocalEvent.objpkey]
@@ -427,7 +427,7 @@ class ErrorQueue(LocalCache):
         previousLocalEvents = [i[1] for i in allEvents[:-2]]
 
         prevEventNumber = allEventNumbers[-2]
-        (prevRemoteEvent, prevLocalEvent, prevErrorMsg) = allEvents[-2]
+        prevRemoteEvent, prevLocalEvent, prevErrorMsg = allEvents[-2]
 
         # Can't merge partially processed events
         if (
@@ -454,14 +454,14 @@ class ErrorQueue(LocalCache):
             )
             return
 
-        (remotedWasMerged, remoteRemoveBothEvents, newRemoteEvent) = self._mergeEvents(
+        remotedWasMerged, remoteRemoveBothEvents, newRemoteEvent = self._mergeEvents(
             prevRemoteEvent,
             lastRemoteEvent,
             self._remotedata,
             self._remotedata_complete,
             previousRemoteEvents,
         )
-        (localWasMerged, localRemoveBothEvents, newLocalEvent) = self._mergeEvents(
+        localWasMerged, localRemoveBothEvents, newLocalEvent = self._mergeEvents(
             prevLocalEvent,
             lastLocalEvent,
             self._localdata,

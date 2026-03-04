@@ -25,7 +25,6 @@ from clients.errorqueue import ErrorQueue, HermesInvalidErrorQueueJSONError
 from lib.datamodel.dataobject import DataObject
 from lib.datamodel.event import Event
 
-
 # Table of event flow in queue
 #
 # |         |         objpkey=1        |||         objpkey=2        |||         objpkey=3        |||         objpkey=4        |||         objpkey=5        |||

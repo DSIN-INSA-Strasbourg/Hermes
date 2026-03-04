@@ -690,7 +690,7 @@ class HermesServer:
                     # Loop over each diff item of current changeType and create event
                     diffitem: DiffObject | DataObject
                     for diffitem in difflist:
-                        (event, obj) = Event.fromDiffItem(
+                        event, obj = Event.fromDiffItem(
                             diffitem, eventCategory, changeType
                         )
 

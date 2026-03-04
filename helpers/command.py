@@ -77,15 +77,15 @@ class Command:
         outputencoding = sys.stdout.encoding
 
         try:
-            (out, err) = ("", "")
+            out, err = ("", "")
             p = subprocess.Popen(cmd, stdout=stdout, stderr=stderr, stdin=stdin)
             retcode = None
             while retcode is None:
                 if stdin == Command.FROMVAR:
                     bstdincontent = stdincontent.encode("utf-8")
-                    (o, e) = p.communicate(input=bstdincontent)
+                    o, e = p.communicate(input=bstdincontent)
                 else:
-                    (o, e) = p.communicate()
+                    o, e = p.communicate()
 
                 if stdout == Command.TOVAR:
                     out += o.decode(outputencoding)
@@ -93,7 +93,7 @@ class Command:
                     err += e.decode(outputencoding)
                 retcode = p.poll()
         except OSError as e:
-            (retcode, out, err) = (-9999999, "", str(e))
+            retcode, out, err = (-9999999, "", str(e))
 
         if (
             (failOnRetcode and retcode != 0)

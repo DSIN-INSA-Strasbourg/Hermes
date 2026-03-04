@@ -278,7 +278,7 @@ class GenericClient:
         """
         ds: Datasource = self.__datamodel.localdata
 
-        (_, obj) = Datamodel.getObjectFromCacheOrTrashbin(ds, objtype, objpkey)
+        _, obj = Datamodel.getObjectFromCacheOrTrashbin(ds, objtype, objpkey)
         if obj is None:
             raise IndexError(
                 f"No object of {objtype=} with {objpkey=} was found in cache"
@@ -1349,7 +1349,7 @@ class GenericClient:
 
         diff = l_obj.diffFrom(l_obj_trash)  # Handle local object changes if any
         if diff and not simulateOnly:
-            (event, obj) = Event.fromDiffItem(
+            event, obj = Event.fromDiffItem(
                 diffitem=diff,
                 eventCategory=local_ev.evcategory,
                 changeType="modified",
@@ -1762,7 +1762,7 @@ class GenericClient:
                         diffitem: DiffObject | DataObject
                         for diffitem in difflist:
                             # Convert diffitem to local Event
-                            (event, obj) = Event.fromDiffItem(
+                            event, obj = Event.fromDiffItem(
                                 diffitem=diffitem,
                                 eventCategory="base",
                                 changeType=changeType,
