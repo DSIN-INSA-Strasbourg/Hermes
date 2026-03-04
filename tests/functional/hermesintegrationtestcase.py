@@ -287,7 +287,7 @@ class HermeClientThread:
         self.stop_client()
         self.start_client(conf_dict)
 
-    def update(self, numberOfLoopToProcess=1, ignoreEmails=False, timeout=10):
+    def update(self, numberOfLoopToProcess=1, ignoreEmails=False, timeout=30):
         if not self._thread or not self._thread.is_alive():
             raise RuntimeError("hermes-client is not running")
         EmailFixture.purgeUnreadEmails()
@@ -395,7 +395,7 @@ class HermeServerThread:
         self.stop_server()
         self.start_server(conf_dict)
 
-    def update(self, numberOfLoopToProcess=1, ignoreEmails=False, timeout=10):
+    def update(self, numberOfLoopToProcess=1, ignoreEmails=False, timeout=30):
         if not self._thread or not self._thread.is_alive():
             raise RuntimeError("hermes-server is not running")
         EmailFixture.purgeUnreadEmails()
