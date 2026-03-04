@@ -70,8 +70,7 @@ class RegexSearch(AbstractAttributePlugin):
                 match = int(re.match(r"\\(\d+)", arg).group(1))
                 groups.append(match)
             else:
-                raise ValueError("Unknown argument")
-            raise
+                raise ValueError(f"Unknown argument '{arg}' from {args=}")
 
         flags = 0
         if kwargs.get("ignorecase"):
