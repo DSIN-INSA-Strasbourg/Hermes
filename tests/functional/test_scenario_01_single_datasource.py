@@ -408,7 +408,31 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         # but tmays's aren't anymore since SRVGroupMembers deletion on server
         self.assertClientdataLen(GroupsMembers=865)
 
-    def test_105a_restore_data(self):
+    def test_105a_client_datamodel_error_on_missing_fkey_type(self):
+        from clients.datamodel import MissingForeignkeyDatatypeError
+
+        self.log_current_test_name(myself())
+
+        self.clientthread.stop_client()
+
+        # Delete "Groups" datatype, required by "GroupsMembers"
+        conf = self.loadYamlClient("single")
+        del conf["hermes-client"]["datamodel"]["Groups"]
+        # Init client and expect to fail
+        self.assertRaises(
+            MissingForeignkeyDatatypeError,
+            self.clientthread.launch_failing_client,
+            conf,
+        )
+
+        # Restore "Groups" datatype
+        conf = self.loadYamlClient("single")
+        self.clientthread.restart_client(conf)
+        self.clientthread.update()
+
+        self.assertClientdataLen()
+
+    def test_106a_restore_data(self):
         self.log_current_test_name(myself())
         # Restore lblair to year_3 group
         entry = self.fixtures["groupmembers"][10]

@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- client now displays an explicit error message when its datamodel is missing a linked server data type that provides the foreign keys required by a client data type
 - `regex_search` attribute plugin: removed a forgotten `raise` statement that was always called when `regex_search` was called with arbitrary arguments (`*args` not empty)
 - now failing when ran from an incompatible Python version ([#3](https://github.com/DSIN-INSA-Strasbourg/Hermes/issues/3))
 - client no longer saves its configuration cache file until a first event has been properly processed, thus preventing it from getting permanently stuck when it is started with a configuration containing Jinja syntax errors ([#4](https://github.com/DSIN-INSA-Strasbourg/Hermes/issues/4))

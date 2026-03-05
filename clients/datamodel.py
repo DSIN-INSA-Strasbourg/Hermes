@@ -47,6 +47,11 @@ class InvalidDataError(Exception):
     """Raised when a case that should never happen occurs (a critical bug)"""
 
 
+class MissingForeignkeyDatatypeError(Exception):
+    """Raised when datamodel is missing a linked server data type that provides the
+    foreign keys required by a client data type"""
+
+
 class Datamodel:
     """Load and build the Datamodel from config, and validates it according to remote
     Dataschema.
@@ -800,12 +805,21 @@ class Datamodel:
             for from_attr, (to_obj, to_attr) in self.remote_schema.schema[
                 remote_objtype
             ]["FOREIGN_KEYS"].items():
-                # In current implementation, foreign key are always
-                # single primary keys (not a tuple)
-                fkeys[f"_pkey_{from_attr}"] = [
-                    self.typesmapping[to_obj],
-                    f"_pkey_{to_attr}",
-                ]
+                try:
+                    # In current implementation, foreign key are always
+                    # single primary keys (not a tuple)
+                    fkeys[f"_pkey_{from_attr}"] = [
+                        self.typesmapping[to_obj],
+                        f"_pkey_{to_attr}",
+                    ]
+                except KeyError:
+                    msg = (
+                        f"Config error : client datamodel requires a data type linked"
+                        f" to server data type '{to_obj}', that will provide the"
+                        f" foreign keys required by client data type '{objtype}'"
+                    )
+                    __hermes__.logger.critical(msg)
+                    raise MissingForeignkeyDatatypeError(msg) from None
 
             schema[objtype] = {
                 "HERMES_ATTRIBUTES": set(

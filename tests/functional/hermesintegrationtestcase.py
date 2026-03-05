@@ -223,6 +223,41 @@ class HermeClientThread:
         self._GenericClient__clientstatus = None
         self.logger: logging.Logger | None = None
 
+    def launch_failing_client(self, conf_dict: dict[str, Any]):
+        if self._thread and self._thread.is_alive():
+            raise RuntimeError("Trying to start a client that is already running")
+
+        self.__clientstatus = None
+        self.generate_config_file(conf_dict)
+        # Global logger setup
+        appname = "hermes-client-functional-tests"
+        __hermes__.appname = appname
+        __hermes__.logger = logging.getLogger(appname)
+        self.logger = __hermes__.logger
+
+        # Client init
+        orig_argv = sys.argv
+        sys.argv = ["hermes", "client-usersgroups_null"]
+        config = HermesConfig()
+
+        try:
+            self.client = NullClient(config)
+        except Exception:
+            raise
+        finally:
+            sys.argv = orig_argv
+
+            # Remove all logger handlers to avoid duplicates if client is restarted
+            self.logger = None
+            while __hermes__.logger.hasHandlers():
+                try:
+                    hdlr = __hermes__.logger.handlers[0]
+                except IndexError:
+                    break
+                hdlr.flush()
+                hdlr.close()
+                __hermes__.logger.removeHandler(hdlr)
+
     def run(self):
         """Dont call this method directly, use start_client instead !"""
 
