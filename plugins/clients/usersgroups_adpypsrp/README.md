@@ -194,8 +194,8 @@ The following data types may be set up:
 - `Users`: requires the attribute `SamAccountName` to be set
 - `UserPasswords`: obviously requires `Users`, and requires the attribute `user_pkey` corresponding to the primary keys of `Users`, and the attribute `password`. All other attributes will be ignored
 - `Groups`: requires the attribute `SamAccountName` to be set
-- `GroupsMembers`: obviously requires `Users` and `Groups`, and requires the attributes `user_pkey` and `group_pkey` corresponding to the primary keys of `Users` and `Groups`. All other attributes will be ignored
-- `SubGroupsMembers`: obviously requires `Groups`, and requires that the `subgroup_pkey` and `group_pkey` attributes match the primary key of the subgroup to be assigned, and that of the assignment group, respectively. All other attributes will be ignored
+- `GroupsMembers`: obviously requires `Users` and `Groups`, and requires the attributes `user_pkey` and `group_pkey` corresponding to the primary keys of `Users` and `Groups`. Each entry must contain a pair (`user_pkey`, `group_pkey`). All other attributes will be ignored
+- `SubGroupsMembers`: obviously requires `Groups`, and requires that the `subgroup_pkey` and `group_pkey` attributes match the primary key of the subgroup to be assigned, and that of the assignment group, respectively. Each entry must contain a pair (`subgroup_pkey`, `group_pkey`). All other attributes will be ignored
 
 ```yaml
   datamodel:

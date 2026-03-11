@@ -29,7 +29,7 @@ Les clés du modèle de données local seront utilisées comme noms d'attributs 
 `GroupMembers` stockera uniquement les données (généralement l'attribut LDAP `member`) dans les entrées LDAP des groupes puisqu'il est possible d'utiliser des overlays LDAP (`dynlist` ou le désormais obsolète `memberOf`) pour générer dynamiquement les données correspondantes dans les entrées utilisateur. Vous devriez envisager de lire la documentation du paramètre `propagateUserDNChangeOnGroupMember`.
 
 {{% notice style="tip" title="Génération de hachages de mots de passe LDAP" %}}
-Si vous devez générer des hachages de mots de passe LDAP, vous devriez regarder le plugin d'attribut [ldapPasswordHash](../../attributes/ldappasswordhash/).
+Si vous devez générer des hachages de mots de passe LDAP, vous devriez regarder le plugin d'attribut [ldapPasswordHash](/setup/configuration/plugins/attributes/ldappasswordhash/).
 {{% /notice %}}
 
 ## Configuration
@@ -106,7 +106,7 @@ Les types de données suivants peuvent être configurés :
 - `Users`
 - `UserPasswords` : nécessite évidemment `Users` et nécessite l'attribut `user_pkey` correspondant aux clés primaires de `Users`
 - `Groups`
-- `GroupsMembers` : nécessite évidemment `Users` et `Groups` et nécessite les attributs `user_pkey` et `group_pkey` correspondant aux clés primaires de `Users` et `Groups`
+- `GroupsMembers` : nécessite évidemment `Users` et `Groups` et nécessite les attributs `user_pkey` et `group_pkey` correspondant aux clés primaires de `Users` et `Groups`. Chaque entrée doit contenir un couple (`user_pkey`, `group_pkey`)
 
 ```yaml
   datamodel:

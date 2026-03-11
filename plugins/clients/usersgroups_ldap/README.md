@@ -29,7 +29,7 @@ The local Datamodel keys will be used as LDAP attributes names, without any cons
 The `GroupMembers` will only store data (typically LDAP `member` attribute) in LDAP group entries as it is possible to use LDAP overlays (`dynlist` or the deprecated `memberOf`) to dynamically generate the corresponding data in user entries. You should consider reading the `propagateUserDNChangeOnGroupMember` setting documentation.
 
 {{% notice style="tip" title="LDAP password hashes generation" %}}
-If you need to generate LDAP password hashes, you may consider looking at [ldapPasswordHash](../../attributes/ldappasswordhash/) attribute plugin.
+If you need to generate LDAP password hashes, you may consider looking at [ldapPasswordHash](/setup/configuration/plugins/attributes/ldappasswordhash/) attribute plugin.
 {{% /notice %}}
 
 ## Configuration
@@ -103,7 +103,7 @@ The following data types may be set up:
 - `Users`
 - `UserPasswords`: obviously require `Users`, and requires the following attribute names `user_pkey` corresponding to the primary keys of `Users`
 - `Groups`
-- `GroupsMembers`: obviously require `Users` and `Groups`, and requires the following attribute names `user_pkey` `group_pkey` corresponding to the primary keys of `Users` and `Groups`
+- `GroupsMembers`: obviously require `Users` and `Groups`, and requires the following attribute names `user_pkey` `group_pkey` corresponding to the primary keys of `Users` and `Groups`. Each entry must contain a pair (`user_pkey`, `group_pkey`)
 
 ```yaml
   datamodel:

@@ -193,8 +193,8 @@ Les types de données suivants peuvent être configurés :
 - `Users` : nécessite que l'attribut `SamAccountName` soit défini
 - `UserPasswords` : nécessite évidemment `Users`, et que l'attribut `user_pkey` corresponde aux clés primaires de `Users`, et nécessite l'attribut `password`. Tous les autres attributs seront ignorés
 - `Groups` : nécessite que l'attribut `SamAccountName` soit défini
-- `GroupsMembers` : nécessite évidemment `Users` et `Groups`, et nécessite que les attributs `user_pkey` et `group_pkey` correspondent aux clés primaires de `Users` et `Groups`. Tous les autres attributs seront ignorés
-- `SubGroupsMembers` : nécessite évidemment `Groups`, et nécessite que les attributs `subgroup_pkey` et `group_pkey` correspondent respectivement à la clé primaire du sous-groupe à affecter, et à celle du groupe d'affectation. Tous les autres attributs seront ignorés
+- `GroupsMembers` : nécessite évidemment `Users` et `Groups`, et nécessite que les attributs `user_pkey` et `group_pkey` correspondent aux clés primaires de `Users` et `Groups`. Chaque entrée doit contenir un couple (`user_pkey`, `group_pkey`). Tous les autres attributs seront ignorés
+- `SubGroupsMembers` : nécessite évidemment `Groups`, et nécessite que les attributs `subgroup_pkey` et `group_pkey` correspondent respectivement à la clé primaire du sous-groupe à affecter, et à celle du groupe d'affectation. Chaque entrée doit contenir un couple (`subgroup_pkey`, `group_pkey`). Tous les autres attributs seront ignorés
 
 ```yaml
   datamodel:

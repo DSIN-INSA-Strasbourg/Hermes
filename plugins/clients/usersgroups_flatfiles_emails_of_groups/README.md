@@ -47,7 +47,7 @@ The following data types must be set up:
 - `Groups`, requires the following attribute names:
   - `group_pkey`: the group primary key
   - `name`: the group name, that will be compared to those in `onlyTheseGroups`, and used to name the destination file "*groupName*.txt"
-- `GroupsMembers`, requires the following attribute names:
+- `GroupsMembers`, for which each entry must contain a pair (`user_pkey`, `group_pkey`). Requires the following attribute names:
   - `user_pkey`: the user primary key
   - `group_pkey`: the group primary key
 

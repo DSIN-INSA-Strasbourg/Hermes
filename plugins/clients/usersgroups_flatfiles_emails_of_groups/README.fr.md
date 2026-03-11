@@ -47,7 +47,7 @@ Les types de données suivants doivent être configurés :
 - `Groups`, nécessite les noms d'attribut suivants :
   - `group_pkey` : la clé primaire du groupe
   - `name` : le nom du groupe, qui sera comparé à ceux de `onlyTheseGroups`, et utilisé pour nommer le fichier de destination "*groupName*.txt"
-- `GroupsMembers`, nécessite les noms d'attribut suivants :
+- `GroupsMembers`, dont chaque entrée doit contenir un couple (`user_pkey`, `group_pkey`). Nécessite les noms d'attribut suivants :
   - `user_pkey` : la clé primaire de l'utilisateur
   - `group_pkey` : la clé primaire du groupe
 
