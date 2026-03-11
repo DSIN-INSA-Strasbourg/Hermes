@@ -1556,12 +1556,6 @@ class GenericClient:
         if cache_complete is not None:
             cache_complete.remove(r_cachedobj_complete)
 
-        if not simulateOnly:
-            # Remove eventual events relative to current object from error queue
-            self.__datamodel.errorqueue.purgeAllEventsOfDataObject(
-                r_cachedobj, isLocalObjtype=False
-            )
-
     def __localRemoved(self, local_ev: Event, simulateOnly: bool = False):
         secretAttrs = self.__datamodel.local_schema.secretsAttributesOf(
             local_ev.objtype
@@ -1596,12 +1590,6 @@ class GenericClient:
         # May already been removed if current event is from errorqueue
         if cache_complete is not None:
             cache_complete.remove(l_cachedobj_complete)
-
-        if not simulateOnly:
-            # Remove eventual events relative to current object from error queue
-            self.__datamodel.errorqueue.purgeAllEventsOfDataObject(
-                l_cachedobj, isLocalObjtype=True
-            )
 
     def __callHandler(self, objtype: str, eventtype: str, **kwargs):
         if not objtype:
