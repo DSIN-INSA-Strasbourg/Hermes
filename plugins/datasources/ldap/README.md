@@ -63,6 +63,21 @@ hermes:
           always_return_values_in_list: true
 ```
 
+{{% notice tip %}}
+By leaving `always_return_values_in_list` set to `false`, Jinja filters will need to be used to extract single-valued values ​​from the list where they are located. Here is an example to retrieve only the single useful value of a user's UID:
+
+```yaml
+hermes-server:
+  datamodel:
+    SERVERUsers:
+      sources:
+        ldap:
+          attrsmapping:
+            user_uid: "{{ uid.0 | default(None) }}"
+```
+
+{{% /notice %}}
+
 ## Usage
 
 Usage differs according to specified operation type

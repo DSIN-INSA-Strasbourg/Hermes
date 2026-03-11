@@ -61,6 +61,21 @@ hermes:
           always_return_values_in_list: true
 ```
 
+{{% notice tip %}}
+En laissant `always_return_values_in_list` à `false`, il va falloir utiliser des filtres Jinja pour extraire les valeurs mono-valuées de la liste où elles se trouvent, voici un exemple permettant de ne récupérer que l'unique valeur utile de l'UID d'un utilisateur :
+
+```yaml
+hermes-server:
+  datamodel:
+    SERVERUsers:
+      sources:
+        ldap:
+          attrsmapping:
+            user_uid: "{{ uid.0 | default(None) }}"
+```
+
+{{% /notice %}}
+
 ## Utilisation
 
 L'utilisation diffère selon le type d'opération spécifié
