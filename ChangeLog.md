@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- clients are now able to use the same `hermesType` more than once in datamodel ([#9](https://github.com/DSIN-INSA-Strasbourg/Hermes/issues/9))
 - [clients] fixed invalid purge of an object's events from error queue when this object is removed ([#10](https://github.com/DSIN-INSA-Strasbourg/Hermes/issues/10))
 - client now displays an explicit error message when its datamodel is missing a linked server data type that provides the foreign keys required by a client data type
 - `regex_search` attribute plugin: removed a forgotten `raise` statement that was always called when `regex_search` was called with arbitrary arguments (`*args` not empty)

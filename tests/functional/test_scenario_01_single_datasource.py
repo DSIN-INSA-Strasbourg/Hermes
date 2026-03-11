@@ -118,9 +118,10 @@ class TestScenarioSingle(HermesIntegrationTestCase):
             EmailFixture.emails[0].subject,
             "[hermes-client-usersgroups_null] objects in error queue have changed",
         )
-        self.assertClientdataLen(Users=287, Groups=29, GroupsMembers=840)
+        self.assertClientdataLen(Users=287, Users2=287, Groups=29, GroupsMembers=840)
 
         diff = self.clientdata("Users").diffFrom(self.serverdata("SRVUsers"))
+        diff = self.clientdata("Users2").diffFrom(self.serverdata("SRVUsers"))
         self.assertEqual(len(diff.dict["added"]), 0)
         self.assertEqual(len(diff.dict["modified"]), 287)  # Local _pkey attribute
         self.assertEqual(len(diff.dict["removed"]), 3)  # 3 users in error
@@ -137,9 +138,14 @@ class TestScenarioSingle(HermesIntegrationTestCase):
     def test_002b_client_insert_missing_users(self):
         self.log_current_test_name(myself())
         self.clientthread.update()
-        self.assertClientdataLen(Users=+10, GroupsMembers=+28)
+        self.assertClientdataLen(Users=+10, Users2=+10, GroupsMembers=+28)
 
         diff = self.clientdata("Users").diffFrom(self.serverdata("SRVUsers"))
+        self.assertEqual(len(diff.dict["added"]), 0)
+        self.assertEqual(len(diff.dict["modified"]), 297)  # Local _pkey attribute
+        self.assertEqual(len(diff.dict["removed"]), 3)  # 3 users in error
+
+        diff = self.clientdata("Users2").diffFrom(self.serverdata("SRVUsers"))
         self.assertEqual(len(diff.dict["added"]), 0)
         self.assertEqual(len(diff.dict["modified"]), 297)  # Local _pkey attribute
         self.assertEqual(len(diff.dict["removed"]), 3)  # 3 users in error
@@ -315,12 +321,18 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         self.assertDictEqual(
             expectedjvang, self.clientdata("Users")[jvanguid].toNative()
         )
+        self.assertDictEqual(
+            expectedjvang, self.clientdata("Users2")[jvanguid].toNative()
+        )
         expectedmpatel["_pkey_id"] = mpateluid
         expectedmpatel["displayname"] = "Maria Patel"
         del expectedmpatel["id"]
         del expectedmpatel["simpleid"]
         self.assertDictEqual(
             expectedmpatel, self.clientdata("Users")[mpateluid].toNative()
+        )
+        self.assertDictEqual(
+            expectedmpatel, self.clientdata("Users2")[mpateluid].toNative()
         )
 
     ###########################################
@@ -466,6 +478,9 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         conf["hermes-client"]["datamodel"]["Users"]["attrsmapping"][
             "login_uppercase"
         ] = "login_uppercase"
+        conf["hermes-client"]["datamodel"]["Users2"]["attrsmapping"][
+            "login_uppercase"
+        ] = "login_uppercase"
         self.clientthread.restart_client(conf)
 
         self.assertRaises(NewPendingEmail, self.clientthread.update)
@@ -514,11 +529,22 @@ class TestScenarioSingle(HermesIntegrationTestCase):
             self.assertNotEqual(user.login, user.login_uppercase)
             self.assertEqual(user.login.upper(), user.login_uppercase)
 
+        # Verify attribute content
+        for user in self.clientdata("Users2"):
+            if hasattr(user, "_trashbin_timestamp"):
+                # Ignore users in trashbin as they don't have the new attribute
+                continue
+            self.assertNotEqual(user.login, user.login_uppercase)
+            self.assertEqual(user.login.upper(), user.login_uppercase)
+
     def test_202a_client_datamodel_modify_attribute_to_filter(self):
         self.log_current_test_name(myself())
         # Modify attr "login_uppercase" to a jinja filter
         conf = self.loadYamlClient("single")
         conf["hermes-client"]["datamodel"]["Users"]["attrsmapping"][
+            "login_uppercase"
+        ] = "{{ login_uppercase | capitalize }}"
+        conf["hermes-client"]["datamodel"]["Users2"]["attrsmapping"][
             "login_uppercase"
         ] = "{{ login_uppercase | capitalize }}"
         self.clientthread.restart_client(conf)
@@ -539,11 +565,21 @@ class TestScenarioSingle(HermesIntegrationTestCase):
                 continue
             self.assertEqual(user.login.capitalize(), user.login_uppercase)
 
+        # Verify attribute content
+        for user in self.clientdata("Users2"):
+            if hasattr(user, "_trashbin_timestamp"):
+                # Ignore users in trashbin as they don't have the new attribute
+                continue
+            self.assertEqual(user.login.capitalize(), user.login_uppercase)
+
     def test_203a_client_datamodel_modify_attribute(self):
         self.log_current_test_name(myself())
         # Modify attr "login_uppercase" to another attribute
         conf = self.loadYamlClient("single")
         conf["hermes-client"]["datamodel"]["Users"]["attrsmapping"][
+            "login_uppercase"
+        ] = "login"
+        conf["hermes-client"]["datamodel"]["Users2"]["attrsmapping"][
             "login_uppercase"
         ] = "login"
         self.clientthread.restart_client(conf)
@@ -564,11 +600,21 @@ class TestScenarioSingle(HermesIntegrationTestCase):
                 continue
             self.assertEqual(user.login, user.login_uppercase)
 
+        # Verify attribute content
+        for user in self.clientdata("Users2"):
+            if hasattr(user, "_trashbin_timestamp"):
+                # Ignore users in trashbin as they don't have the new attribute
+                continue
+            self.assertEqual(user.login, user.login_uppercase)
+
     def test_204a_client_datamodel_restore_login_uppercase_attribute(self):
         self.log_current_test_name(myself())
         # Restore attr "login_uppercase" to server "login_uppercase"
         conf = self.loadYamlClient("single")
         conf["hermes-client"]["datamodel"]["Users"]["attrsmapping"][
+            "login_uppercase"
+        ] = "login_uppercase"
+        conf["hermes-client"]["datamodel"]["Users2"]["attrsmapping"][
             "login_uppercase"
         ] = "login_uppercase"
         self.clientthread.restart_client(conf)
@@ -584,6 +630,14 @@ class TestScenarioSingle(HermesIntegrationTestCase):
 
         # Verify attribute content
         for user in self.clientdata("Users"):
+            if hasattr(user, "_trashbin_timestamp"):
+                # Ignore users in trashbin as they don't have the new attribute
+                continue
+            self.assertNotEqual(user.login, user.login_uppercase)
+            self.assertEqual(user.login.upper(), user.login_uppercase)
+
+        # Verify attribute content
+        for user in self.clientdata("Users2"):
             if hasattr(user, "_trashbin_timestamp"):
                 # Ignore users in trashbin as they don't have the new attribute
                 continue
@@ -621,6 +675,13 @@ class TestScenarioSingle(HermesIntegrationTestCase):
                 continue
             self.assertEqual(user.login.capitalize(), user.login_uppercase)
 
+        # Verify attribute content
+        for user in self.clientdata("Users2"):
+            if hasattr(user, "_trashbin_timestamp"):
+                # Ignore users in trashbin as they don't have the new attribute
+                continue
+            self.assertEqual(user.login.capitalize(), user.login_uppercase)
+
     def test_206a_client_datamodel_remove_attribute(self):
         self.log_current_test_name(myself())
         # Remove attr "login_uppercase"
@@ -638,6 +699,13 @@ class TestScenarioSingle(HermesIntegrationTestCase):
 
         # Verify attribute content
         for user in self.clientdata("Users"):
+            if hasattr(user, "_trashbin_timestamp"):
+                # Ignore users in trashbin as they don't have the new attribute
+                continue
+            self.assertFalse(hasattr(user, "login_uppercase"))
+
+        # Verify attribute content
+        for user in self.clientdata("Users2"):
             if hasattr(user, "_trashbin_timestamp"):
                 # Ignore users in trashbin as they don't have the new attribute
                 continue
@@ -674,11 +742,21 @@ class TestScenarioSingle(HermesIntegrationTestCase):
                 continue
             self.assertFalse(hasattr(user, "login_uppercase"))
 
+        # Verify that attribute still doesn't exist
+        for user in self.clientdata("Users2"):
+            if hasattr(user, "_trashbin_timestamp"):
+                # Ignore users in trashbin as they don't have the new attribute
+                continue
+            self.assertFalse(hasattr(user, "login_uppercase"))
+
     def test_209a_client_datamodel_restore_attribute(self):
         self.log_current_test_name(myself())
         # Restore attr "login_uppercase"
         conf = self.loadYamlClient("single")
         conf["hermes-client"]["datamodel"]["Users"]["attrsmapping"][
+            "login_uppercase"
+        ] = "login_uppercase"
+        conf["hermes-client"]["datamodel"]["Users2"]["attrsmapping"][
             "login_uppercase"
         ] = "login_uppercase"
         self.clientthread.restart_client(conf)
@@ -694,6 +772,13 @@ class TestScenarioSingle(HermesIntegrationTestCase):
 
         # Verify attribute content
         for user in self.clientdata("Users"):
+            if hasattr(user, "_trashbin_timestamp"):
+                # Ignore users in trashbin as they don't have the new attribute
+                continue
+            self.assertEqual(user.first_name, user.login_uppercase)
+
+        # Verify attribute content
+        for user in self.clientdata("Users2"):
             if hasattr(user, "_trashbin_timestamp"):
                 # Ignore users in trashbin as they don't have the new attribute
                 continue
@@ -731,6 +816,13 @@ class TestScenarioSingle(HermesIntegrationTestCase):
                 continue
             self.assertFalse(hasattr(user, "login_uppercase"))
 
+        # Verify that attribute still doesn't exist
+        for user in self.clientdata("Users2"):
+            if hasattr(user, "_trashbin_timestamp"):
+                # Ignore users in trashbin as they don't have the new attribute
+                continue
+            self.assertFalse(hasattr(user, "login_uppercase"))
+
     def test_210c_client_datamodel_remove_attribute(self):
         self.log_current_test_name(myself())
         # Restore attr "login_uppercase"
@@ -752,6 +844,13 @@ class TestScenarioSingle(HermesIntegrationTestCase):
 
         # Verify that attribute still doesn't exist
         for user in self.clientdata("Users"):
+            if hasattr(user, "_trashbin_timestamp"):
+                # Ignore users in trashbin as they don't have the new attribute
+                continue
+            self.assertFalse(hasattr(user, "login_uppercase"))
+
+        # Verify that attribute still doesn't exist
+        for user in self.clientdata("Users2"):
             if hasattr(user, "_trashbin_timestamp"):
                 # Ignore users in trashbin as they don't have the new attribute
                 continue
@@ -805,6 +904,8 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         for group in self.clientdata("Groups"):
             self.assertEqual(group.getPKey(), group._pkey_simpleid)
         for user in self.clientdata("Users"):
+            self.assertEqual(user.getPKey(), user._pkey_simpleid)
+        for user in self.clientdata("Users2"):
             self.assertEqual(user.getPKey(), user._pkey_simpleid)
         for gm in self.clientdata("GroupsMembers"):
             self.assertTupleEqual(
@@ -864,6 +965,8 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         for group in self.clientdata("Groups"):
             self.assertEqual(group.getPKey(), group._pkey_simpleid)
         for user in self.clientdata("Users"):
+            self.assertEqual(user.getPKey(), user._pkey_simpleid)
+        for user in self.clientdata("Users2"):
             self.assertEqual(user.getPKey(), user._pkey_simpleid)
         for gm in self.clientdata("GroupsMembers"):
             self.assertTupleEqual(
@@ -928,6 +1031,8 @@ class TestScenarioSingle(HermesIntegrationTestCase):
             )
         for user in self.clientdata("Users"):
             self.assertTupleEqual(user.getPKey(), (user._pkey_id, user._pkey_simpleid))
+        for user in self.clientdata("Users2"):
+            self.assertTupleEqual(user.getPKey(), (user._pkey_id, user._pkey_simpleid))
 
         self.assertRaises(NewPendingEmail, self.clientthread.update)
         self.assertEqual(EmailFixture.numberOfUnreadEmails(), 1)
@@ -964,6 +1069,8 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         for group in self.clientdata("Groups"):
             self.assertEqual(group.getPKey(), group._pkey_id)
         for user in self.clientdata("Users"):
+            self.assertEqual(user.getPKey(), user._pkey_id)
+        for user in self.clientdata("Users2"):
             self.assertEqual(user.getPKey(), user._pkey_id)
 
         self.assertRaises(NewPendingEmail, self.clientthread.update)
@@ -1029,7 +1136,7 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         self.log_current_test_name(myself())
         # As the trashbin entry can't contain the new pkey, it'll be purged
         self.clientthread.update()
-        self.assertClientdataLen(Users=-1)  # The user purged from trashbin
+        self.assertClientdataLen(Users=-1, Users2=-1)  # The user purged from trashbin
 
     def test_306d_client_primary_key_change_new_attribute(self):
         self.log_current_test_name(myself())
@@ -1119,7 +1226,7 @@ class TestScenarioSingle(HermesIntegrationTestCase):
 
         # Update client to store tmays in trashbin
         self.clientthread.update()
-        self.assertClientdataLen(Users=+1, GroupsMembers=+3)
+        self.assertClientdataLen(Users=+1, Users2=+1, GroupsMembers=+3)
 
     ############
     # Trashbin #
@@ -1183,6 +1290,8 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         }
         client_tmays = self.clientdata("Users")[tmays_id].toNative()
         self.assertDictEqual(trashedtmays, client_tmays)
+        client_tmays2 = self.clientdata("Users2")[tmays_id].toNative()
+        self.assertDictEqual(trashedtmays, client_tmays2)
 
         self.clientthread.update()  # Process local changes post-restore
         self.assertClientdataLen()
@@ -1217,6 +1326,8 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         }
         client_tmays = self.clientdata("Users")[tmays_id].toNative()
         self.assertDictEqual(expectedtmays, client_tmays)
+        client_tmays2 = self.clientdata("Users2")[tmays_id].toNative()
+        self.assertDictEqual(expectedtmays, client_tmays2)
 
     def test_402a_server_restore_user_values_and_delete_it(self):
         self.log_current_test_name(myself())
@@ -1311,7 +1422,6 @@ class TestScenarioSingle(HermesIntegrationTestCase):
             ):
                 del remoteEv.objattrs["middle_name"]
                 del localEv.objattrs["middle_name"]
-                break
 
         self.assertRaises(NewPendingEmail, self.clientthread.update)
         self.assertEqual(EmailFixture.numberOfUnreadEmails(), 1)
@@ -1319,7 +1429,7 @@ class TestScenarioSingle(HermesIntegrationTestCase):
             EmailFixture.emails[0].subject,
             "[hermes-client-usersgroups_null] objects in error queue have changed",
         )
-        self.assertClientdataLen(Users=+1)
+        self.assertClientdataLen(Users=+1, Users2=+1)
 
         # Verify that cached data is expected data
         expectedtwagner = deepcopy(self.serverdata("SRVUsers")[twagneruid].toNative())
@@ -1330,6 +1440,9 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         self.assertDictEqual(
             expectedtwagner, self.clientdata("Users")[twagneruid].toNative()
         )
+        self.assertDictEqual(
+            expectedtwagner, self.clientdata("Users2")[twagneruid].toNative()
+        )
 
     def test_502a_client_maxremediation_removed_then_added_with_prev_local_modified(
         self,
@@ -1338,6 +1451,10 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         # Use a jinja filter to add a local-only modified event to errorqueue
         conf = self.loadYamlClient("single")
         conf["hermes-client"]["datamodel"]["Users"]["attrsmapping"]["middle_name"] = (
+            "{{ middle_name|default(None) if login != 'twagner'"
+            " else 'error_on_second_step' }}"
+        )
+        conf["hermes-client"]["datamodel"]["Users2"]["attrsmapping"]["middle_name"] = (
             "{{ middle_name|default(None) if login != 'twagner'"
             " else 'error_on_second_step' }}"
         )
@@ -1416,7 +1533,6 @@ class TestScenarioSingle(HermesIntegrationTestCase):
                 and remoteEv is None
             ):
                 del localEv.objattrs["added"]["middle_name"]
-                break
 
         self.assertRaises(NewPendingEmail, self.clientthread.update)
         self.assertEqual(EmailFixture.numberOfUnreadEmails(), 1)
@@ -1434,6 +1550,9 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         del expectedtwagner["simpleid"]
         self.assertDictEqual(
             expectedtwagner, self.clientdata("Users")[twagneruid].toNative()
+        )
+        self.assertDictEqual(
+            expectedtwagner, self.clientdata("Users2")[twagneruid].toNative()
         )
 
         # Restore standard "middle_name" settings in attrsmapping
@@ -1486,7 +1605,7 @@ class TestScenarioSingle(HermesIntegrationTestCase):
             EmailFixture.emails[0].subject,
             "[hermes-client-usersgroups_null] no more objects in error queue",
         )
-        self.assertClientdataLen(Users=+2, Groups=+2)
+        self.assertClientdataLen(Users=+2, Users2=+2, Groups=+2)
 
     # Tests with foreignkeys_policy=on_every_event
     def test_510a_server_add_error_with_foreignkey_on_every_event(self):
@@ -1554,15 +1673,15 @@ class TestScenarioSingle(HermesIntegrationTestCase):
             "[hermes-client-usersgroups_null] objects in error queue have changed",
         )
         self.assertClientdataLen()
-        # 1 GroupMember in errorqueue, 1 User
-        self.assertEqual(2, len(self.clienterrorqueue()))
+        # 1 GroupMember in errorqueue, 1 User twice for local types User and User2
+        self.assertEqual(3, len(self.clienterrorqueue()))
 
         # Retry error queue and ensure parent won't be retried
         with self.assertLogs(self.clientthread.logger, level="INFO") as cm:
             self.clientthread.update()
         self.assertClientdataLen()
-        # 1 GroupMember in errorqueue, 1 User
-        self.assertEqual(2, len(self.clienterrorqueue()))
+        # 1 GroupMember in errorqueue, 1 User twice for local types User and User2
+        self.assertEqual(3, len(self.clienterrorqueue()))
         self.assertIn(
             "INFO:hermes-client-functional-tests:Won't retry remote event"
             " <Event(SRVUsers_modified[49e64c22-89a0-47eb-b98f-569b465cc2cb])> from"
@@ -1595,15 +1714,17 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         self.log_current_test_name(myself())
         self.clientthread.update()
         self.assertClientdataLen()
-        # 1 GroupMember in errorqueue, 1 User twice (modified then removed)
-        self.assertEqual(3, len(self.clienterrorqueue()))
+        # 1 GroupMember in errorqueue, 1 User twice for local types User and User2,
+        # twice each (modified then removed)
+        self.assertEqual(5, len(self.clienterrorqueue()))
 
         # Retry error queue and ensure parent won't be retried
         with self.assertLogs(self.clientthread.logger, level="INFO") as cm:
             self.clientthread.update()
         self.assertClientdataLen()
-        # 1 GroupMember in errorqueue, 1 User twice (modified then removed
-        self.assertEqual(3, len(self.clienterrorqueue()))
+        # 1 GroupMember in errorqueue, 1 User twice for local types User and User2,
+        # twice each (modified then removed)
+        self.assertEqual(5, len(self.clienterrorqueue()))
         self.assertIn(
             "INFO:hermes-client-functional-tests:Won't retry remote event"
             " <Event(SRVUsers_modified[49e64c22-89a0-47eb-b98f-569b465cc2cb])>"
@@ -1646,8 +1767,9 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         self.log_current_test_name(myself())
         self.clientthread.update()
         self.assertClientdataLen()
-        # 1 GroupMember in errorqueue, 1 User thrice (modified then removed, then added)
-        self.assertEqual(4, len(self.clienterrorqueue()))
+        # 1 GroupMember in errorqueue, 1 User twice for local types User and User2,
+        # three times each (modified, removed, added)
+        self.assertEqual(7, len(self.clienterrorqueue()))
 
         # Second loop to retry error queue
         self.assertRaises(NewPendingEmail, self.clientthread.update)
@@ -1752,15 +1874,15 @@ class TestScenarioSingle(HermesIntegrationTestCase):
             "[hermes-client-usersgroups_null] objects in error queue have changed",
         )
         self.assertClientdataLen()
-        # 1 GroupMember in errorqueue, 1 User
-        self.assertEqual(2, len(self.clienterrorqueue()))
+        # 1 GroupMember in errorqueue, 1 User twice for local types User and User2
+        self.assertEqual(3, len(self.clienterrorqueue()))
 
         # Retry error queue and ensure parent won't be retried
         with self.assertLogs(self.clientthread.logger, level="INFO") as cm:
             self.clientthread.update()
         self.assertClientdataLen()
-        # 1 GroupMember in errorqueue, 1 User
-        self.assertEqual(2, len(self.clienterrorqueue()))
+        # 1 GroupMember in errorqueue, 1 User twice for local types User and User2
+        self.assertEqual(3, len(self.clienterrorqueue()))
         self.assertIn(
             "INFO:hermes-client-functional-tests:Won't retry remote event"
             " <Event(SRVUsers_removed[49e64c22-89a0-47eb-b98f-569b465cc2cb])>"
@@ -1803,8 +1925,9 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         self.log_current_test_name(myself())
         self.clientthread.update()
         self.assertClientdataLen()
-        # 1 GroupMember in errorqueue, 1 User twice (removed then added)
-        self.assertEqual(3, len(self.clienterrorqueue()))
+        # 1 GroupMember in errorqueue, 1 User twice for local types User and User2,
+        # twice each (removed then added)
+        self.assertEqual(5, len(self.clienterrorqueue()))
 
         # Second loop to retry error queue
         self.assertRaises(NewPendingEmail, self.clientthread.update)
@@ -1941,9 +2064,9 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         self.log_current_test_name(myself())
         self.clientthread.update()
         self.assertClientdataLen()
-        # 1 GroupMember in errorqueue,
-        # and 1 User(attr modification after trash recycling)
-        self.assertEqual(2, len(self.clienterrorqueue()))
+        # 1 GroupMember in errorqueue, 1 User twice for local types User and User2
+        # (attr modification after trash recycling)
+        self.assertEqual(3, len(self.clienterrorqueue()))
 
         # Second loop to retry error queue
         self.assertRaises(NewPendingEmail, self.clientthread.update)
@@ -2022,15 +2145,15 @@ class TestScenarioSingle(HermesIntegrationTestCase):
             "[hermes-client-usersgroups_null] objects in error queue have changed",
         )
         self.assertClientdataLen()
-        # 1 GroupMember in errorqueue, 1 User
-        self.assertEqual(2, len(self.clienterrorqueue()))
+        # 1 GroupMember in errorqueue, 1 User twice for local types User and User2
+        self.assertEqual(3, len(self.clienterrorqueue()))
 
         # Retry error queue and ensure parent won't be retried
         with self.assertLogs(self.clientthread.logger, level="INFO") as cm:
             self.clientthread.update()
         self.assertClientdataLen()
-        # 1 GroupMember in errorqueue, 1 User
-        self.assertEqual(2, len(self.clienterrorqueue()))
+        # 1 GroupMember in errorqueue, 1 User twice for local types User and User2
+        self.assertEqual(3, len(self.clienterrorqueue()))
         self.assertIn(
             "INFO:hermes-client-functional-tests:Won't retry remote event"
             " <Event(SRVUsers_modified[49e64c22-89a0-47eb-b98f-569b465cc2cb])> from"
@@ -2047,8 +2170,8 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         self.clientthread.restart_client(conf)
         self.clientthread.update()
         self.assertClientdataLen()
-        # 1 GroupMember in errorqueue, 1 User
-        self.assertEqual(2, len(self.clienterrorqueue()))
+        # 1 GroupMember in errorqueue, 1 User twice for local types User and User2
+        self.assertEqual(3, len(self.clienterrorqueue()))
 
     def test_542a_server_delete_obj_that_is_foreignkey_parent_disabled(self):
         self.log_current_test_name(myself())
@@ -2075,15 +2198,17 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         self.log_current_test_name(myself())
         self.clientthread.update()
         self.assertClientdataLen()
-        # 1 GroupMember in errorqueue, 1 User twice (modified then removed)
-        self.assertEqual(3, len(self.clienterrorqueue()))
+        # 1 GroupMember in errorqueue, 1 User twice for local types User and User2,
+        # twice each (modified then removed)
+        self.assertEqual(5, len(self.clienterrorqueue()))
 
         # Retry error queue and ensure parent won't be retried
         with self.assertLogs(self.clientthread.logger, level="INFO") as cm:
             self.clientthread.update()
         self.assertClientdataLen()
-        # 1 GroupMember in errorqueue, 1 User twice (modified then removed)
-        self.assertEqual(3, len(self.clienterrorqueue()))
+        # 1 GroupMember in errorqueue, 1 User twice for local types User and User2,
+        # twice each (modified then removed)
+        self.assertEqual(5, len(self.clienterrorqueue()))
         self.assertIn(
             "INFO:hermes-client-functional-tests:Won't retry remote event"
             " <Event(SRVUsers_modified[49e64c22-89a0-47eb-b98f-569b465cc2cb])>"
@@ -2126,8 +2251,9 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         self.log_current_test_name(myself())
         self.clientthread.update()
         self.assertClientdataLen()
-        # 1 GroupMember in errorqueue, 1 User thrice (modified then removed then added)
-        self.assertEqual(4, len(self.clienterrorqueue()))
+        # 1 GroupMember in errorqueue, 1 User twice for local types User and User2,
+        # three times each (modified, removed, added)
+        self.assertEqual(7, len(self.clienterrorqueue()))
 
         # Second loop to retry error queue
         self.assertRaises(NewPendingEmail, self.clientthread.update)
@@ -2205,15 +2331,15 @@ class TestScenarioSingle(HermesIntegrationTestCase):
             "[hermes-client-usersgroups_null] objects in error queue have changed",
         )
         self.assertClientdataLen()
-        # 1 GroupMember in errorqueue, 1 User
-        self.assertEqual(2, len(self.clienterrorqueue()))
+        # 1 GroupMember in errorqueue, 1 User twice for local types User and User2
+        self.assertEqual(3, len(self.clienterrorqueue()))
 
         # Retry error queue and ensure parent won't be retried
         with self.assertLogs(self.clientthread.logger, level="INFO") as cm:
             self.clientthread.update()
         self.assertClientdataLen()
-        # 1 GroupMember in errorqueue, 1 User
-        self.assertEqual(2, len(self.clienterrorqueue()))
+        # 1 GroupMember in errorqueue, 1 User twice for local types User and User2
+        self.assertEqual(3, len(self.clienterrorqueue()))
         self.assertIn(
             "INFO:hermes-client-functional-tests:Won't retry remote event"
             " <Event(SRVUsers_modified[49e64c22-89a0-47eb-b98f-569b465cc2cb])> from"
@@ -2267,13 +2393,15 @@ class TestScenarioSingle(HermesIntegrationTestCase):
             "[hermes-client-usersgroups_null] objects in error queue have changed",
         )
         self.assertClientdataLen()
-        # 1 GroupMember in errorqueue, 1 User
-        self.assertEqual(2, len(self.clienterrorqueue()))
+        # 1 GroupMember in errorqueue, 1 User twice for local types User and User2
+        self.assertEqual(3, len(self.clienterrorqueue()))
 
         # Verify new primary key
         for group in self.clientdata("Groups"):
             self.assertEqual(group.getPKey(), group._pkey_simpleid)
         for user in self.clientdata("Users"):
+            self.assertEqual(user.getPKey(), user._pkey_simpleid)
+        for user in self.clientdata("Users2"):
             self.assertEqual(user.getPKey(), user._pkey_simpleid)
         for gm in self.clientdata("GroupsMembers"):
             self.assertTupleEqual(
@@ -2326,15 +2454,17 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         self.log_current_test_name(myself())
         self.clientthread.update()
         self.assertClientdataLen()
-        # 1 GroupMember in errorqueue, 1 User twice (modified then removed)
-        self.assertEqual(3, len(self.clienterrorqueue()))
+        # 1 GroupMember in errorqueue, 1 User twice for local types User and User2,
+        # twice each (modified then removed)
+        self.assertEqual(5, len(self.clienterrorqueue()))
 
         # Retry error queue and ensure parent won't be retried
         with self.assertLogs(self.clientthread.logger, level="INFO") as cm:
             self.clientthread.update()
         self.assertClientdataLen()
-        # 1 GroupMember in errorqueue, 1 User twice (modified then removed
-        self.assertEqual(3, len(self.clienterrorqueue()))
+        # 1 GroupMember in errorqueue, 1 User twice for local types User and User2,
+        # twice each (modified then removed)
+        self.assertEqual(5, len(self.clienterrorqueue()))
         self.assertIn(
             "INFO:hermes-client-functional-tests:Won't retry remote event"
             " <Event(SRVUsers_modified[185])>"
@@ -2384,8 +2514,9 @@ class TestScenarioSingle(HermesIntegrationTestCase):
             "[hermes-client-usersgroups_null] objects in error queue have changed",
         )
         self.assertClientdataLen()
-        # 1 GroupMember in errorqueue, 1 User thrice (modified then removed, then added)
-        self.assertEqual(4, len(self.clienterrorqueue()))
+        # 1 GroupMember in errorqueue, 1 User twice for local types User and User2,
+        # three times each (modified, removed, added)
+        self.assertEqual(7, len(self.clienterrorqueue()))
 
         # Second loop to retry error queue
         self.assertRaises(NewPendingEmail, self.clientthread.update)

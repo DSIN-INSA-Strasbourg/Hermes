@@ -59,7 +59,7 @@ from lib.datamodel.event import Event
 
 
 class TestErrorQueueClass(HermesServerTestCase):
-    typesMapping = {"TestObj1": "TestObj1_local"}
+    typesMapping = {"TestObj1": ["TestObj1_local"]}
 
     queue = {
         "1": [
@@ -2903,7 +2903,7 @@ class TestErrorQueueClass(HermesServerTestCase):
         ]
         for prev, last in invalidcouples:
             eq = ErrorQueue(
-                typesMapping={"TestObj1": "TestObj1"}, autoremediate="maximum"
+                typesMapping={"TestObj1": ["TestObj1"]}, autoremediate="maximum"
             )
             eq.append(prev, prev, "Dummy error msg")
             self.assertRaisesRegex(
@@ -2923,7 +2923,7 @@ class TestErrorQueueClass(HermesServerTestCase):
         ]
         for prevEvent, lastEvent in unexpectedcouples:
             eq = ErrorQueue(
-                typesMapping={"TestObj1": "TestObj1"}, autoremediate="maximum"
+                typesMapping={"TestObj1": ["TestObj1"]}, autoremediate="maximum"
             )
             eq.append(prevEvent, prevEvent, "Dummy error msg")
             with self.assertRaises(AssertionError) as cm:
@@ -2937,7 +2937,7 @@ class TestErrorQueueClass(HermesServerTestCase):
 
     def test_remediation_inconsistency_between_merge_results(self):
         eq = ErrorQueue(
-            typesMapping={"TestObj1": "TestObj1"}, autoremediate="conservative"
+            typesMapping={"TestObj1": ["TestObj1"]}, autoremediate="conservative"
         )
         eq.append(self.singleAddedEvent, self.singleAddedEvent, "Dummy error msg")
 

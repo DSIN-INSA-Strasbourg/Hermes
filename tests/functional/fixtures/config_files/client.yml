@@ -93,6 +93,20 @@ hermes-client:
         desired_jobs_joined: desired_jobs_joined
         desired_jobs_columns: desired_jobs_columns
 
+    Users2:
+      hermesType: SRVUsers
+      toString: "<Users[{{ login | default('#UNDEF#') }}]>"
+      attrsmapping:
+        first_name: first_name
+        middle_name: middle_name
+        last_name: last_name
+        displayname: "{{ (first_name ~ ' ' ~ last_name ~ ' (Engineering)') if 'engineering' in (specialty|default('')) else first_name ~ ' ' ~ last_name }}"
+        dateOfBirth: dateOfBirth
+        login: login
+        specialty: specialty
+        desired_jobs_joined: desired_jobs_joined
+        desired_jobs_columns: desired_jobs_columns
+
     GroupsMembers:
       hermesType: SRVGroupsMembers
       attrsmapping:

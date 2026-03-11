@@ -39,7 +39,7 @@ class ErrorQueue(LocalCache):
 
     def __init__(
         self,
-        typesMapping: dict[str, str],
+        typesMapping: dict[str, list[str]],
         remotedata: Datasource | None = None,
         remotedata_complete: Datasource | None = None,
         localdata: Datasource | None = None,
@@ -84,14 +84,19 @@ class ErrorQueue(LocalCache):
         """
 
         self._typesMapping = {
-            "local": {v: k for k, v in typesMapping.items()},
-            "remote": {k: v for k, v in typesMapping.items()},
+            "local": {},
+            "remote": {},
         }
+        for remoteobj, localobjs in typesMapping.items():
+            for localobj in localobjs:
+                self._typesMapping["local"][localobj] = remoteobj
+            self._typesMapping["remote"][remoteobj] = localobjs
+
         """Mapping between local and remote objects types
             - self._typesMapping["local"]["local_type"] return the corresponding remote
               type
             - self._typesMapping["remote"]["remote_type"] return the corresponding
-              local type
+              local types
         """
 
         super().__init__(jsondataattr=["_queue"])
@@ -667,11 +672,11 @@ class ErrorQueue(LocalCache):
         """Returns a set with every event number in current instance"""
         return set(self._queue.keys())
 
-    def _getLocalObjtype(self, objtype: str, isLocalObjtype: bool) -> str | None:
+    def _getLocalObjtype(self, objtype: str, isLocalObjtype: bool) -> list[str] | None:
         """Returns the local objtype, or None if it doesn't exist"""
         if isLocalObjtype:
             if objtype in self._typesMapping["local"]:
-                return objtype
+                return [objtype]
             else:
                 return None
         else:
@@ -680,10 +685,13 @@ class ErrorQueue(LocalCache):
     def containsObject(self, objtype: str, objpkey: Any, isLocalObjtype: bool) -> bool:
         """Indicate if object of specified objpkey of specified objtype exists in
         current instance"""
-        l_objtype = self._getLocalObjtype(objtype, isLocalObjtype)
-        if l_objtype is None:
+        l_objtypes = self._getLocalObjtype(objtype, isLocalObjtype)
+        if l_objtypes is None:
             return False
-        return l_objtype in self._index and objpkey in self._index[l_objtype]
+        for l_objtype in l_objtypes:
+            if l_objtype in self._index and objpkey in self._index[l_objtype]:
+                return True
+        return False
 
     def containsObjectByEvent(self, event: Event, isLocalEvent: bool) -> bool:
         """Indicate if object of specified event exists in current instance"""
@@ -692,11 +700,14 @@ class ErrorQueue(LocalCache):
     def isEventAParentOfAnotherError(self, event: Event, isLocalEvent: bool) -> bool:
         """Indicate if object of specified event is a parent (a foreign key) of
         an object that exists in current instance"""
-        l_objtype = self._getLocalObjtype(event.objtype, isLocalEvent)
-        if l_objtype is None:
+        l_objtypes = self._getLocalObjtype(event.objtype, isLocalEvent)
+        if l_objtypes is None:
             return False
-        parentEvs = self._parentObjs.get(l_objtype, {}).get(event.objpkey)
-        return parentEvs is not None
+        for l_objtype in l_objtypes:
+            parentEvs = self._parentObjs.get(l_objtype, {}).get(event.objpkey)
+            if parentEvs is not None:
+                return True
+        return False
 
     def purgeAllEvents(self, objtype: str, objpkey: Any, isLocalObjtype: bool):
         """Delete all events of specified objpkey of specified objtype from current
@@ -704,15 +715,16 @@ class ErrorQueue(LocalCache):
         if not self.containsObject(objtype, objpkey, isLocalObjtype):
             return
 
-        l_objtype = self._getLocalObjtype(objtype, isLocalObjtype)
-        if l_objtype is None:
+        l_objtypes = self._getLocalObjtype(objtype, isLocalObjtype)
+        if l_objtypes is None:
             return
 
-        eventNumbers = self._index[l_objtype][objpkey]
+        for l_objtype in l_objtypes:
+            eventNumbers = self._index[l_objtype][objpkey]
 
-        # Loop over a copy as content may be removed during iteration
-        for eventNumber in eventNumbers.copy():
-            self.remove(eventNumber)
+            # Loop over a copy as content may be removed during iteration
+            for eventNumber in eventNumbers.copy():
+                self.remove(eventNumber)
 
     def purgeAllEventsOfDataObject(self, obj: DataObject, isLocalObjtype: bool):
         """Delete all events of specified objpkey of specified objtype from current

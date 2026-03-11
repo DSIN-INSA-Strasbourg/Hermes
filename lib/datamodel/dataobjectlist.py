@@ -158,7 +158,7 @@ class DataObjectList(LocalCache):
         """Returns a set of each primary key of current DataObject values"""
         return set(self._datadict.keys())
 
-    def append(self, obj: DataObject):
+    def append(self, obj: DataObject, ignoreIfAlreadyPresent: bool = False):
         """Append specified object to current instance.
         If obj is of another type than self.OBJTYPE, it will be casted to OBJTYPE.
         If obj is already in current instance, it will be put in _inconsistencies
@@ -171,7 +171,10 @@ class DataObjectList(LocalCache):
             objconverted = self.OBJTYPE(from_json_dict=obj.toNative())
 
         pkey = objconverted.getPKey()
-        if pkey in self._inconsistencies | self._mergeConflicts:
+        if (
+            not ignoreIfAlreadyPresent
+            and pkey in self._inconsistencies | self._mergeConflicts
+        ):
             # __hermes__.logger.debug(
             #     f"<{self.__class__.__name__}> Ignoring {objconverted=}"
             #     " because already known as an inconsistency"
@@ -180,7 +183,7 @@ class DataObjectList(LocalCache):
 
         if pkey not in self._datadict:
             self._datadict[pkey] = objconverted
-        else:
+        elif not ignoreIfAlreadyPresent:
             __hermes__.logger.warning(
                 f"<{self.__class__.__name__}> Trying to insert an already existing"
                 f" object: {objconverted=}"

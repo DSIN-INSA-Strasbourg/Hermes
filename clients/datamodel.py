@@ -113,9 +113,9 @@ class Datamodel:
         self.errorqueue: ErrorQueue | None = None
         """Queue of Events in error"""
 
-        self.typesmapping: dict[str, str]
-        """Mapping of datamodel types: hermes-server type as key, hermes-client type as
-        value"""
+        self.typesmapping: dict[str, list[str]]
+        """Mapping of datamodel types: hermes-server type as key, hermes-client types as
+        values"""
         self._remote2local: dict[str, dict[str, list[str]]]
         """Mapping with remote type name as key, and dict containing remote attrname as
         key and local attrname as value. Example:
@@ -262,85 +262,87 @@ class Datamodel:
                     continue
 
                 # Determine local objtype and its new primary key
-                l_objtype = self.typesmapping[r_objtype]
-                new_local_pkeys[l_objtype] = self.local_schema.schema[l_objtype][
-                    "PRIMARYKEY_ATTRIBUTE"
-                ]
+                for l_objtype in self.typesmapping[r_objtype]:
+                    new_local_pkeys[l_objtype] = self.local_schema.schema[l_objtype][
+                        "PRIMARYKEY_ATTRIBUTE"
+                    ]
 
-                # Compute local pkeys to add and to remove for each local data type
-                r_prev_pkeys = prev_remote_pkeys[r_objtype]
-                r_new_pkeys = new_remote_pkeys[r_objtype]
-                if type(r_prev_pkeys) is str:
-                    r_prev_pkeys = (r_prev_pkeys,)
-                if type(r_new_pkeys) is str:
-                    r_new_pkeys = (r_new_pkeys,)
-                l_prev_pkeys = set([f"_pkey_{pkey}" for pkey in r_prev_pkeys])
-                l_new_pkeys = set([f"_pkey_{pkey}" for pkey in r_new_pkeys])
-                l_pkeys_to_add[l_objtype] = l_new_pkeys - l_prev_pkeys
-                l_pkeys_to_remove[l_objtype] = l_prev_pkeys - l_new_pkeys
+                    # Compute local pkeys to add and to remove for each local data type
+                    r_prev_pkeys = prev_remote_pkeys[r_objtype]
+                    r_new_pkeys = new_remote_pkeys[r_objtype]
+                    if type(r_prev_pkeys) is str:
+                        r_prev_pkeys = (r_prev_pkeys,)
+                    if type(r_new_pkeys) is str:
+                        r_new_pkeys = (r_new_pkeys,)
+                    l_prev_pkeys = set([f"_pkey_{pkey}" for pkey in r_prev_pkeys])
+                    l_new_pkeys = set([f"_pkey_{pkey}" for pkey in r_new_pkeys])
+                    l_pkeys_to_add[l_objtype] = l_new_pkeys - l_prev_pkeys
+                    l_pkeys_to_remove[l_objtype] = l_prev_pkeys - l_new_pkeys
 
-                local_types[l_objtype] = set()
+                    local_types[l_objtype] = set()
 
-                # Add new pkey attributes and values to localdata objects
-                for src in (self.localdata, self.localdata_complete):
-                    for type_prefix in ("", "trashbin_"):
-                        obj: DataObject
-                        for obj in src[f"{type_prefix}{l_objtype}"]:
-                            if type(obj) not in local_types[l_objtype]:
-                                local_types[l_objtype].add(type(obj))
-                                type(obj).HERMES_ATTRIBUTES |= l_pkeys_to_add[l_objtype]
-                            # Get corresponding remote object from cache
-                            _, r_obj = Datamodel.getObjectFromCacheOrTrashbin(
-                                self.remotedata_complete, r_objtype, obj.getPKey()
-                            )
-                            if r_obj is None:
-                                # Should never happen : if so, it's a bug
-                                msg = (
-                                    f"BUG ! No matching of local object {repr(obj)}"
-                                    " found in remotedata_complete cache. The client is"
-                                    " probably broken"
+                    # Add new pkey attributes and values to localdata objects
+                    for src in (self.localdata, self.localdata_complete):
+                        for type_prefix in ("", "trashbin_"):
+                            obj: DataObject
+                            for obj in src[f"{type_prefix}{l_objtype}"]:
+                                if type(obj) not in local_types[l_objtype]:
+                                    local_types[l_objtype].add(type(obj))
+                                    type(obj).HERMES_ATTRIBUTES |= l_pkeys_to_add[
+                                        l_objtype
+                                    ]
+                                # Get corresponding remote object from cache
+                                _, r_obj = Datamodel.getObjectFromCacheOrTrashbin(
+                                    self.remotedata_complete, r_objtype, obj.getPKey()
                                 )
-                                __hermes__.logger.critical(msg)
-                                raise InvalidDataError(msg)
-
-                            for pkey in r_new_pkeys:
-                                try:
-                                    # Get pkey value from remote object
-                                    value = getattr(r_obj, pkey)
-                                except AttributeError:
+                                if r_obj is None:
                                     # Should never happen : if so, it's a bug
                                     msg = (
-                                        "BUG ! No value exist in remote cache for"
-                                        f" attribute '{pkey}' of object {r_obj}. The"
+                                        f"BUG ! No matching of local object {repr(obj)}"
+                                        " found in remotedata_complete cache. The"
                                         " client is probably broken"
                                     )
                                     __hermes__.logger.critical(msg)
                                     raise InvalidDataError(msg)
-                                # Store pkey value to local object
-                                setattr(obj, f"_pkey_{pkey}", value)
 
-                # Update PRIMARYKEY_ATTRIBUTE of each local type
-                for l_objtype, l_types in local_types.items():
-                    for l_type in l_types:
-                        l_type.PRIMARYKEY_ATTRIBUTE = new_local_pkeys[l_objtype]
+                                for pkey in r_new_pkeys:
+                                    try:
+                                        # Get pkey value from remote object
+                                        value = getattr(r_obj, pkey)
+                                    except AttributeError:
+                                        # Should never happen : if so, it's a bug
+                                        msg = (
+                                            "BUG ! No value exist in remote cache for"
+                                            f" attribute '{pkey}' of object {r_obj}."
+                                            " The client is probably broken"
+                                        )
+                                        __hermes__.logger.critical(msg)
+                                        raise InvalidDataError(msg)
+                                    # Store pkey value to local object
+                                    setattr(obj, f"_pkey_{pkey}", value)
 
-                # Remove previous pkey attributes that are not used anymore from
-                # localdata objects
-                for src in (self.localdata, self.localdata_complete):
-                    for type_prefix in ("", "trashbin_"):
-                        obj: DataObject
-                        for obj in src[f"{type_prefix}{l_objtype}"]:
-                            for pkey in l_pkeys_to_remove[l_objtype]:
-                                try:
-                                    delattr(obj, pkey)
-                                except AttributeError:
-                                    pass
+                    # Update PRIMARYKEY_ATTRIBUTE of each local type
+                    for l_objtype, l_types in local_types.items():
+                        for l_type in l_types:
+                            l_type.PRIMARYKEY_ATTRIBUTE = new_local_pkeys[l_objtype]
 
-                # Remove previous pkey attributes that are not used anymore from
-                # HERMES_ATTRIBUTES of each local type
-                for l_objtype, l_types in local_types.items():
-                    for l_type in l_types:
-                        l_type.HERMES_ATTRIBUTES -= l_pkeys_to_remove[l_objtype]
+                    # Remove previous pkey attributes that are not used anymore from
+                    # localdata objects
+                    for src in (self.localdata, self.localdata_complete):
+                        for type_prefix in ("", "trashbin_"):
+                            obj: DataObject
+                            for obj in src[f"{type_prefix}{l_objtype}"]:
+                                for pkey in l_pkeys_to_remove[l_objtype]:
+                                    try:
+                                        delattr(obj, pkey)
+                                    except AttributeError:
+                                        pass
+
+                    # Remove previous pkey attributes that are not used anymore from
+                    # HERMES_ATTRIBUTES of each local type
+                    for l_objtype, l_types in local_types.items():
+                        for l_type in l_types:
+                            l_type.HERMES_ATTRIBUTES -= l_pkeys_to_remove[l_objtype]
 
             self.saveLocalData()
 
@@ -497,114 +499,125 @@ class Datamodel:
         event: Event,
         new_obj: DataObject | None = None,
         allowEmptyEvent: bool = False,
-    ) -> Event | None:
-        """Convert specified remote event to local one.
+        onlyForLocalType: str | None = None,
+    ) -> list[Event | None]:
+        """Convert specified remote event to local ones.
         If new_obj is provided, it must contains all the new remote object values,
         and will only be used to render Jinja Templates.
-        Returns None if local event doesn't contains any attribute and allowEmptyEvent
-        is False"""
+        Returns a None value if local event doesn't contains any attribute and
+        allowEmptyEvent is False"""
         if event.objtype not in self.typesmapping:
             __hermes__.logger.debug(
                 f"Unknown {event.objtype=}. Known are {self.typesmapping}"
             )
-            return None  # Unknown type
+            return [None]  # Unknown type
 
-        objtype = self.typesmapping[event.objtype]
+        res: list[Event | None] = []
 
-        # Handle that event.objattrs is 1 depth deeper for "modified" events
-        if event.eventtype == "modified":
-            sources = ("added", "modified", "removed")
-            objattrs = {"added": {}, "modified": {}, "removed": {}}
-        else:
-            sources = (None,)
-            objattrs = {}
+        for objtype in self.typesmapping[event.objtype]:
+            if onlyForLocalType is not None and objtype != onlyForLocalType:
+                continue
 
-        hasContent: bool = False
-        for source in sources:
-            if source is None:
-                src = event.objattrs
+            # Handle that event.objattrs is 1 depth deeper for "modified" events
+            if event.eventtype == "modified":
+                sources = ("added", "modified", "removed")
+                objattrs = {"added": {}, "modified": {}, "removed": {}}
             else:
-                src = event.objattrs[source]
+                sources = (None,)
+                objattrs = {}
 
-            # Hack to handle Jinja templates containing only static data
-            if None in self._remote2local[event.objtype] and event.eventtype == "added":
-                loopsrc = src.copy()
-                loopsrc[None] = None
-            else:
-                loopsrc = src
+            hasContent: bool = False
+            for source in sources:
+                if source is None:
+                    src = event.objattrs
+                else:
+                    src = event.objattrs[source]
 
-            for k, v in loopsrc.items():
-                if k in self._remote2local[event.objtype]:
-                    for dest in self._remote2local[event.objtype][k]:
-                        remoteattr = self._datamodel[objtype]["attrsmapping"][dest]
-                        if isinstance(
-                            remoteattr, Template
-                        ):  # May be a compiled Jinja Template
-                            if new_obj is None:
-                                val = remoteattr.render(src)
-                            else:
-                                # We must provide all new object vars values to
-                                # render a Jinja Template computed from several vars,
-                                # in case of "modified" event changing the value of
-                                # only one var value used by the template.
-                                # The event objattrs won't be enough in this specific
-                                # case.
-                                val = remoteattr.render(new_obj.toNative())
+                # Hack to handle Jinja templates containing only static data
+                if (
+                    None in self._remote2local[event.objtype]
+                    and event.eventtype == "added"
+                ):
+                    loopsrc = src.copy()
+                    loopsrc[None] = None
+                else:
+                    loopsrc = src
 
-                            if type(val) is list:
-                                val = [v for v in val if v is not None]
+                for k, v in loopsrc.items():
+                    if k in self._remote2local[event.objtype]:
+                        for dest in self._remote2local[event.objtype][k]:
+                            remoteattr = self._datamodel[objtype]["attrsmapping"][dest]
+                            if isinstance(
+                                remoteattr, Template
+                            ):  # May be a compiled Jinja Template
+                                if new_obj is None:
+                                    val = remoteattr.render(src)
+                                else:
+                                    # We must provide all new object vars values to
+                                    # render a Jinja Template computed from several
+                                    # vars, in case of "modified" event changing the
+                                    # value of only one var value used by the template.
+                                    # The event objattrs won't be enough in this
+                                    # specific case.
+                                    val = remoteattr.render(new_obj.toNative())
 
-                            if val is None or val == []:
-                                # No value
-                                if event.eventtype == "modified":
-                                    objattrs["removed"].update({dest: val})
-                                elif event.eventtype == "removed":
-                                    objattrs.update({dest: val})
-                            else:
-                                # In modified events, we have to determine if the
-                                # attribute is added or modified
-                                if event.eventtype == "modified":
-                                    _, cachedObj = self.getObjectFromCacheOrTrashbin(
-                                        self.localdata_complete,
-                                        self.typesmapping[event.objtype],
-                                        event.objpkey,
-                                    )
+                                if type(val) is list:
+                                    val = [v for v in val if v is not None]
 
-                                    if cachedObj is not None and hasattr(
-                                        cachedObj, dest
-                                    ):
-                                        # Ensure the value has changed
-                                        previousVal = getattr(cachedObj, dest)
-                                        if DataObject.isDifferent(previousVal, val):
-                                            objattrs["modified"].update({dest: val})
+                                if val is None or val == []:
+                                    # No value
+                                    if event.eventtype == "modified":
+                                        objattrs["removed"].update({dest: val})
+                                    elif event.eventtype == "removed":
+                                        objattrs.update({dest: val})
+                                else:
+                                    # In modified events, we have to determine if the
+                                    # attribute is added or modified
+                                    if event.eventtype == "modified":
+                                        _, cachedObj = (
+                                            self.getObjectFromCacheOrTrashbin(
+                                                self.localdata_complete,
+                                                objtype,
+                                                event.objpkey,
+                                            )
+                                        )
+
+                                        if cachedObj is not None and hasattr(
+                                            cachedObj, dest
+                                        ):
+                                            # Ensure the value has changed
+                                            previousVal = getattr(cachedObj, dest)
+                                            if DataObject.isDifferent(previousVal, val):
+                                                objattrs["modified"].update({dest: val})
+                                                hasContent = True
+                                        else:
+                                            # Attr is added
+                                            objattrs["added"].update({dest: val})
                                             hasContent = True
                                     else:
-                                        # Attr is added
-                                        objattrs["added"].update({dest: val})
+                                        objattrs.update({dest: val})
                                         hasContent = True
-                                else:
-                                    objattrs.update({dest: val})
-                                    hasContent = True
-                        else:
-                            if source is None:
-                                objattrs.update({dest: v})
                             else:
-                                objattrs[source].update({dest: v})
-                            hasContent = True
+                                if source is None:
+                                    objattrs.update({dest: v})
+                                else:
+                                    objattrs[source].update({dest: v})
+                                hasContent = True
 
-        res = None
-        if hasContent or allowEmptyEvent or event.eventtype == "removed":
-            res = Event(
-                evcategory=event.evcategory,
-                eventtype=event.eventtype,
-                objattrs=objattrs,
-            )
-            res.objtype = objtype
-            res.objpkey = event.objpkey
-            res.objrepr = str(res.objpkey)
-            res.timestamp = event.timestamp
-            res.step = event.step
-            res.isPartiallyProcessed = event.isPartiallyProcessed
+            resev = None
+            if hasContent or allowEmptyEvent or event.eventtype == "removed":
+                resev = Event(
+                    evcategory=event.evcategory,
+                    eventtype=event.eventtype,
+                    objattrs=objattrs,
+                )
+                resev.objtype = objtype
+                resev.objpkey = event.objpkey
+                resev.objrepr = str(resev.objpkey)
+                resev.timestamp = event.timestamp
+                resev.step = event.step
+                resev.isPartiallyProcessed = event.isPartiallyProcessed
+            res.append(resev)
         return res
 
     def createLocalDataobject(
@@ -645,21 +658,26 @@ class Datamodel:
 
         return newobj
 
-    def convertDataObjectToLocal(self, obj: DataObject) -> DataObject:
-        """Convert specified Dataobject (remote) to local one"""
+    def convertDataObjectToLocal(
+        self, obj: DataObject, expectedLocalObjtype: str
+    ) -> DataObject:
+        """Convert specified Dataobject (remote) to expected local one"""
         tmpEvent = self.convertEventToLocal(
-            Event("conversion", "added", obj, obj.toNative())
-        )
-        return self.local_schema.objectTypes[self.typesmapping[obj.getType()]](
+            Event("conversion", "added", obj, obj.toNative()),
+            onlyForLocalType=expectedLocalObjtype,
+        )[0]
+        return self.local_schema.objectTypes[expectedLocalObjtype](
             from_json_dict=tmpEvent.objattrs
         )
 
     def convertDataObjectListToLocal(
-        self, remoteobjtype: str, objlist: DataObjectList
+        self, remoteobjtype: str, objlist: DataObjectList, expectedLocalObjtype: str
     ) -> DataObjectList:
-        """Convert specified DataObjectList (remote) to local one"""
-        localobjs = [self.convertDataObjectToLocal(obj) for obj in objlist]
-        return self.local_schema.objectlistTypes[self.typesmapping[remoteobjtype]](
+        """Convert specified DataObjectList (remote) to expected local one"""
+        localobjs = [
+            self.convertDataObjectToLocal(obj, expectedLocalObjtype) for obj in objlist
+        ]
+        return self.local_schema.objectlistTypes[expectedLocalObjtype](
             objlist=localobjs
         )
 
@@ -719,8 +737,12 @@ class Datamodel:
                     self._datamodel[objtype][k] = v
 
     def _fillConversionVars(self):
-        # Fill the types mapping (remote as key, local as value)
-        typesmapping = {v["hermesType"]: k for k, v in self._datamodel.items()}
+        # Fill the types mapping (remote as key, list of local as value)
+        typesmapping: dict[str, list[str]] = {}
+        for k, v in self._datamodel.items():
+            if v["hermesType"] not in typesmapping:
+                typesmapping[v["hermesType"]] = []
+            typesmapping[v["hermesType"]].append(k)
 
         # Types consistency check
         self.unknownRemoteTypes = typesmapping.keys() - self.remote_schema.schema.keys()
@@ -784,54 +806,58 @@ class Datamodel:
         """Build local schema from local datamodel and remote schema"""
         rschema: dict[str, Any] = self.remote_schema.schema
         schema: dict[str, Any] = {}
-        for objtype in self.typesmapping.values():
-            remote_objtype = self._datamodel[objtype]["hermesType"]
+        for objtypes in self.typesmapping.values():
+            for objtype in objtypes:
+                remote_objtype = self._datamodel[objtype]["hermesType"]
 
-            secrets = []
-            for attr in rschema[remote_objtype]["SECRETS_ATTRIBUTES"]:
-                v = self._remote2local[remote_objtype].get(attr)
-                if v is not None:
-                    secrets.extend(v)
+                secrets = []
+                for attr in rschema[remote_objtype]["SECRETS_ATTRIBUTES"]:
+                    v = self._remote2local[remote_objtype].get(attr)
+                    if v is not None:
+                        secrets.extend(v)
 
-            # Add primary keys to mapping to ensure they're always there
-            pkeys = self.remote_schema.schema[remote_objtype]["PRIMARYKEY_ATTRIBUTE"]
-            if type(pkeys) in [list, tuple]:
-                pkey = tuple([f"_pkey_{pkey}" for pkey in pkeys])
-            else:
-                pkey = f"_pkey_{pkeys}"
+                # Add primary keys to mapping to ensure they're always there
+                pkeys = self.remote_schema.schema[remote_objtype][
+                    "PRIMARYKEY_ATTRIBUTE"
+                ]
+                if type(pkeys) in [list, tuple]:
+                    pkey = tuple([f"_pkey_{pkey}" for pkey in pkeys])
+                else:
+                    pkey = f"_pkey_{pkeys}"
 
-            # Convert foreign keys dict
-            fkeys: dict[str, list[str]] = {}
-            for from_attr, (to_obj, to_attr) in self.remote_schema.schema[
-                remote_objtype
-            ]["FOREIGN_KEYS"].items():
-                try:
-                    # In current implementation, foreign key are always
-                    # single primary keys (not a tuple)
-                    fkeys[f"_pkey_{from_attr}"] = [
-                        self.typesmapping[to_obj],
-                        f"_pkey_{to_attr}",
-                    ]
-                except KeyError:
-                    msg = (
-                        f"Config error : client datamodel requires a data type linked"
-                        f" to server data type '{to_obj}', that will provide the"
-                        f" foreign keys required by client data type '{objtype}'"
-                    )
-                    __hermes__.logger.critical(msg)
-                    raise MissingForeignkeyDatatypeError(msg) from None
+                # Convert foreign keys dict
+                fkeys: dict[str, list[str]] = {}
+                for from_attr, (to_obj, to_attr) in self.remote_schema.schema[
+                    remote_objtype
+                ]["FOREIGN_KEYS"].items():
+                    try:
+                        # In current implementation, foreign key are always
+                        # single primary keys (not a tuple)
+                        fkeys[f"_pkey_{from_attr}"] = [
+                            self.typesmapping[to_obj][0],
+                            f"_pkey_{to_attr}",
+                        ]
+                    except KeyError:
+                        msg = (
+                            "Config error : client datamodel requires a data type"
+                            f" linked to server data type '{to_obj}', that will provide"
+                            " the foreign keys required by client data type"
+                            f" '{objtype}'"
+                        )
+                        __hermes__.logger.critical(msg)
+                        raise MissingForeignkeyDatatypeError(msg) from None
 
-            schema[objtype] = {
-                "HERMES_ATTRIBUTES": set(
-                    self._datamodel[objtype]["attrsmapping"].keys()
-                ),
-                "SECRETS_ATTRIBUTES": set(secrets),
-                "CACHEONLY_ATTRIBUTES": set(),
-                "LOCAL_ATTRIBUTES": set(),
-                "PRIMARYKEY_ATTRIBUTE": pkey,
-                "FOREIGN_KEYS": fkeys,
-                "TOSTRING": self._datamodel[objtype]["toString"],
-            }
+                schema[objtype] = {
+                    "HERMES_ATTRIBUTES": set(
+                        self._datamodel[objtype]["attrsmapping"].keys()
+                    ),
+                    "SECRETS_ATTRIBUTES": set(secrets),
+                    "CACHEONLY_ATTRIBUTES": set(),
+                    "LOCAL_ATTRIBUTES": set(),
+                    "PRIMARYKEY_ATTRIBUTE": pkey,
+                    "FOREIGN_KEYS": fkeys,
+                    "TOSTRING": self._datamodel[objtype]["toString"],
+                }
 
         res = Dataschema(schema)
         return res

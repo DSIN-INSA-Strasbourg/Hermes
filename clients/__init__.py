@@ -997,10 +997,14 @@ class GenericClient:
         # In this case, we have to use the provided local_event, as it may contains
         # some extra changes stacked by autoremediation
         if local_event is None:
-            local_event = self.__datamodel.convertEventToLocal(
+            local_events = self.__datamodel.convertEventToLocal(
                 remote_event, r_obj_complete
             )
+        else:
+            local_events = [local_event]
+
         trashbin = self.__datamodel.remotedata[f"trashbin_{remote_event.objtype}"]
+        was_in_trashbin = remote_event.objpkey in trashbin
 
         if not simulateOnly and enqueueEventWithError:
             hadErrors = self.__datamodel.errorqueue.containsObjectByEvent(
@@ -1009,90 +1013,109 @@ class GenericClient:
             isParent = self.__datamodel.errorqueue.isEventAParentOfAnotherError(
                 remote_event, isLocalEvent=False
             )
-            if hadErrors or (
-                isParent and remote_event.eventtype in self.__foreignkeys_events
-            ):
-                secretAttrs = self.__datamodel.remote_schema.secretsAttributesOf(
-                    remote_event.objtype
-                )
-                if hadErrors:
-                    errorMsg = (
-                        f"Object in remote event {remote_event.toString(secretAttrs)}"
-                        " already had unresolved errors: appending event to error queue"
-                    )
-                else:
-                    errorMsg = (
-                        f"Object in remote event {remote_event.toString(secretAttrs)}"
-                        " is a dependency of an object that already had unresolved"
-                        " errors: appending event to error queue"
-                    )
-                __hermes__.logger.warning(errorMsg)
-                self.__processRemoteEvent(
-                    remote_event,
-                    local_event=None,
-                    enqueueEventWithError=False,
-                    simulateOnly=True,
-                )
-                if local_event is None:
-                    # Force empty event generation when local_event doesn't change
-                    # anything
-                    local_event = self.__datamodel.convertEventToLocal(
-                        remote_event, r_obj_complete, allowEmptyEvent=True
-                    )
-                self.__datamodel.errorqueue.append(remote_event, local_event, errorMsg)
-                return
 
-        try:
-            match remote_event.eventtype:
-                case "added":
-                    if (
-                        self.__trashbin_retention is not None
-                        and remote_event.objpkey in trashbin
-                    ):
-                        # Object is in trashbin, recycle it
-                        self.__remoteRecycled(remote_event, local_event, simulateOnly)
-                    else:
-                        # Add new object
-                        self.__remoteAdded(remote_event, local_event, simulateOnly)
-
-                case "modified":
-                    self.__remoteModified(remote_event, local_event, simulateOnly)
-
-                case "removed":
-                    # Remove object on any of these conditions:
-                    #   - trashbin retention is disabled
-                    #   - object is already in trashbin
-                    if (
-                        self.__trashbin_retention is None
-                        or remote_event.objpkey in trashbin
-                    ):
-                        # Remove object
-                        self.__remoteRemoved(remote_event, local_event, simulateOnly)
-                    else:
-                        # Store object in trashbin
-                        self.__remoteTrashed(remote_event, local_event, simulateOnly)
-        except HermesClientHandlerError as e:
+        for local_event in local_events:
             if not simulateOnly and enqueueEventWithError:
-                self.__processRemoteEvent(
-                    remote_event,
-                    local_event=None,
-                    enqueueEventWithError=False,
-                    simulateOnly=True,
-                )
-                remote_event.step = self.currentStep
-                remote_event.isPartiallyProcessed = self.isPartiallyProcessed
-                local_event.step = self.currentStep
-                local_event.isPartiallyProcessed = self.isPartiallyProcessed
-
-                if local_event is None:
-                    # Force empty event generation when local_event doesn't change
-                    # anything
-                    local_event = self.__datamodel.convertEventToLocal(
-                        remote_event, r_obj_complete, allowEmptyEvent=True
+                if hadErrors or (
+                    isParent and remote_event.eventtype in self.__foreignkeys_events
+                ):
+                    secretAttrs = self.__datamodel.remote_schema.secretsAttributesOf(
+                        remote_event.objtype
                     )
-                self.__datamodel.errorqueue.append(remote_event, local_event, e.msg)
-            else:
-                raise
+                    if hadErrors:
+                        errorMsg = (
+                            "Object in remote event"
+                            f" {remote_event.toString(secretAttrs)} already had"
+                            " unresolved errors: appending event to error queue"
+                        )
+                    else:
+                        errorMsg = (
+                            "Object in remote event"
+                            f" {remote_event.toString(secretAttrs)} is a dependency of"
+                            " an object that already had unresolved errors: appending"
+                            " event to error queue"
+                        )
+                    __hermes__.logger.warning(errorMsg)
+                    self.__processRemoteEvent(
+                        remote_event,
+                        local_event=None,
+                        enqueueEventWithError=False,
+                        simulateOnly=True,
+                    )
+                    if local_event is None:
+                        # Force empty event generation when local_event doesn't change
+                        # anything
+                        l_events = self.__datamodel.convertEventToLocal(
+                            remote_event, r_obj_complete, allowEmptyEvent=True
+                        )
+                        for local_event in l_events:
+                            self.__datamodel.errorqueue.append(
+                                remote_event, local_event, errorMsg
+                            )
+                    else:
+                        self.__datamodel.errorqueue.append(
+                            remote_event, local_event, errorMsg
+                        )
+                    continue
+
+            try:
+                match remote_event.eventtype:
+                    case "added":
+                        if self.__trashbin_retention is not None and was_in_trashbin:
+                            # Object is in trashbin, recycle it
+                            self.__remoteRecycled(
+                                remote_event, local_event, simulateOnly
+                            )
+                        else:
+                            # Add new object
+                            self.__remoteAdded(remote_event, local_event, simulateOnly)
+
+                    case "modified":
+                        self.__remoteModified(remote_event, local_event, simulateOnly)
+
+                    case "removed":
+                        # Remove object on any of these conditions:
+                        #   - trashbin retention is disabled
+                        #   - object is already in trashbin
+                        if self.__trashbin_retention is None or was_in_trashbin:
+                            # Remove object
+                            self.__remoteRemoved(
+                                remote_event, local_event, simulateOnly
+                            )
+                        else:
+                            # Store object in trashbin
+                            self.__remoteTrashed(
+                                remote_event, local_event, simulateOnly
+                            )
+            except HermesClientHandlerError as e:
+                if not simulateOnly and enqueueEventWithError:
+                    self.__processRemoteEvent(
+                        remote_event,
+                        local_event=None,
+                        enqueueEventWithError=False,
+                        simulateOnly=True,
+                    )
+                    remote_event.step = self.currentStep
+                    remote_event.isPartiallyProcessed = self.isPartiallyProcessed
+                    local_event.step = self.currentStep
+                    local_event.isPartiallyProcessed = self.isPartiallyProcessed
+
+                    if local_event is None:
+                        # Force empty event generation when local_event doesn't change
+                        # anything
+                        l_events = self.__datamodel.convertEventToLocal(
+                            remote_event, r_obj_complete, allowEmptyEvent=True
+                        )
+                        for local_event in l_events:
+                            self.__datamodel.errorqueue.append(
+                                remote_event, local_event, e.msg
+                            )
+                    else:
+                        self.__datamodel.errorqueue.append(
+                            remote_event, local_event, e.msg
+                        )
+                else:
+                    raise
 
     def __processLocalEvent(
         self,
@@ -1228,10 +1251,14 @@ class GenericClient:
 
         # Add remote object to cache
         if not simulateOnly:
-            self.__datamodel.remotedata[remote_event.objtype].append(r_obj)
+            # May already been added if remote type is used in more than one local type
+            self.__datamodel.remotedata[remote_event.objtype].append(
+                r_obj, ignoreIfAlreadyPresent=True
+            )
         # May already been added if current event is from errorqueue
-        if r_obj not in self.__datamodel.remotedata_complete[remote_event.objtype]:
-            self.__datamodel.remotedata_complete[remote_event.objtype].append(r_obj)
+        self.__datamodel.remotedata_complete[remote_event.objtype].append(
+            r_obj, ignoreIfAlreadyPresent=True
+        )
 
     def __localAdded(self, local_ev: Event, simulateOnly: bool = False):
         secretAttrs = self.__datamodel.local_schema.secretsAttributesOf(
@@ -1255,10 +1282,13 @@ class GenericClient:
 
         # Add local object to cache
         if not simulateOnly:
-            self.__datamodel.localdata[local_ev.objtype].append(l_obj)
+            self.__datamodel.localdata[local_ev.objtype].append(
+                l_obj, ignoreIfAlreadyPresent=True
+            )
         # May already been added if current event is from errorqueue
-        if l_obj not in self.__datamodel.localdata_complete[local_ev.objtype]:
-            self.__datamodel.localdata_complete[local_ev.objtype].append(l_obj)
+        self.__datamodel.localdata_complete[local_ev.objtype].append(
+            l_obj, ignoreIfAlreadyPresent=True
+        )
 
     def __remoteRecycled(
         self, remote_event: Event, local_event: Event, simulateOnly: bool = False
@@ -1293,10 +1323,10 @@ class GenericClient:
         trashbin_complete.removeByPkey(remote_event.objpkey)
         # Restore remote object, with its potential changes, in main cache
         if not simulateOnly:
-            maincache.append(r_obj)
+            # May already been added if remote type is used in more than one local type
+            maincache.append(r_obj, ignoreIfAlreadyPresent=True)
         # May already been recycled if current event is from errorqueue
-        if r_obj not in maincache_complete:
-            maincache_complete.append(r_obj)
+        maincache_complete.append(r_obj, ignoreIfAlreadyPresent=True)
 
     def __localRecycled(self, local_ev: Event, simulateOnly: bool = False):
         secretAttrs = self.__datamodel.local_schema.secretsAttributesOf(
@@ -1340,12 +1370,12 @@ class GenericClient:
             # Remove local object from trashbin
             trashbin.remove(l_obj_trash)
             # Restore local object in main cache
-            maincache.append(l_obj_trash)
+            maincache.append(l_obj_trash, ignoreIfAlreadyPresent=True)
 
         # May already been recycled if current event is from errorqueue
         if l_obj_trash_complete is not None:
             trashbin_complete.remove(l_obj_trash_complete)
-            maincache_complete.append(l_obj_trash_complete)
+            maincache_complete.append(l_obj_trash_complete, ignoreIfAlreadyPresent=True)
 
         diff = l_obj.diffFrom(l_obj_trash)  # Handle local object changes if any
         if diff and not simulateOnly:
@@ -1472,15 +1502,21 @@ class GenericClient:
 
         if not simulateOnly:
             # Remove remote object from cache
-            maincache.remove(r_cachedobj)
-            r_cachedobj._trashbin_timestamp = remote_event.timestamp
-            # Add remote object to trashbin
-            trashbin.append(r_cachedobj)
+            # May already been removed if remote type is used in more than one local
+            # type
+            if r_cachedobj is not None:
+                maincache.remove(r_cachedobj)
+                r_cachedobj._trashbin_timestamp = remote_event.timestamp
+                # Add remote object to trashbin
+                # May already been added if remote type is used in more than one local
+                # type
+                trashbin.append(r_cachedobj, ignoreIfAlreadyPresent=True)
 
         if r_cachedobj_complete is not None:
             maincache_complete.remove(r_cachedobj_complete)
             r_cachedobj_complete._trashbin_timestamp = remote_event.timestamp
-            trashbin_complete.append(r_cachedobj_complete)
+            # May already been added if remote type is used in more than one local type
+            trashbin_complete.append(r_cachedobj_complete, ignoreIfAlreadyPresent=True)
 
     def __localTrashed(self, local_ev: Event, simulateOnly: bool = False):
         secretAttrs = self.__datamodel.local_schema.secretsAttributesOf(
@@ -1512,12 +1548,12 @@ class GenericClient:
             maincache.remove(l_cachedobj)
             l_cachedobj._trashbin_timestamp = local_ev.timestamp
             # Add local object to trashbin
-            trashbin.append(l_cachedobj)
+            trashbin.append(l_cachedobj, ignoreIfAlreadyPresent=True)
 
         if l_cachedobj_complete is not None:
             maincache_complete.remove(l_cachedobj_complete)
             l_cachedobj_complete._trashbin_timestamp = local_ev.timestamp
-            trashbin_complete.append(l_cachedobj_complete)
+            trashbin_complete.append(l_cachedobj_complete, ignoreIfAlreadyPresent=True)
 
     def __remoteRemoved(
         self, remote_event: Event, local_event: Event, simulateOnly: bool = False
@@ -1549,12 +1585,17 @@ class GenericClient:
         )
 
         # Remove remote object from cache or trashbin
+        # May already been removed if remote type is used in more than one local type
         if not simulateOnly:
-            cache.remove(r_cachedobj)
+            if r_cachedobj is not None:
+                cache.remove(r_cachedobj)
 
         # May already been removed if current event is from errorqueue
         if cache_complete is not None:
-            cache_complete.remove(r_cachedobj_complete)
+            # May already been removed if remote type is used in more than one local
+            # type
+            if r_cachedobj_complete is not None:
+                cache_complete.remove(r_cachedobj_complete)
 
     def __localRemoved(self, local_ev: Event, simulateOnly: bool = False):
         secretAttrs = self.__datamodel.local_schema.secretsAttributesOf(
@@ -1652,7 +1693,12 @@ class GenericClient:
         if diff.removed:
             for l_objtype in diff.removed:
                 __hermes__.logger.info(f"About to purge data from type '{l_objtype}'")
-                if l_objtype not in self.__datamodel.typesmapping.values():
+                for ltypes in self.__datamodel.typesmapping.values():
+                    if l_objtype in ltypes:
+                        break
+                else:
+                    # l_objtype was not found in each list from
+                    # self.__datamodel.typesmapping.values()
                     __hermes__.logger.warning(
                         f"Requested to purge data from type '{l_objtype}', but it"
                         " doesn't exist in previous datamodel: ignoring"
@@ -1729,68 +1775,75 @@ class GenericClient:
                         continue  # Remote objtype isn't set in current Datamodel
 
                     # Fetch corresponding local type
-                    l_objtype = f"{prefix}{self.__datamodel.typesmapping[r_objtype]}"
+                    for l_objt in self.__datamodel.typesmapping[r_objtype]:
+                        l_objtype = f"{prefix}{l_objt}"
 
-                    # Convert remote data cache to local data
-                    new_local_data[l_objtype] = (
-                        self.__datamodel.convertDataObjectListToLocal(
-                            r_objtype, completeRemoteData[f"{prefix}{r_objtype}"]
+                        # Convert remote data cache to local data
+                        new_local_data[l_objtype] = (
+                            self.__datamodel.convertDataObjectListToLocal(
+                                r_objtype,
+                                completeRemoteData[f"{prefix}{r_objtype}"],
+                                l_objt,
+                            )
                         )
-                    )
 
-                    # Compute differences between new local data and local data cache
-                    completeLocalDataObjtype: DataObjectList = completeLocalData.get(
-                        l_objtype, DataObjectList([])
-                    )
-                    datadiff = new_local_data[l_objtype].diffFrom(
-                        completeLocalDataObjtype
-                    )
+                        # Compute differences between new local data and local data
+                        # cache
+                        completeLocalDataObjtype: DataObjectList = (
+                            completeLocalData.get(l_objtype, DataObjectList([]))
+                        )
+                        datadiff = new_local_data[l_objtype].diffFrom(
+                            completeLocalDataObjtype
+                        )
 
-                    for changeType, difflist in datadiff.dict.items():
-                        diffitem: DiffObject | DataObject
-                        for diffitem in difflist:
-                            # Convert diffitem to local Event
-                            event, obj = Event.fromDiffItem(
-                                diffitem=diffitem,
-                                eventCategory="base",
-                                changeType=changeType,
-                            )
+                        for changeType, difflist in datadiff.dict.items():
+                            diffitem: DiffObject | DataObject
+                            for diffitem in difflist:
+                                # Convert diffitem to local Event
+                                event, obj = Event.fromDiffItem(
+                                    diffitem=diffitem,
+                                    eventCategory="base",
+                                    changeType=changeType,
+                                )
 
-                            if prefix == "trashbin_":
-                                if obj not in completeLocalDataObjtype:
-                                    # Object exists in remote trashbin, but not in
-                                    # local one as it has been removed before its type
-                                    # was added to client's Datamodel.
-                                    # Process a local "added" event, then a local
-                                    # "removed" event to store local object in trashbin
+                                if prefix == "trashbin_":
+                                    if obj not in completeLocalDataObjtype:
+                                        # Object exists in remote trashbin, but not in
+                                        # local one as it has been removed before its
+                                        # type was added to client's Datamodel.
+                                        # Process a local "added" event, then a local
+                                        # "removed" event to store local object in
+                                        # trashbin
 
-                                    # Add local object
-                                    self.__processLocalEvent(
-                                        None, event, enqueueEventWithError=True
-                                    )
+                                        # Add local object
+                                        self.__processLocalEvent(
+                                            None, event, enqueueEventWithError=True
+                                        )
 
-                                    # Prepare "removed" event
-                                    event = Event(
-                                        evcategory="base",
-                                        eventtype="removed",
-                                        obj=obj,
-                                        objattrs={},
-                                    )
-                                    # Preserve object _trashbin_timestamp
-                                    event.timestamp = completeRemoteData[
-                                        f"{prefix}{r_objtype}"
-                                    ][obj]._trashbin_timestamp
-                                else:
-                                    # Preserve object _trashbin_timestamp
-                                    obj._trashbin_timestamp = completeLocalDataObjtype[
-                                        obj
-                                    ]._trashbin_timestamp
+                                        # Prepare "removed" event
+                                        event = Event(
+                                            evcategory="base",
+                                            eventtype="removed",
+                                            obj=obj,
+                                            objattrs={},
+                                        )
+                                        # Preserve object _trashbin_timestamp
+                                        event.timestamp = completeRemoteData[
+                                            f"{prefix}{r_objtype}"
+                                        ][obj]._trashbin_timestamp
+                                    else:
+                                        # Preserve object _trashbin_timestamp
+                                        obj._trashbin_timestamp = (
+                                            completeLocalDataObjtype[
+                                                obj
+                                            ]._trashbin_timestamp
+                                        )
 
-                            # Process Event and update cache if no error is met,
-                            # enqueue event otherwise
-                            self.__processLocalEvent(
-                                None, event, enqueueEventWithError=True
-                            )
+                                # Process Event and update cache if no error is met,
+                                # enqueue event otherwise
+                                self.__processLocalEvent(
+                                    None, event, enqueueEventWithError=True
+                                )
 
         self.__config.savecachefile()  # Save config to be able to rebuild datamodel
         self.__datamodel.saveLocalAndRemoteData()  # Save data

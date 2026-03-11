@@ -108,6 +108,49 @@ class NullClientFixture:
                 self.isPartiallyProcessed = True
             raise AssertionError(f"User {cachedobj} has error")
 
+    def on_Users2_added(
+        self, objkey: Any, eventattrs: "dict[str, Any]", newobj: "DataObject"
+    ):
+        if (
+            hasattr(newobj, "middle_name")
+            and type(newobj.middle_name) is str
+            and "error" in newobj.middle_name
+        ):
+            if "error_on_second_step" in newobj.middle_name:
+                self.currentStep = 1
+                self.isPartiallyProcessed = True
+            raise AssertionError(f"User2 {newobj} has error")
+
+    def on_Users2_modified(
+        self,
+        objkey: Any,
+        eventattrs: "dict[str, Any]",
+        newobj: "DataObject",
+        cachedobj: "DataObject",
+    ):
+        if (
+            hasattr(newobj, "middle_name")
+            and type(newobj.middle_name) is str
+            and "error" in newobj.middle_name
+        ):
+            if "error_on_second_step" in newobj.middle_name:
+                self.currentStep = 1
+                self.isPartiallyProcessed = True
+            raise AssertionError(f"User2 {newobj} has error")
+
+    def on_Users2_removed(
+        self, objkey: Any, eventattrs: "dict[str, Any]", cachedobj: "DataObject"
+    ):
+        if (
+            hasattr(cachedobj, "middle_name")
+            and type(cachedobj.middle_name) is str
+            and "fail_on_remove" in cachedobj.middle_name
+        ):
+            if "fail_on_remove_second_step" in cachedobj.middle_name:
+                self.currentStep = 1
+                self.isPartiallyProcessed = True
+            raise AssertionError(f"User2 {cachedobj} has error")
+
     def on_Groups_added(
         self, objkey: Any, eventattrs: "dict[str, Any]", newobj: "DataObject"
     ):
@@ -654,6 +697,10 @@ class HermesIntegrationTestCase(unittest.TestCase):
         NullClient.on_Users_modified = NullClientFixture.on_Users_modified
         NullClient.on_Users_trashed = NullClientFixture.on_Users_removed
         NullClient.on_Users_removed = NullClientFixture.on_Users_removed
+        NullClient.on_Users2_added = NullClientFixture.on_Users2_added
+        NullClient.on_Users2_modified = NullClientFixture.on_Users2_modified
+        NullClient.on_Users2_trashed = NullClientFixture.on_Users2_removed
+        NullClient.on_Users2_removed = NullClientFixture.on_Users2_removed
 
         # Create workdir
         if "HERMESFUNCTIONALTESTS_DEBUGTMPDIR" in os.environ:
