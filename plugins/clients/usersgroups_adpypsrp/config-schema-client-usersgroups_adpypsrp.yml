@@ -161,6 +161,7 @@ hermes-client-usersgroups_adpypsrp:
       required: true
       empty: false
       nullable: false
+      default: {}
       schema:
         Users:
           type: dict
