@@ -30,6 +30,7 @@ The settings list `otherAttributes` may contains available LDAP display name (`l
 The local Datamodel keys MUST exist in `standardAttributes` or `otherAttributes`, and will be used as cmdlet parameters with associated values, allowing to handle every AD attributes.
 
 The `GroupsMembers` will only associate a `User` with a `Group`.
+The `MembersOfGroups` will only associate a list of `User` with a `Group`.
 The `SubGroupsMembers` will only associate a `Group` with a `Group`, allowing to handle nested groups.
 
 To avoid security issues and corner cases with trashbin, a complex random password is set when user is created. This unknown password will be overwritten by the next `UserPassword` event of the `User`. This avoids having an enabled account with no password.
@@ -185,6 +186,11 @@ hermes-client-usersgroups_adpypsrp:
     letters_dictionary: "abcdefghijklmnopqrstuvwxyz"
     # The dictionary of special chars allowed in password
     special_chars_dictionary: "!@#$%^&*"
+
+    # Optional, only used when the 'MembersOfGroups' data type is used.
+    # Default value: true
+    # Forces a check for the existence of the logins specified in 'MembersOfGroups.groupmembers' to prevent errors caused by a login that is missing from the Active Directory, which would block any modification of the group members
+    ensureMembersOfGroupsExist: true
 ```
 
 ## Datamodel
@@ -194,7 +200,8 @@ The following data types may be set up:
 - `Users`: requires the attribute `SamAccountName` to be set
 - `UserPasswords`: obviously requires `Users`, and requires the attribute `user_pkey` corresponding to the primary keys of `Users`, and the attribute `password`. All other attributes will be ignored
 - `Groups`: requires the attribute `SamAccountName` to be set
-- `GroupsMembers`: obviously requires `Users` and `Groups`, and requires the attributes `user_pkey` and `group_pkey` corresponding to the primary keys of `Users` and `Groups`. Each entry must contain a pair (`user_pkey`, `group_pkey`). All other attributes will be ignored
+- `GroupsMembers`: obviously requires `Users` and `Groups`, and requires the attributes `user_pkey` and `group_pkey` corresponding to the primary keys of `Users` and `Groups`. Each entry must contain a pair (`user_pkey`, `group_pkey`). All other attributes will be ignored. Should not be configured if `MembersOfGroups` is.
+- `MembersOfGroups`: obviously requires `Users` and `Groups`, and requires the attributes `group_pkey` and `groupmembers` corresponding to the primary keys of `Groups` and the logins of `Users`. Each entry must contain a pair (`group_pkey`, `groupmembers`), where `groupmembers` contains the exhaustive list of logins for the `Users` members of the group. All other attributes will be ignored. It should not be configured if `GroupsMembers` is. **Using `GroupsMembers` is preferable to `MembersOfGroups` whenever possible because it is much more granular and consistent.**
 - `SubGroupsMembers`: obviously requires `Groups`, and requires that the `subgroup_pkey` and `group_pkey` attributes match the primary key of the subgroup to be assigned, and that of the assignment group, respectively. Each entry must contain a pair (`subgroup_pkey`, `group_pkey`). All other attributes will be ignored
 
 ```yaml
@@ -229,6 +236,13 @@ The following data types may be set up:
       attrsmapping:
         user_pkey: user_primary_key_on_server
         group_pkey: group_primary_key_on_server
+        # ...
+
+    MembersOfGroups:
+      hermesType: your_server_MembersOfGroups_type_name
+      attrsmapping:
+        group_pkey: group_primary_key_on_server
+        groupmembers: list_of_group_member_logins_on_server
         # ...
 
     SubGroupsMembers:

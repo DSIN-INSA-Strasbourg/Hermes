@@ -109,6 +109,35 @@ class NullClient(GenericClient):
     ):
         pass
 
+    def on_MembersOfGroups_added(
+        self, objkey: Any, eventattrs: "dict[str, Any]", newobj: DataObject
+    ):
+        pass
+
+    def on_MembersOfGroups_recycled(
+        self, objkey: Any, eventattrs: "dict[str, Any]", newobj: DataObject
+    ):
+        pass
+
+    def on_MembersOfGroups_modified(
+        self,
+        objkey: Any,
+        eventattrs: "dict[str, Any]",
+        newobj: DataObject,
+        cachedobj: DataObject,
+    ):
+        pass
+
+    def on_MembersOfGroups_trashed(
+        self, objkey: Any, eventattrs: "dict[str, Any]", cachedobj: DataObject
+    ):
+        pass
+
+    def on_MembersOfGroups_removed(
+        self, objkey: Any, eventattrs: "dict[str, Any]", cachedobj: DataObject
+    ):
+        pass
+
     def on_UserPasswords_added(
         self,
         objkey: Any,

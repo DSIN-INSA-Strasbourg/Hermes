@@ -22,7 +22,7 @@ along with Hermes. If not, see <https://www.gnu.org/licenses/>.
 
 ## Description
 
-Ce client traite les évènements de type Users, UserPasswords, Groups, GroupsMembers, GroupsSenders et Ressources, et stocke les données dans le tableau de bord de [PARTAGE](https://www.renater.fr/services/collaborer-simplement/partage/) via son API, gérée par [libPythonBssApi](https://github.com/dsi-univ-rennes1/libPythonBssApi).
+Ce client traite les évènements de type Users, UserPasswords, Groups, GroupsMembers, MembersOfGroups, GroupsSenders, MembersOfGroupsSenders et Ressources, et stocke les données dans le tableau de bord de [PARTAGE](https://www.renater.fr/services/collaborer-simplement/partage/) via son API, gérée par [libPythonBssApi](https://github.com/dsi-univ-rennes1/libPythonBssApi).
 
 Pour éviter les problèmes de sécurité, si aucun hash n'est disponible à la création de l'utilisateur, un mot de passe aléatoire complexe sera défini. Ce mot de passe inconnu sera modifié lorsqu'un attribut `userPassword` sera défini sur `User` ou sur `UserPassword`. Cela évite d'avoir un compte activé sans mot de passe.
 
@@ -127,12 +127,14 @@ hermes-client-usersgroups_bsspartage:
 
 Les types de données suivants peuvent être configurés :
 
-- `Users` : pour les comptes utilisateurs. Nécessite la définition des attributs `name` et `sn`, un attribut facultatif `aliases` peut être défini, et les autres sont des attributs tels que définis et utilisés par [libPythonBssApi](https://github.com/dsi-univ-rennes1/libPythonBssApi) et sont facultatifs.
+- `Users` : pour les comptes utilisateurs. Nécessite la définition des attributs `name` et `sn`, des attributs facultatifs `aliases` et `login` (ce dernier étant requis par `MembersOfGroups` et `MembersOfGroupsSenders`) peuvent être définis, et les autres sont des attributs tels que définis et utilisés par [libPythonBssApi](https://github.com/dsi-univ-rennes1/libPythonBssApi) et sont facultatifs.
 Notez que les attributs `zimbraAllowFromAddress`, `zimbraFeatureContactsEnabled` et `zimbraMailForwardingAddress` ne sont pas pris en charge par [libPythonBssApi](https://github.com/dsi-univ-rennes1/libPythonBssApi).
 - `UserPasswords` : nécessite évidemment `Users` et que ses clés primaires correspondent aux clés primaires de `Users`, et nécessite l'attribut `userPassword` qui doit contenir un hash LDAP valide. Tous les autres attributs seront ignorés. Comme l'attribut `userPassword` peut également être géré par `Users`, vous devez choisir : soit vous le gérez par `Users`, soit par `UserPasswords`, mais pour des raisons évidentes vous ne devez en aucun cas utiliser les deux en même temps.
 - `Groups` : pour les groupes et les listes de distribution. Nécessite que les attributs `name` et `zimbraMailStatus` soient définis, un attribut facultatif `aliases` peut être défini, et les autres sont des attributs tels que définis et utilisés par [libPythonBssApi](https://github.com/dsi-univ-rennes1/libPythonBssApi) et sont facultatifs.
-- `GroupsMembers` : pour ajouter des utilisateurs en tant que membres du groupe. Nécessite évidemment `Users` et `Groups`, et nécessite les attributs `user_pkey` et `group_pkey` correspondant aux clés primaires de `Users` et `Groups`. Chaque entrée doit contenir un couple (`user_pkey`, `group_pkey`). Tous les autres attributs seront ignorés.
-- `GroupsSenders` : pour ajouter des utilisateurs en tant qu'expéditeurs du groupe. Nécessite évidemment `Users` et `Groups`, et nécessite les attributs `user_pkey` et `group_pkey` correspondant aux clés primaires de `Users` et `Groups`. Chaque entrée doit contenir un couple (`user_pkey`, `group_pkey`). Tous les autres attributs seront ignorés.
+- `GroupsMembers` : pour ajouter des utilisateurs en tant que membres du groupe. Nécessite évidemment `Users` et `Groups`, et nécessite les attributs `user_pkey` et `group_pkey` correspondant aux clés primaires de `Users` et `Groups`. Chaque entrée doit contenir un couple (`user_pkey`, `group_pkey`). Tous les autres attributs seront ignorés. Ne devrait pas être configuré si `MembersOfGroups` l'est.
+- `MembersOfGroups` : pour définir la liste des utilisateurs membres du groupe. Nécessite évidemment `Users` et `Groups`, et nécessite que les attributs `group_pkey` et `groupmembers` correspondent aux clés primaires de `Groups` et aux logins de `Users`. Chaque entrée doit contenir un couple (`group_pkey`, `groupmembers`), où `groupmembers` contient la liste exhaustive des logins des `Users` membres du groupe. Tous les autres attributs seront ignorés. Ne devrait pas être configuré si `GroupsMembers` l'est. **L'utilisation de `GroupsMembers` est à privilégier dans la mesure du possible par rapport à `MembersOfGroups` car elle est bien plus fine et cohérente**.
+- `GroupsSenders` : pour ajouter des utilisateurs en tant qu'expéditeurs du groupe. Nécessite évidemment `Users` et `Groups`, et nécessite les attributs `user_pkey` et `group_pkey` correspondant aux clés primaires de `Users` et `Groups`. Chaque entrée doit contenir un couple (`user_pkey`, `group_pkey`). Tous les autres attributs seront ignorés. Ne devrait pas être configuré si `MembersOfGroupsSenders` l'est.
+- `MembersOfGroupsSenders` : pour définir la liste des utilisateurs étant des expéditeurs du groupe. Nécessite évidemment `Users` et `Groups`, et nécessite que les attributs `group_pkey` et `groupmembers` correspondent aux clés primaires de `Groups` et aux logins de `Users`. Chaque entrée doit contenir un couple (`group_pkey`, `groupmembers`), où `groupmembers` contient la liste exhaustive des logins des `Users` à déclarer comme expéditeurs. Tous les autres attributs seront ignorés. Ne devrait pas être configuré si `GroupsSenders` l'est. **L'utilisation de `GroupsSenders` est à privilégier dans la mesure du possible par rapport à `MembersOfGroupsSenders` car elle est bien plus fine et cohérente**.
 - `Resources` : pour les ressources. Nécessite que les attributs `name`, `zimbraCalResType` et `displayName` soient définis, et les autres sont des attributs tels que définis et utilisés par [libPythonBssApi](https://github.com/dsi-univ-rennes1/libPythonBssApi) et sont facultatifs.
 
 {{% notice warning %}}
@@ -280,11 +282,23 @@ Pour gérer `Users.zimbraCOSId`, il est probable que votre source de données fo
         user_pkey: user_pkey_value_from_server
         group_pkey: group_pkey_value_from_server
 
+    MembersOfGroups:
+      hermesType: your_server_MembersOfGroups_type_name
+      attrsmapping:
+        group_pkey: group_pkey_value_from_server
+        groupmembers: list_of_group_member_logins_on_server
+
     GroupsSenders:
       hermesType: your_server_GroupsSenders_type_name
       attrsmapping:
         user_pkey: user_pkey_value_from_server
         group_pkey: group_pkey_value_from_server
+
+    MembersOfGroupsSenders:
+      hermesType: your_server_MembersOfGroupsSenders_type_name
+      attrsmapping:
+        group_pkey: group_pkey_value_from_server
+        groupmembers: list_of_group_member_logins_on_server
     
     Resources:
       hermesType: your_server_Resources_type_name

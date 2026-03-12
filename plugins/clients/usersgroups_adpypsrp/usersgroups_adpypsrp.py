@@ -78,6 +78,11 @@ class PypsrpADClient(GenericClient):
         self.standardAttrs = self.config["standardAttributes"]
         self.otherAttrs = self.config["otherAttributes"]
 
+        ###################
+        # Plugin settings #
+        ###################
+        self.ensureMembersOfGroupsExist = self.config["ensureMembersOfGroupsExist"]
+
     def ensureIsConnected(func):
         """Decorator restoring connection if necessary"""
 
@@ -119,6 +124,9 @@ class PypsrpADClient(GenericClient):
                     for grp in self.config["Users_mandatory_groups"]
                 ]
             )
+
+        self._allknownlogins: set[str] | None = None
+        """Lazy cache of all known logins"""
 
     def __connect(self):
         if self.pool is not None:
@@ -645,6 +653,101 @@ class PypsrpADClient(GenericClient):
         ]
         self.run_ps(" `\n  ".join(cmd))
 
+    def on_MembersOfGroups_added(
+        self, objkey: Any, eventattrs: "dict[str, Any]", newobj: DataObject
+    ):
+        cachedgroup = self.getObjectFromCache("Groups", newobj.group_pkey)
+        self._setMembersOfGroup(
+            cachedgroup.SamAccountName, getattr(newobj, "groupmembers", [])
+        )
+
+    def on_MembersOfGroups_recycled(
+        self, objkey: Any, eventattrs: "dict[str, Any]", newobj: DataObject
+    ):
+        cachedgroup = self.getObjectFromCache("Groups", newobj.group_pkey)
+        self._setMembersOfGroup(
+            cachedgroup.SamAccountName, getattr(newobj, "groupmembers", [])
+        )
+
+    def on_MembersOfGroups_modified(
+        self,
+        objkey: Any,
+        eventattrs: "dict[str, Any]",
+        newobj: DataObject,
+        cachedobj: DataObject,
+    ):
+        cachedgroup = self.getObjectFromCache("Groups", newobj.group_pkey)
+        self._setMembersOfGroup(
+            cachedgroup.SamAccountName, getattr(newobj, "groupmembers", [])
+        )
+
+    def on_MembersOfGroups_trashed(
+        self, objkey: Any, eventattrs: "dict[str, Any]", cachedobj: DataObject
+    ):
+        cachedgroup = self.getObjectFromCache("Groups", cachedobj.group_pkey)
+        self._setMembersOfGroup(cachedgroup.SamAccountName, [])
+
+    def on_MembersOfGroups_removed(
+        self, objkey: Any, eventattrs: "dict[str, Any]", cachedobj: DataObject
+    ):
+        cachedgroup = self.getObjectFromCache("Groups", cachedobj.group_pkey)
+        self._setMembersOfGroup(cachedgroup.SamAccountName, [])
+
+    def _separateUnknownLoginFromKnown(
+        self, membersLogins: list[str]
+    ) -> tuple[list[str], list[str]]:
+        if not self.ensureMembersOfGroupsExist:
+            return membersLogins, []
+
+        if self._allknownlogins is None:
+            self._allknownlogins = set(
+                [
+                    user.SamAccountName
+                    for user in self.getDataobjectlistFromCache("Users")
+                ]
+            )
+
+        logins = set(membersLogins)
+        unknownlogins = sorted(logins.difference(self._allknownlogins))
+        if len(unknownlogins) == 0:
+            knownlogins = membersLogins
+        else:
+            knownlogins = sorted(logins.intersection(self._allknownlogins))
+
+        return knownlogins, unknownlogins
+
+    def _setMembersOfGroup(self, groupName: str, membersLogins: list[str]):
+        knownlogins, unknownlogins = self._separateUnknownLoginFromKnown(membersLogins)
+
+        membersDNs = [
+            f"CN={self.escape(login)},{self.users_ou}" for login in knownlogins
+        ]
+
+        "Set-ADGroup NewGroup -Replace @{ Member = $membership }"
+
+        if len(membersDNs) == 0:
+            cmd = [
+                "Set-ADGroup",
+                "-Identity",
+                f"'CN={self.escape(groupName)},{self.groups_ou}'",
+                "-Clear member",
+                "-Confirm:$False",
+            ]
+        else:
+            cmd = [
+                "Set-ADGroup",
+                "-Identity",
+                f"'CN={self.escape(groupName)},{self.groups_ou}'",
+                f"-Replace @{{member=$('{"','".join(membersDNs)}')}}",
+                "-Confirm:$False",
+            ]
+        self.run_ps(" `\n  ".join(cmd))
+
+        if len(unknownlogins) > 0:
+            raise AttributeError(
+                f"Group '{groupName}' contains unknown logins : {unknownlogins}"
+            )
+
     def on_UserPasswords_added(
         self,
         objkey: Any,
@@ -682,6 +785,10 @@ class PypsrpADClient(GenericClient):
         )
 
     def on_save(self):
+        if self.ensureMembersOfGroupsExist:
+            # Flush cache of all known logins
+            self._allknownlogins = None
+
         # As an idle pypsrp session may quickly become invalid, close it on processing
         # end to avoid errors
         self.__disconnect()

@@ -40,6 +40,7 @@ The following data types may be set up, without any specific constraint as nothi
 - UserPasswords
 - Groups
 - GroupsMembers
+- MembersOfGroups
 
 ```yaml
   datamodel:
@@ -62,6 +63,12 @@ The following data types may be set up, without any specific constraint as nothi
         # ...
 
     GroupsMembers:
+      hermesType: your_server_GroupsMembers_type_name
+      attrsmapping:
+        attr1_client:  attr1_server
+        # ...
+
+    MembersOfGroups:
       hermesType: your_server_GroupsMembers_type_name
       attrsmapping:
         attr1_client:  attr1_server

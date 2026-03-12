@@ -274,3 +274,10 @@ hermes-client-usersgroups_adpypsrp:
           empty: false
           nullable: false
           default: "!@#$%^&*"
+
+    ensureMembersOfGroupsExist:
+      type: boolean
+      required: true
+      empty: false
+      nullable: false
+      default: true

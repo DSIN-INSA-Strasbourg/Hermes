@@ -434,6 +434,44 @@ class BSSPartageClient(GenericClient):
                 self.isPartiallyProcessed = True
             self.currentStep += 1
 
+    def on_MembersOfGroups_added(
+        self, objkey: Any, eventattrs: "dict[str, Any]", newobj: DataObject
+    ):
+        self._setMembersOfGroup(newobj.group_pkey, getattr(newobj, "groupmembers", []))
+
+    def on_MembersOfGroups_recycled(
+        self, objkey: Any, eventattrs: "dict[str, Any]", newobj: DataObject
+    ):
+        self._setMembersOfGroup(newobj.group_pkey, getattr(newobj, "groupmembers", []))
+
+    def on_MembersOfGroups_modified(
+        self,
+        objkey: Any,
+        eventattrs: "dict[str, Any]",
+        newobj: DataObject,
+        cachedobj: DataObject,
+    ):
+        self._setMembersOfGroup(newobj.group_pkey, getattr(newobj, "groupmembers", []))
+
+    def on_MembersOfGroups_trashed(
+        self, objkey: Any, eventattrs: "dict[str, Any]", cachedobj: DataObject
+    ):
+        self._setMembersOfGroup(cachedobj.group_pkey, [])
+
+    def on_MembersOfGroups_removed(
+        self, objkey: Any, eventattrs: "dict[str, Any]", cachedobj: DataObject
+    ):
+        self._setMembersOfGroup(cachedobj.group_pkey, [])
+
+    def _setMembersOfGroup(self, group_pkey: str, membersLogins: list[str]):
+        cachedgroup = self.getObjectFromCache("Groups", group_pkey)
+
+        emails = set()
+        for user in self.getDataobjectlistFromCache("Users"):
+            if user.login in membersLogins and hasattr(user, "name"):
+                emails.add(user.name)
+        GroupService.updateGroupMembers(cachedgroup.name, sorted(emails))
+
     def on_GroupsSenders_added(
         self, objkey: Any, eventattrs: "dict[str, Any]", newobj: DataObject
     ):
@@ -475,6 +513,50 @@ class BSSPartageClient(GenericClient):
                 GroupService.removeGroupSenders(cachedgroup.name, cacheduser.name)
                 self.isPartiallyProcessed = True
             self.currentStep += 1
+
+    def on_MembersOfGroupsSenders_added(
+        self, objkey: Any, eventattrs: "dict[str, Any]", newobj: DataObject
+    ):
+        self._setMembersOfGroupSenders(
+            newobj.group_pkey, getattr(newobj, "groupmembers", [])
+        )
+
+    def on_MembersOfGroupsSenders_recycled(
+        self, objkey: Any, eventattrs: "dict[str, Any]", newobj: DataObject
+    ):
+        self._setMembersOfGroupSenders(
+            newobj.group_pkey, getattr(newobj, "groupmembers", [])
+        )
+
+    def on_MembersOfGroupsSenders_modified(
+        self,
+        objkey: Any,
+        eventattrs: "dict[str, Any]",
+        newobj: DataObject,
+        cachedobj: DataObject,
+    ):
+        self._setMembersOfGroupSenders(
+            newobj.group_pkey, getattr(newobj, "groupmembers", [])
+        )
+
+    def on_MembersOfGroupsSenders_trashed(
+        self, objkey: Any, eventattrs: "dict[str, Any]", cachedobj: DataObject
+    ):
+        self._setMembersOfGroupSenders(cachedobj.group_pkey, [])
+
+    def on_MembersOfGroupsSenders_removed(
+        self, objkey: Any, eventattrs: "dict[str, Any]", cachedobj: DataObject
+    ):
+        self._setMembersOfGroupSenders(cachedobj.group_pkey, [])
+
+    def _setMembersOfGroupSenders(self, group_pkey: str, membersLogins: list[str]):
+        cachedgroup = self.getObjectFromCache("Groups", group_pkey)
+
+        emails = set()
+        for user in self.getDataobjectlistFromCache("Users"):
+            if user.login in membersLogins and hasattr(user, "name"):
+                emails.add(user.name)
+        GroupService.updateGroupSenders(cachedgroup.name, sorted(emails))
 
     @staticmethod
     def _ResourceService_getResource(name: str) -> Resource | None:

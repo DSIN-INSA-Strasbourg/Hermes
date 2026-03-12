@@ -22,11 +22,11 @@ along with Hermes. If not, see <https://www.gnu.org/licenses/>.
 
 ## Description
 
-This client will handle Users, Groups and UserPasswords events, and store data in an LDAP directory.
+This client will handle Users, Groups, GroupsMembers, MembersOfGroups and UserPasswords events, and store data in an LDAP directory.
 
 The local Datamodel keys will be used as LDAP attributes names, without any constraints, and it is possible to specify some Datamodel keys to ignore (typically the primary keys) that won't be stored in LDAP directory with the `attributesToIgnore` setting.
 
-The `GroupMembers` will only store data (typically LDAP `member` attribute) in LDAP group entries as it is possible to use LDAP overlays (`dynlist` or the deprecated `memberOf`) to dynamically generate the corresponding data in user entries. You should consider reading the `propagateUserDNChangeOnGroupMember` setting documentation.
+`GroupsMembers` and `MembersOfGroups` will only store data (typically LDAP `member` attribute) in LDAP group entries as it is possible to use LDAP overlays (`dynlist` or the deprecated `memberOf`) to dynamically generate the corresponding data in user entries. You should consider reading the `propagateUserDNChangeOnGroupMember` setting documentation.
 
 {{% notice style="tip" title="LDAP password hashes generation" %}}
 If you need to generate LDAP password hashes, you may consider looking at [ldapPasswordHash](/setup/configuration/plugins/attributes/ldappasswordhash/) attribute plugin.
@@ -101,9 +101,10 @@ hermes-client-usersgroups_ldap:
 The following data types may be set up:
 
 - `Users`
-- `UserPasswords`: obviously require `Users`, and requires the following attribute names `user_pkey` corresponding to the primary keys of `Users`
+- `UserPasswords`: obviously require `Users`, and requires the attribute `user_pkey` corresponding to the primary keys of `Users`
 - `Groups`
-- `GroupsMembers`: obviously require `Users` and `Groups`, and requires the following attribute names `user_pkey` `group_pkey` corresponding to the primary keys of `Users` and `Groups`. Each entry must contain a pair (`user_pkey`, `group_pkey`)
+- `GroupsMembers`: obviously require `Users` and `Groups`, and requires the attributes `user_pkey` and `group_pkey` corresponding to the primary keys of `Users` and `Groups`. Each entry must contain a pair (`user_pkey`, `group_pkey`). Should not be configured if `MembersOfGroups` is
+- `MembersOfGroups`: obviously requires `Users` and `Groups`, and requires the attributes `group_pkey` and `groupmembers` corresponding to the primary keys of `Groups` and the logins of `Users`. Each entry must contain a pair (`group_pkey`, `groupmembers`), where `groupmembers` contains the exhaustive list of logins for the `Users` members of the group. All other attributes will be ignored. It should not be configured if `GroupsMembers` is. **Using `GroupsMembers` is preferable to `MembersOfGroups` whenever possible because it is much more granular and consistent.**
 
 ```yaml
   datamodel:
@@ -133,5 +134,12 @@ The following data types may be set up:
       attrsmapping:
         user_pkey:  user_primary_key_on_server
         group_pkey:  group_primary_key_on_server
+        # ...
+
+    MembersOfGroups:
+      hermesType: your_server_MembersOfGroups_type_name
+      attrsmapping:
+        group_pkey: group_pkey_value_from_server
+        groupmembers: list_of_group_member_logins_on_server
         # ...
 ```

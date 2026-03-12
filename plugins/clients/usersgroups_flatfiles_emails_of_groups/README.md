@@ -47,9 +47,13 @@ The following data types must be set up:
 - `Groups`, requires the following attribute names:
   - `group_pkey`: the group primary key
   - `name`: the group name, that will be compared to those in `onlyTheseGroups`, and used to name the destination file "*groupName*.txt"
-- `GroupsMembers`, for which each entry must contain a pair (`user_pkey`, `group_pkey`). Requires the following attribute names:
-  - `user_pkey`: the user primary key
-  - `group_pkey`: the group primary key
+- Only one of the following two options:
+  - `GroupsMembers`, for which each entry must contain a pair (`user_pkey`, `group_pkey`). Requires the following attribute names:
+    - `user_pkey`: the user primary key
+    - `group_pkey`: the group primary key
+  - `MembersOfGroups`, for which each entry must contain a pair (`group_pkey`, `groupmembers`). Requires the following attribute names:
+    - `group_pkey`: the group primary key
+    - `groupmembers`: the exhaustive list of logins for the `Users` members of the group
 
 ```yaml
   datamodel:
@@ -70,4 +74,10 @@ The following data types must be set up:
       attrsmapping:
         user_pkey: user_pkey_on_server
         group_pkey: group_pkey_on_server
+
+    MembersOfGroups:
+      hermesType: your_server_MembersOfGroups_type_name
+      attrsmapping:
+        group_pkey: group_primary_key_on_server
+        groupmembers: list_of_group_member_logins_on_server
 ```

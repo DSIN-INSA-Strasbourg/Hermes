@@ -44,20 +44,45 @@ class FlatfilesEmailsOfGroups(GenericClient):
         self.groupsChanged: set[Any] = set()
         """Will contains pkeys of groups to update"""
 
-    def updateGroupFile(self, group: DataObject):
+    def _updateGroupFile(self, group: DataObject, evtsrc: str):
         if self.onlyTheseGroups and group.name not in self.onlyTheseGroups:
             return
 
+        if evtsrc == "GroupsMembers":
+            emails = self._getEmailFromGroupsMembers(group)
+        elif evtsrc == "MembersOfGroups":
+            emails = self._getEmailFromMembersOfGroups(group)
+        else:
+            raise AssertionError(f"BUG ! Invalid event src met: {evtsrc=}")
+
+        with open(f"{self.destdir}/{group.name}.txt", "+wt") as fd:
+            fd.write("\n".join(sorted(emails)))
+
+    def _getEmailFromGroupsMembers(self, group: DataObject) -> list[str]:
         groupmembers = self.getDataobjectlistFromCache("GroupsMembers")
         users_pkey = set(
             [gm.user_pkey for gm in groupmembers if gm.group_pkey == group.getPKey()]
         )
 
         users = self.getDataobjectlistFromCache("Users")
-        emails = sorted([u.mail for u in users if u.getPKey() in users_pkey])
+        return [u.mail for u in users if u.getPKey() in users_pkey]
 
-        with open(f"{self.destdir}/{group.name}.txt", "+wt") as fd:
-            fd.write("\n".join(emails))
+    def _getEmailFromMembersOfGroups(self, group: DataObject) -> list[str]:
+        membersLogins: set[str] = set(
+            getattr(
+                self.getDataobjectlistFromCache("MembersOfGroups").get(group.getPKey()),
+                "groupmembers",
+                [],
+            )
+        )
+        emails = set()
+
+        for user in self.getDataobjectlistFromCache("Users"):
+            if getattr(user, "login", None) in membersLogins:
+                if hasattr(user, "mail"):
+                    emails.add(user.mail)
+
+        return emails
 
     def on_Groups_removed(
         self, objkey: Any, eventattrs: "dict[str, Any]", cachedobj: DataObject
@@ -69,18 +94,61 @@ class FlatfilesEmailsOfGroups(GenericClient):
     def on_GroupsMembers_added(
         self, objkey: Any, eventattrs: "dict[str, Any]", newobj: DataObject
     ):
-        self.groupsChanged.add(newobj.group_pkey)
+        self.groupsChanged.add(
+            (newobj.group_pkey, "GroupsMembers"),
+        )
 
     def on_GroupsMembers_removed(
         self, objkey: Any, eventattrs: "dict[str, Any]", cachedobj: DataObject
     ):
-        self.groupsChanged.add(cachedobj.group_pkey)
+        self.groupsChanged.add(
+            (cachedobj.group_pkey, "GroupsMembers"),
+        )
+
+    def on_MembersOfGroups_added(
+        self, objkey: Any, eventattrs: "dict[str, Any]", newobj: DataObject
+    ):
+        self.groupsChanged.add(
+            (newobj.group_pkey, "MembersOfGroups"),
+        )
+
+    def on_MembersOfGroups_recycled(
+        self, objkey: Any, eventattrs: "dict[str, Any]", newobj: DataObject
+    ):
+        self.groupsChanged.add(
+            (newobj.group_pkey, "MembersOfGroups"),
+        )
+
+    def on_MembersOfGroups_modified(
+        self,
+        objkey: Any,
+        eventattrs: "dict[str, Any]",
+        newobj: DataObject,
+        cachedobj: DataObject,
+    ):
+        self.groupsChanged.add(
+            (newobj.group_pkey, "MembersOfGroups"),
+        )
+
+    def on_MembersOfGroups_trashed(
+        self, objkey: Any, eventattrs: "dict[str, Any]", cachedobj: DataObject
+    ):
+        self.groupsChanged.add(
+            (cachedobj.group_pkey, "MembersOfGroups"),
+        )
+
+    def on_MembersOfGroups_removed(
+        self, objkey: Any, eventattrs: "dict[str, Any]", cachedobj: DataObject
+    ):
+        self.groupsChanged.add(
+            (cachedobj.group_pkey, "MembersOfGroups"),
+        )
 
     def on_save(self):
-        for pkey in self.groupsChanged:
+        for pkey, evtsrc in self.groupsChanged:
             try:
                 group = self.getObjectFromCache("Groups", pkey)
             except IndexError:
                 continue
-            self.updateGroupFile(group)
+            self._updateGroupFile(group, evtsrc)
         self.groupsChanged = set()

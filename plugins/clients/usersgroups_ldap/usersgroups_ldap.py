@@ -498,6 +498,64 @@ class LdapClient(GenericClient):
             self.__handleLDAPError(e)
             raise
 
+    def on_MembersOfGroups_added(
+        self, objkey: Any, eventattrs: "dict[str, Any]", newobj: DataObject
+    ):
+        cachedgroup = self.getObjectFromCache("Groups", newobj.group_pkey)
+        self._setMembersOfGroup(cachedgroup, getattr(newobj, "groupmembers", []))
+
+    def on_MembersOfGroups_recycled(
+        self, objkey: Any, eventattrs: "dict[str, Any]", newobj: DataObject
+    ):
+        cachedgroup = self.getObjectFromCache("Groups", newobj.group_pkey)
+        self._setMembersOfGroup(cachedgroup, getattr(newobj, "groupmembers", []))
+
+    def on_MembersOfGroups_modified(
+        self,
+        objkey: Any,
+        eventattrs: "dict[str, Any]",
+        newobj: DataObject,
+        cachedobj: DataObject,
+    ):
+        cachedgroup = self.getObjectFromCache("Groups", newobj.group_pkey)
+        self._setMembersOfGroup(cachedgroup, getattr(newobj, "groupmembers", []))
+
+    def on_MembersOfGroups_trashed(
+        self, objkey: Any, eventattrs: "dict[str, Any]", cachedobj: DataObject
+    ):
+        cachedgroup = self.getObjectFromCache("Groups", cachedobj.group_pkey)
+        self._setMembersOfGroup(cachedgroup, [])
+
+    def on_MembersOfGroups_removed(
+        self, objkey: Any, eventattrs: "dict[str, Any]", cachedobj: DataObject
+    ):
+        cachedgroup = self.getObjectFromCache("Groups", cachedobj.group_pkey)
+        self._setMembersOfGroup(cachedgroup, [])
+
+    def _setMembersOfGroup(self, group: DataObject, membersLogins: list[str]):
+        groupdn = (
+            f"{self.dnAttrGroups}"
+            f"={getattr(group, self.dnAttrGroups)},{self.groups_ou}"
+        )
+
+        defaultvalue = (
+            self.config["defaultValues"]
+            .get(group.getType(), {})
+            .get(self.groupMemberAttr, None)
+        )
+        membersDNs = [] if defaultvalue is None else [f"{defaultvalue}".encode("utf-8")]
+        membersDNs += [
+            f"{self.dnAttrUsers}={login},{self.users_ou}".encode("utf-8")
+            for login in membersLogins
+        ]
+
+        modlist = [(ldap.MOD_REPLACE, self.groupMemberAttr, membersDNs)]
+        try:
+            self.ldap.modify_s(groupdn, modlist)
+        except LDAPError as e:
+            self.__handleLDAPError(e)
+            raise
+
     @ensureIsConnected
     def on_UserPasswords_added(
         self, objkey: Any, eventattrs: "dict[str, Any]", newobj: DataObject

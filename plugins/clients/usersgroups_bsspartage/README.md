@@ -22,7 +22,7 @@ along with Hermes. If not, see <https://www.gnu.org/licenses/>.
 
 ## Description
 
-This client will handle Users, UserPasswords, Groups, GroupsMembers, GroupsSenders and Ressources events, and store data into the [PARTAGE](https://www.renater.fr/services/collaborer-simplement/partage/) dashboard through its API, handled by [libPythonBssApi](https://github.com/dsi-univ-rennes1/libPythonBssApi).
+This client will handle Users, UserPasswords, Groups, GroupsMembers, MembersOfGroups, GroupsSenders, MembersOfGroupsSenders and Ressources events, and store data into the [PARTAGE](https://www.renater.fr/services/collaborer-simplement/partage/) dashboard through its API, handled by [libPythonBssApi](https://github.com/dsi-univ-rennes1/libPythonBssApi).
 
 To avoid security issues, if no hash is available at user creation, a complex random password will be set. This unknown password will be changed when a `userPassword` attribute will be set to the `User` or to the `UserPassword`. This avoids having an enabled account with no password.
 
@@ -127,12 +127,14 @@ hermes-client-usersgroups_bsspartage:
 
 The following data types may be set up:
 
-- `Users`: for users accounts. Requires the attribute `name` and `sn` to be set, a facultative `aliases` attribute may bet set, and the others are attributes as defined and used by [libPythonBssApi](https://github.com/dsi-univ-rennes1/libPythonBssApi) and are facultative.
+- `Users`: for users accounts. Requires the attribute `name` and `sn` to be set, facultative attributes `aliases` and `login` (the latter being required by `MembersOfGroups` and `MembersOfGroupsSenders`) may bet set, and the others are attributes as defined and used by [libPythonBssApi](https://github.com/dsi-univ-rennes1/libPythonBssApi) and are facultative.
   Note that `zimbraAllowFromAddress`, `zimbraFeatureContactsEnabled` and `zimbraMailForwardingAddress` attributes are not supported by [libPythonBssApi](https://github.com/dsi-univ-rennes1/libPythonBssApi).
 - `UserPasswords`: obviously require `Users`, and requires that its primary keys are corresponding to the primary keys of `Users`, and requires the attribute `userPassword` that have to contain a valid LDAP hash. All other attributes will be ignored. As the `userPassword` attribute can also be managed by `Users`, you have to choose: either you manage it by `Users`, or by `UserPasswords`, but in no case should you use both at the same time for obvious reasons.
 - `Groups`: for groups and distribution lists. Requires the attribute `name` and `zimbraMailStatus` to be set, a facultative `aliases` attribute may bet set, and the others are attributes as defined and used by [libPythonBssApi](https://github.com/dsi-univ-rennes1/libPythonBssApi) and are facultative.
-- `GroupsMembers`: to add users as group members. Obviously require `Users` and `Groups`, and requires the attributes `user_pkey` and `group_pkey` corresponding to the primary keys of `Users` and `Groups`. Each entry must contain a pair (`user_pkey`, `group_pkey`). All other attributes will be ignored.
-- `GroupsSenders`: to add users as group senders. Obviously require `Users` and `Groups`, and requires the attributes `user_pkey` and `group_pkey` corresponding to the primary keys of `Users` and `Groups`. Each entry must contain a pair (`user_pkey`, `group_pkey`). All other attributes will be ignored.
+- `GroupsMembers`: to add users as group members. Obviously require `Users` and `Groups`, and requires the attributes `user_pkey` and `group_pkey` corresponding to the primary keys of `Users` and `Groups`. Each entry must contain a pair (`user_pkey`, `group_pkey`). All other attributes will be ignored. Should not be configured if `MembersOfGroups` is.
+- `MembersOfGroups`: to define the list of users who are members of the group. Obviously requires `Users` and `Groups`, and requires the attributes `group_pkey` and `groupmembers` corresponding to the primary keys of `Groups` and the logins of `Users`. Each entry must contain a pair (`group_pkey`, `groupmembers`), where `groupmembers` contains the exhaustive list of logins for the `Users` members of the group. All other attributes will be ignored. It should not be configured if `GroupsMembers` is. **Using `GroupsMembers` is preferable to `MembersOfGroups` whenever possible because it is much more granular and consistent.**
+- `GroupsSenders`: to add users as group senders. Obviously require `Users` and `Groups`, and requires the attributes `user_pkey` and `group_pkey` corresponding to the primary keys of `Users` and `Groups`. Each entry must contain a pair (`user_pkey`, `group_pkey`). All other attributes will be ignored. Should not be configured if `MembersOfGroupsSenders` is.
+- `MembersOfGroupsSenders`: to define the list of users who are group senders. Obviously requires `Users` and `Groups`, and requires the attributes `group_pkey` and `groupmembers` corresponding to the primary keys of `Groups` and the logins of `Users`. Each entry must contain a pair (`group_pkey`, `groupmembers`), where `groupmembers` contains the exhaustive list of logins for the `Users` to set as senders of the group. All other attributes will be ignored. It should not be configured if `GroupsSenders` is. **Using `GroupsSenders` is preferable to `MembersOfGroupsSenders` whenever possible because it is much more granular and consistent.**
 - `Resources`: for resources. Requires the attribute `name`, `zimbraCalResType` and `displayName` to be set, and the others are attributes as defined and used by [libPythonBssApi](https://github.com/dsi-univ-rennes1/libPythonBssApi) and are facultative.
 
 {{% notice warning %}}
@@ -280,11 +282,23 @@ To handle `Users.zimbraCOSId`, it is likely that your data source provides a nam
         user_pkey: user_pkey_value_from_server
         group_pkey: group_pkey_value_from_server
 
+    MembersOfGroups:
+      hermesType: your_server_MembersOfGroups_type_name
+      attrsmapping:
+        group_pkey: group_pkey_value_from_server
+        groupmembers: list_of_group_member_logins_on_server
+
     GroupsSenders:
       hermesType: your_server_GroupsSenders_type_name
       attrsmapping:
         user_pkey: user_pkey_value_from_server
         group_pkey: group_pkey_value_from_server
+
+    MembersOfGroupsSenders:
+      hermesType: your_server_MembersOfGroupsSenders_type_name
+      attrsmapping:
+        group_pkey: group_pkey_value_from_server
+        groupmembers: list_of_group_member_logins_on_server
     
     Resources:
       hermesType: your_server_Resources_type_name
