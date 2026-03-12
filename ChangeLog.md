@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - oracledb (used by plugins/datasources/oracle)
   - psycopg (used by plugins/datasources/postgresql)
   - pypsrp (used by plugins/clients/usersgroups_adpypsrp)
+- client plugin `usersgroups_adpypsrp`: added the brand new [`no_profile=True`](https://github.com/jborean93/pypsrp/pull/209) option of pypsrp which avoids creating an unnecessary user profile on the Windows host
 
 ### Fixed
 

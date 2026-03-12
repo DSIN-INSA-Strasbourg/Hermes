@@ -148,7 +148,7 @@ class PypsrpADClient(GenericClient):
             negotiate_service=self.winrm_negotiate_service,
         )
 
-        self.pool = RunspacePool(self.wsman)
+        self.pool = RunspacePool(self.wsman, no_profile=True)
         self.pool.open()
         self.run_ps("Import-Module ActiveDirectory")
 
