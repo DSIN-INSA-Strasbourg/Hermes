@@ -11,6 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [usergroups clients] Handle cases where group membership is provided in a single entry, with new dedicated types `MembersOfGroups` and `MembersOfGroupsSenders` to use instead of `GroupsMembers` and `GroupsSenders` ([#5](https://github.com/DSIN-INSA-Strasbourg/Hermes/issues/5))
 
+### Changed
+
+- Bumped python dependencies to their latest version:
+  - oracledb (used by plugins/datasources/oracle)
+  - psycopg (used by plugins/datasources/postgresql)
+  - pypsrp (used by plugins/clients/usersgroups_adpypsrp)
+
 ### Fixed
 
 - client plugin `usersgroups_adpypsrp`: set a default value for optional config setting `otherAttributes`

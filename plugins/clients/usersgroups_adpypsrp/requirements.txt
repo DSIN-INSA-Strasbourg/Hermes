@@ -1,5 +1,5 @@
 # plugins/clients/usersgroups_adpypsrp
 #     Build deps: sudo apt install libkrb5-dev
 #     See https://github.com/jborean93/pypsrp/tree/v0.8.1?tab=readme-ov-file#kerberos-authentication
-pypsrp[credssp,kerberos]==0.8.1
+pypsrp[credssp,kerberos]==0.9.0
 
