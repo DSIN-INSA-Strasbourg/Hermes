@@ -39,6 +39,12 @@ class TestJinjaClass(unittest.TestCase):
             "tpl": "{{ '1595014243J' }}",
             "restype": str,  # MUST be an str, not a complex
         },
+        "intwithcomment": {"tpl": "{{ '123#comment' }}", "restype": str},
+        "floatwithcomment": {"tpl": "{{ '123.456#comment' }}", "restype": str},
+        "intwithleftblank": {"tpl": "{{ ' 123' }}", "restype": str},
+        "floatwithleftblank": {"tpl": "{{ ' 123.456' }}", "restype": str},
+        "intwithrightblank": {"tpl": "{{ '123 ' }}", "restype": str},
+        "floatwithrightblank": {"tpl": "{{ '123.456 ' }}", "restype": str},
         "list": {"tpl": "{{ [1, 2] }}", "restype": list},
         "tuple": {"tpl": "{{ (1, 2) }}", "restype": tuple},
         "dict": {"tpl": "{{ {'a':1, 2:'b'} }}", "restype": dict},

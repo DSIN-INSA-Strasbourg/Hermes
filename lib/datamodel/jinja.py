@@ -29,6 +29,8 @@ from jinja2.nodes import Output, TemplateData
 from types import GeneratorType
 from typing import Any, Iterable, Optional
 
+import re
+
 
 class HermesNotAJinjaExpression(Exception):
     """Raised when a Jinja statement is found in template"""
@@ -74,7 +76,13 @@ def hermes_native_concat(values: Iterable[Any]) -> Optional[Any]:
     except (ValueError, SyntaxError, MemoryError):
         return raw
 
-    if isinstance(res, complex):
+    if (
+        isinstance(res, complex)  # Complex number
+        # Hash signs and blank chars are ignored by literal_eval
+        # e.g. " 123 # Python comment" will be returned as an int (123)
+        or (isinstance(res, int) and not re.match(r"^[-+]?[0-9]+$", raw))
+        or (isinstance(res, float) and not re.match(r"^[-+]?[0-9]+\.[0-9]+$", raw))
+    ):
         # Return the raw string instead of the evaluated value
         return raw
     else:
