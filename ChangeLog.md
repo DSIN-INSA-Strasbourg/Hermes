@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Jinja rendering is now processed in a sandboxed environment
+
 ### Fixed
 
 - Fixed data alteration when rendering Jinja template ([#11](https://github.com/DSIN-INSA-Strasbourg/Hermes/issues/11)). This fix also significantly improves type handling in Jinja templates.

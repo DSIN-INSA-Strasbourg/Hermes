@@ -22,10 +22,11 @@
 
 from ast import parse, literal_eval
 from itertools import chain, islice
-from jinja2 import meta, Environment
+from jinja2 import meta
 from jinja2.environment import Template
 from jinja2.nativetypes import NativeCodeGenerator, NativeTemplate
 from jinja2.nodes import Output, TemplateData
+from jinja2.sandbox import SandboxedEnvironment
 from types import GeneratorType
 from typing import Any, Iterable, Optional
 
@@ -95,7 +96,7 @@ class HermesCodeGenerator(NativeCodeGenerator):
         return repr("".join(map(str, group_list)))
 
 
-class HermesNativeEnvironment(Environment):
+class HermesNativeEnvironment(SandboxedEnvironment):
     """An environment that renders templates to native Python types"""
 
     code_generator_class = HermesCodeGenerator
