@@ -24,12 +24,10 @@ from ast import parse, literal_eval
 from itertools import chain, islice
 from jinja2 import meta, Environment
 from jinja2.environment import Template
-from jinja2.nativetypes import NativeCodeGenerator
+from jinja2.nativetypes import NativeCodeGenerator, NativeTemplate
 from jinja2.nodes import Output, TemplateData
 from types import GeneratorType
 from typing import Any, Iterable, Optional
-
-import re
 
 
 class HermesNotAJinjaExpression(Exception):
@@ -49,8 +47,8 @@ class HermesUnknownVarsInJinjaTemplateError(Exception):
 
 
 def hermes_native_concat(values: Iterable[Any]) -> Optional[Any]:
-    """Copy of jinja2.nativetypes.native_concat that will return the raw string
-    if the resulting value would have been a complex number
+    """Copy of jinja2.nativetypes.native_concat that will return the resulting native
+    Python value
     """
     head = list(islice(values, 2))
 
@@ -58,16 +56,14 @@ def hermes_native_concat(values: Iterable[Any]) -> Optional[Any]:
         return None
 
     if len(head) == 1:
-        raw = head[0]
-        if not isinstance(raw, str):
-            return raw
+        return head[0]
     else:
         if isinstance(values, GeneratorType):
             values = chain(head, values)
         raw = "".join([str(v) for v in values])
 
     try:
-        res = literal_eval(
+        return literal_eval(
             # In Python 3.10+ ast.literal_eval removes leading spaces/tabs
             # from the given string. For backwards compatibility we need to
             # parse the string ourselves without removing leading spaces/tabs.
@@ -76,25 +72,41 @@ def hermes_native_concat(values: Iterable[Any]) -> Optional[Any]:
     except (ValueError, SyntaxError, MemoryError):
         return raw
 
-    if (
-        isinstance(res, complex)  # Complex number
-        # Hash signs and blank chars are ignored by literal_eval
-        # e.g. " 123 # Python comment" will be returned as an int (123)
-        or (isinstance(res, int) and not re.match(r"^[-+]?[0-9]+$", raw))
-        or (isinstance(res, float) and not re.match(r"^[-+]?[0-9]+\.[0-9]+$", raw))
-    ):
-        # Return the raw string instead of the evaluated value
-        return raw
-    else:
-        return res
+
+class HermesCodeGenerator(NativeCodeGenerator):
+    # Code copied from Ansible - thanks to them !
+    # https://github.com/ansible/ansible/blob/v2.20.4/lib/ansible/_internal/_templating/_jinja_bits.py#L359
+    def _output_const_repr(self, group: Iterable[Any]) -> str:
+        """
+        Prevent Jinja's code generation from stringifying single nodes before
+        generating its repr.
+        This complements the behavioral change in HermesNativeEnvironment.concat which
+        returns single nodes without stringifying them.
+        """
+        # DTFIX-FUTURE: contribute this upstream as a fix to Jinja's native support
+        group_list = list(group)
+
+        if len(group_list) == 1:
+            return repr(group_list[0])
+
+        # NB: This is slightly more efficient than Jinja's _output_const_repr, which
+        # generates a throw-away list instance to pass to join.
+        #     Before removing this, ensure that upstream Jinja has this change.
+        return repr("".join(map(str, group_list)))
 
 
 class HermesNativeEnvironment(Environment):
-    """An environment that renders templates to native Python types, excepted
-    the complex numbers that are ignored."""
+    """An environment that renders templates to native Python types"""
 
-    code_generator_class = NativeCodeGenerator
+    code_generator_class = HermesCodeGenerator
     concat = staticmethod(hermes_native_concat)  # type: ignore
+
+
+class HermesNativeTemplate(NativeTemplate):
+    environment_class = HermesNativeEnvironment
+
+
+HermesNativeEnvironment.template_class = HermesNativeTemplate
 
 
 class Jinja:

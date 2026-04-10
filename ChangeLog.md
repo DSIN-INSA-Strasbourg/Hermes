@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Simple fix to limit as possible data alteration when rendering Jinja template ([#11](https://github.com/DSIN-INSA-Strasbourg/Hermes/issues/11)). The problem still needs to be fixed, but this patch already significantly reduces the likelihood of encountering it.
+- Fixed data alteration when rendering Jinja template ([#11](https://github.com/DSIN-INSA-Strasbourg/Hermes/issues/11)). This fix also significantly improves type handling in Jinja templates.
+**IMPORTANT NOTE** As Jinja templates rendering has been significantly modified, it's possible that your Jinja expressions will be interpreted differently with this release. **You really should revalidate the behavior of your Jinja expressions in a test environment with this new version before updating it in your production environment**.
 
 ## [v1.0.9] - 2026-03-16
 
