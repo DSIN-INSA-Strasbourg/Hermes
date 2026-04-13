@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed data alteration when rendering Jinja template ([#11](https://github.com/DSIN-INSA-Strasbourg/Hermes/issues/11)). This fix also significantly improves type handling in Jinja templates.
 **IMPORTANT NOTE** As Jinja templates rendering has been significantly modified, it's possible that your Jinja expressions will be interpreted differently with this release. **You really should revalidate the behavior of your Jinja expressions in a test environment with this new version before updating it in your production environment**.
 - client plugin `usersgroups_bsspartage`: account password is now properly updated on target ([#12](https://github.com/DSIN-INSA-Strasbourg/Hermes/issues/12))
+- clients: objects are now properly deleted when processing the deletion of a data type from the datamodel ([#13](https://github.com/DSIN-INSA-Strasbourg/Hermes/issues/13)), and any error met during this processing now terminate the app, but the deletion will resume upon restart ([#14](https://github.com/DSIN-INSA-Strasbourg/Hermes/issues/14))
 
 ## [v1.0.9] - 2026-03-16
 

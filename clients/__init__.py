@@ -56,6 +56,10 @@ class HermesAlreadyNotifiedException(Exception):
     notification"""
 
 
+class HermesDatamodelUpdatePurgeError(Exception):
+    """Raised when an error is met when purging data on datamodel update"""
+
+
 class HermesClientHandlerError(Exception):
     """Raised when an exception is met during client handler call"""
 
@@ -530,6 +534,7 @@ class GenericClient:
         isFirstLoopIteration: bool = True
         while not self.__isStopped:
             self.__saveRequired = False
+            currentConfigCanBeSaved = True
 
             try:
                 with self.__msgbus:
@@ -543,6 +548,7 @@ class GenericClient:
                                 try:
                                     self.__processDatamodelUpdate()
                                 except Exception as e:
+                                    currentConfigCanBeSaved = False
                                     self.__notifyFatalException(
                                         HermesClientHandlerError.exceptionToString(
                                             e, purgeCurrentFileFromTrace=False
@@ -625,7 +631,8 @@ class GenericClient:
                     # to avoid version migrations at each restart,
                     # as those files aren't expected to be updated often
                     if (
-                        self.__hasAtLeastBeganInitialization()
+                        currentConfigCanBeSaved
+                        and self.__hasAtLeastBeganInitialization()
                         and self.__cache.nextoffset is not None
                         and self.__cache.nextoffset > self.__cache.initstartoffset
                     ):
@@ -1123,6 +1130,7 @@ class GenericClient:
         local_event: Event | None,
         enqueueEventWithError: bool,
         simulateOnly: bool = False,
+        dontStoreInTrashbin: bool = False,
     ):
         if local_event is None:
             __hermes__.logger.debug("__processLocalEvent(None)")
@@ -1210,9 +1218,11 @@ class GenericClient:
                     # Remove object on any of these conditions:
                     #   - trashbin retention is disabled
                     #   - object is already in trashbin
+                    #   - dontStoreInTrashbin arg is True (used on datamodel update)
                     if (
                         self.__trashbin_retention is None
                         or local_event.objpkey in trashbin
+                        or dontStoreInTrashbin
                     ):
                         self.__localRemoved(local_event, simulateOnly)
                     else:
@@ -1711,7 +1721,7 @@ class GenericClient:
                 )
 
                 # Call remove on each object
-                for pkey in pkeys:
+                for pkey in sorted(pkeys):
                     _, l_obj = Datamodel.getObjectFromCacheOrTrashbin(
                         self.__datamodel.localdata, l_objtype, pkey
                     )
@@ -1729,7 +1739,19 @@ class GenericClient:
                             f"Removing local object of {pkey=}:"
                             f" {l_ev.toString(secretAttrs)=}"
                         )
-                        self.__localRemoved(l_ev)
+                        try:
+                            self.__processLocalEvent(
+                                None,
+                                l_ev,
+                                enqueueEventWithError=False,
+                                dontStoreInTrashbin=True,
+                            )
+                        except Exception:
+                            raise HermesDatamodelUpdatePurgeError(
+                                "An error was met when purging data from type"
+                                f" '{l_objtype}'. App will stop, but purging will"
+                                " resume upon restart"
+                            )
                     else:
                         __hermes__.logger.error(f"Local object of {pkey=} not found")
 
