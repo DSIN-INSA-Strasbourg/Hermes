@@ -104,6 +104,7 @@ class BSSPartageClient(GenericClient):
                     isAlreadyCreated = True
             if isAlreadyCreated:
                 AccountService.modifyAccount(account)
+                AccountService.modifyPassword(account.name, changes["userPassword"])
             else:
                 AccountService.createAccountExt(
                     account=account, password=changes["userPassword"]
@@ -155,6 +156,12 @@ class BSSPartageClient(GenericClient):
             self.currentStep += 1
 
         if self.currentStep == 1:
+            if "userPassword" in changes:
+                AccountService.modifyPassword(newobj.name, changes["userPassword"])
+                self.isPartiallyProcessed = True
+            self.currentStep += 1
+
+        if self.currentStep == 2:
             account = Account(newobj.name)
             if "zimbraZimletAvailableZimlets" in changes:
                 del changes["zimbraZimletAvailableZimlets"]
@@ -169,7 +176,7 @@ class BSSPartageClient(GenericClient):
             self.isPartiallyProcessed = True
             self.currentStep += 1
 
-        if self.currentStep == 2:
+        if self.currentStep == 3:
             if "aliases" in eventattrs["added"] or "aliases" in eventattrs["modified"]:
                 AccountService.modifyAccountAliases(newobj.name, newobj.aliases)
                 self.isPartiallyProcessed = True
@@ -209,18 +216,13 @@ class BSSPartageClient(GenericClient):
         newobj: DataObject,
     ):
         cacheduser = self.getObjectFromCache("Users", newobj.getPKey())
-        changes = {}
         if "userPassword" in eventattrs and eventattrs["userPassword"]:
-            changes["userPassword"] = eventattrs["userPassword"]
+            newUserPassword = eventattrs["userPassword"]
         else:
-            changes["userPassword"] = LDAPHash.hash(
-                self._randomPassword.generate(), "SSHA512"
-            )
+            newUserPassword = LDAPHash.hash(self._randomPassword.generate(), "SSHA512")
 
         if self.currentStep == 0:
-            account = Account(cacheduser.name)
-            account.fillAccount(changes)
-            AccountService.modifyAccount(account)
+            AccountService.modifyPassword(cacheduser.name, newUserPassword)
             self.isPartiallyProcessed = True
             self.currentStep += 1
 
@@ -232,24 +234,22 @@ class BSSPartageClient(GenericClient):
         cachedobj: DataObject,
     ):
         cacheduser = self.getObjectFromCache("Users", newobj.getPKey())
-        changes = {}
         if (
             "userPassword" in eventattrs["added"]
             or "userPassword" in eventattrs["modified"]
         ):
-            changes["userPassword"] = newobj.userPassword
+            newUserPassword = newobj.userPassword
         elif "userPassword" in eventattrs["removed"]:
-            changes["userPassword"] = None
+            newUserPassword = None
+        else:
+            # Nothing to do
+            return
 
-        if "userPassword" in changes and not changes["userPassword"]:
-            changes["userPassword"] = LDAPHash.hash(
-                self._randomPassword.generate(), "SSHA512"
-            )
+        if not newUserPassword:
+            newUserPassword = LDAPHash.hash(self._randomPassword.generate(), "SSHA512")
 
         if self.currentStep == 0:
-            account = Account(cacheduser.name)
-            account.fillAccount(changes)
-            AccountService.modifyAccount(account)
+            AccountService.modifyPassword(cacheduser.name, newUserPassword)
             self.isPartiallyProcessed = True
             self.currentStep += 1
 
@@ -257,15 +257,10 @@ class BSSPartageClient(GenericClient):
         self, objkey: Any, eventattrs: "dict[str, Any]", cachedobj: DataObject
     ):
         cacheduser = self.getObjectFromCache("Users", cachedobj.getPKey())
-        changes = {}
-        changes["userPassword"] = LDAPHash.hash(
-            self._randomPassword.generate(), "SSHA512"
-        )
+        newUserPassword = LDAPHash.hash(self._randomPassword.generate(), "SSHA512")
 
         if self.currentStep == 0:
-            account = Account(cacheduser.name)
-            account.fillAccount(changes)
-            AccountService.modifyAccount(account)
+            AccountService.modifyPassword(cacheduser.name, newUserPassword)
             self.isPartiallyProcessed = True
             self.currentStep += 1
 
