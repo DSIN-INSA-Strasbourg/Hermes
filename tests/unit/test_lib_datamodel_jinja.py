@@ -46,8 +46,11 @@ class TestJinjaClass(unittest.TestCase):
         "intwithrightblank": {"tpl": "{{ '123 ' }}", "restype": str},
         "floatwithrightblank": {"tpl": "{{ '123.456 ' }}", "restype": str},
         "list": {"tpl": "{{ [1, 2] }}", "restype": list},
+        "listasstr": {"tpl": "{{ '[1, 2]' }}", "restype": str},
         "tuple": {"tpl": "{{ (1, 2) }}", "restype": tuple},
         "dict": {"tpl": "{{ {'a':1, 2:'b'} }}", "restype": dict},
+        "bool": {"tpl": "{{ false }}", "restype": bool},
+        "boolasstr": {"tpl": "{{ 'false' }}", "restype": str},
     }
 
     def test_jinja_type_conversion(self):
