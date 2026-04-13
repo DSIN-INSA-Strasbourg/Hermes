@@ -18,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - client plugin `usersgroups_bsspartage`: account password is now properly updated on target ([#12](https://github.com/DSIN-INSA-Strasbourg/Hermes/issues/12))
 - clients: objects are now properly deleted when processing the deletion of a data type from the datamodel ([#13](https://github.com/DSIN-INSA-Strasbourg/Hermes/issues/13)), and any error met during this processing now terminate the app, but the deletion will resume upon restart ([#14](https://github.com/DSIN-INSA-Strasbourg/Hermes/issues/14))
 
+### Changed
+
+- Bumped python dependencies to their latest version:
+  - kafka-python (used by plugins/messagebus_producers/kafka and plugins/messagebus_consumers/kafka)
+  - pypsrp (used by plugins/clients/usersgroups_adpypsrp)
+
 ## [v1.0.9] - 2026-03-16
 
 ### Added
