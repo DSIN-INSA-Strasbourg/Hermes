@@ -19,7 +19,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Hermes. If not, see <https://www.gnu.org/licenses/>.
 
-HERMES_VERSION = "1.0.9"
+HERMES_VERSION = "1.0.10"
 """Curent app version"""
 
 HERMES_VERSIONS = [
@@ -41,5 +41,6 @@ HERMES_VERSIONS = [
     "1.0.7",
     "1.0.8",
     "1.0.9",
+    "1.0.10",
 ]
 """History of app versions, from oldest to newest"""
