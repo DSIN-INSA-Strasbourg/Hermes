@@ -5,6 +5,12 @@ All notable changes to Hermes will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- client plugin `usersgroups_ldap`: Now disconnecting once event batch is processed to free resources and avoid ldap.SERVER_DOWN error that occurred after an LDAP server restart
+
 ## [v1.0.10] - 2026-04-13
 
 ### Added

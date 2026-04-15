@@ -596,6 +596,21 @@ class LdapClient(GenericClient):
             cachedldapobj=self.convertObjToLdap(cachedobj),
         )
 
+    def disconnect(self):
+        if self.ldap is None:
+            return  # Not connected
+
+        try:
+            self.ldap.unbind_s()
+        except Exception:
+            pass  # Errors during unbind are harmless
+        self.ldap = None
+
+    def on_save(self):
+        # Disconnecting once event batch is processed to free resources and avoid
+        # ldap.SERVER_DOWN error that occurred after an LDAP server restart
+        self.disconnect()
+
     def __process_UserPasswords(
         self,
         user_pkey: Any,
