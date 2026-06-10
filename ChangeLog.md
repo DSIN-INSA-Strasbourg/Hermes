@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- client plugin `usersgroups_ldap`: the client no longer connects to the LDAP server at startup, in order to avoid an ldap.SERVER_DOWN error which occurred after a restart of the LDAP server when no data had been processed by the LDAP client since its startup
+
 ### Changed
 
 - Bumped python dependencies to their latest version:
