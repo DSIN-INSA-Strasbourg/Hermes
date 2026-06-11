@@ -70,6 +70,7 @@ class LdapClient(GenericClient):
     def __init__(self, config: HermesConfig):
         super().__init__(config)
         self.__init_settings()
+        self.ldap = None
 
     def ensureIsConnected(func):
         """Decorator restoring LDAP connection if necessary"""
