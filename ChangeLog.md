@@ -5,6 +5,12 @@ All notable changes to Hermes will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- New `regex_replace` attribute plugin that allows to perform a replacement in a string using a regular expression. See https://hermes.insa-strasbourg.fr/en/setup/configuration/plugins/attributes/regex_replace/ for details.
+
 ## [v1.0.13] - 2026-06-11
 
 ### Fixed
