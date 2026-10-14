@@ -11,6 +11,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - New `regex_replace` attribute plugin that allows to perform a replacement in a string using a regular expression. See https://hermes.insa-strasbourg.fr/en/setup/configuration/plugins/attributes/regex_replace/ for details.
 
+### Changed
+
+- Bumped python dependencies to their latest version:
+  - kafka-python (used by plugins/messagebus_producers/kafka and plugins/messagebus_consumers/kafka)
+  - oracledb (used by plugins/datasources/oracle)
+  - psycopg (used by plugins/datasources/postgresql)
+  - pycryptodomex (used by plugins/attributes/crypto_RSA_OAEP)
+  - python-ldap (used by plugins/datasources/ldap and plugins/clients/usersgroups_ldap)
+
 ## [v1.0.13] - 2026-06-11
 
 ### Fixed
