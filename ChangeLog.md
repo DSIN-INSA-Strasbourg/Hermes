@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- clients: added a way to force Jinja values to be recomputed on app update, eg. if a Jinja rendering bug has been fixed
+
 ### Fixed
 
 - clients: Jinja expressions were not being evaluated when the remote variables used within them lacked values ([#15](https://github.com/DSIN-INSA-Strasbourg/Hermes/issues/15)). While this might seem appropriate at first glance, it meant that expressions like "{{ remoteVar | default('Default value') }}" remained without a value instead of resolving to 'Default value'

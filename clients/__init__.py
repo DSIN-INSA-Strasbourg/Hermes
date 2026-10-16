@@ -91,6 +91,10 @@ class HermesClientHandlerError(Exception):
 class HermesClientCache(LocalCache):
     """Hermes client data to cache"""
 
+    update_recompute_jinja_values: bool = False
+    """May be set to true to force a recompute of every local Jinja expressions on app
+    update"""
+
     def __init__(self, from_json_dict: dict[str, Any] = {}):
         super().__init__(
             jsondataattr=[
@@ -126,6 +130,15 @@ class HermesClientCache(LocalCache):
     def savecachefile(self, cacheFilename: str | None = None):
         """Override method only to disable backup files in cache"""
         return super().savecachefile(cacheFilename, dontKeepBackup=True)
+
+    @classmethod
+    def migrate_from_v1_0_14_to_v1_0_15(
+        cls: "HermesClientCache", jsondict: Any | dict[Any, Any]
+    ) -> Any | dict[Any, Any]:
+        # Force Jinja recompute to fix issue #15
+        # https://github.com/DSIN-INSA-Strasbourg/Hermes/issues/15
+        cls.update_recompute_jinja_values = True
+        return jsondict
 
 
 class GenericClient:
@@ -1688,14 +1701,28 @@ class GenericClient:
 
         diff = self.__newdatamodel.diffFrom(self.__datamodel)
 
-        if not diff:
+        if self.__cache.update_recompute_jinja_values:
+            diff2 = self.__newdatamodel.diffFrom(
+                self.__datamodel, self.__cache.update_recompute_jinja_values
+            )
+
+        if not diff and not self.__cache.update_recompute_jinja_values:
             __hermes__.logger.info("No change in datamodel")
             # Start working with new datamodel
             self.__datamodel = self.__newdatamodel
             self.__datamodel.loadErrorQueue()
             return
 
-        __hermes__.logger.info(f"Datamodel has changed: {diff.dict}")
+        if diff:
+            __hermes__.logger.info(f"Datamodel has changed: {diff.dict}")
+
+        if self.__cache.update_recompute_jinja_values:
+            __hermes__.logger.info(
+                "Recompute all Jinja values, as required by app update"
+            )
+            diff = diff2
+            self.__cache.update_recompute_jinja_values = False
+
         self.__saveRequired = True
 
         # Start by removed types, as it requires the previous datamodel to process data

@@ -135,7 +135,9 @@ class Datamodel:
         """Returns true if remote schema has data"""
         return len(self.remote_schema.schema) != 0
 
-    def diffFrom(self, other: "Datamodel") -> DiffObject:
+    def diffFrom(
+        self, other: "Datamodel", force_jinja_recompute: bool = False
+    ) -> DiffObject:
         """Return DiffObject with differences (attributes names) of current instance
         from another"""
         diff = DiffObject()
@@ -148,7 +150,10 @@ class Datamodel:
         diff.appendAdded(s - o)
 
         for k, v in self._rawdatamodel.items():
-            if k in commonattrs and DataObject.isDifferent(v, other._rawdatamodel[k]):
+            if k in commonattrs and (
+                DataObject.isDifferent(v, other._rawdatamodel[k])
+                or force_jinja_recompute
+            ):
                 diff.appendModified(k)
 
         return diff
