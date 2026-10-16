@@ -5,6 +5,13 @@ All notable changes to Hermes will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- clients: Jinja expressions were not being evaluated when the remote variables used within them lacked values ([#15](https://github.com/DSIN-INSA-Strasbourg/Hermes/issues/15)). While this might seem appropriate at first glance, it meant that expressions like "{{ remoteVar | default('Default value') }}" remained without a value instead of resolving to 'Default value'
+**IMPORTANT NOTE** As Jinja templates rendering will now be processed on undefined variables, you may encounter new errors (eg. missing `default` filter in your templates). **You really should revalidate the behavior of your Jinja expressions in a test environment with this new version before updating it in your production environment**. Tests have been updated to ensure this does not happen again
+
 ## [v1.0.14] - 2026-10-15
 
 ### Added

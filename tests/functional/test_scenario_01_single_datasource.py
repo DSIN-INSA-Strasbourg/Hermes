@@ -543,10 +543,10 @@ class TestScenarioSingle(HermesIntegrationTestCase):
         conf = self.loadYamlClient("single")
         conf["hermes-client"]["datamodel"]["Users"]["attrsmapping"][
             "login_uppercase"
-        ] = "{{ login_uppercase | capitalize }}"
+        ] = "{{ login_uppercase | default('') | capitalize }}"
         conf["hermes-client"]["datamodel"]["Users2"]["attrsmapping"][
             "login_uppercase"
-        ] = "{{ login_uppercase | capitalize }}"
+        ] = "{{ login_uppercase | default('') | capitalize }}"
         self.clientthread.restart_client(conf)
         # The attribute will change in error queue too, so a change notification will
         # be sent
@@ -855,6 +855,67 @@ class TestScenarioSingle(HermesIntegrationTestCase):
                 # Ignore users in trashbin as they don't have the new attribute
                 continue
             self.assertFalse(hasattr(user, "login_uppercase"))
+
+    def test_211a_client_datamodel_modify_empty_attribute_to_filter(self):
+        self.log_current_test_name(myself())
+
+        # Modify attr "middle_name" to a jinja filter
+        conf = self.loadYamlClient("single")
+        conf["hermes-client"]["datamodel"]["Users"]["attrsmapping"][
+            "middle_name"
+        ] = "{{ middle_name | default('DEFAULT_VALUE') }}"
+        self.clientthread.restart_client(conf)
+        self.clientthread.update()
+        self.assertClientdataLen()
+
+        # Count users with a middle name set and those without
+        newQtyOfUsersWithMN = 0
+        newQtyOfUsersWithDefaultMN = 0
+        newQtyOfUsersWithoutMN = 0
+        for user in self.clientdata("Users"):
+            if hasattr(user, "_trashbin_timestamp"):
+                # Ignore users in trashbin as they don't have the new attribute
+                continue
+            if hasattr(user, "middle_name"):
+                if user.middle_name == "DEFAULT_VALUE":
+                    newQtyOfUsersWithDefaultMN += 1
+                newQtyOfUsersWithMN += 1
+            else:
+                newQtyOfUsersWithoutMN += 1
+
+        # Verify attribute content
+        self.assertEqual(newQtyOfUsersWithoutMN, 0)
+        self.assertEqual(newQtyOfUsersWithMN, 296)
+        self.assertEqual(newQtyOfUsersWithDefaultMN, 294)
+
+    def test_211b_client_datamodel_remove_filter_on_empty_attribute(self):
+        self.log_current_test_name(myself())
+
+        # Restore attr "middle_name" to its default value
+        conf = self.loadYamlClient("single")
+        self.clientthread.restart_client(conf)
+        self.clientthread.update()
+        self.assertClientdataLen()
+
+        # Count users with a middle name set and those without
+        newQtyOfUsersWithMN = 0
+        newQtyOfUsersWithDefaultMN = 0
+        newQtyOfUsersWithoutMN = 0
+        for user in self.clientdata("Users"):
+            if hasattr(user, "_trashbin_timestamp"):
+                # Ignore users in trashbin as they don't have the new attribute
+                continue
+            if hasattr(user, "middle_name"):
+                if user.middle_name == "DEFAULT_VALUE":
+                    newQtyOfUsersWithDefaultMN += 1
+                newQtyOfUsersWithMN += 1
+            else:
+                newQtyOfUsersWithoutMN += 1
+
+        # Verify attribute content
+        self.assertEqual(newQtyOfUsersWithMN, 2)
+        self.assertEqual(newQtyOfUsersWithoutMN, 294)
+        self.assertEqual(newQtyOfUsersWithDefaultMN, 0)
 
     #######################
     # Primary key updates #

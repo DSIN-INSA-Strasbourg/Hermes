@@ -500,6 +500,7 @@ class Datamodel:
         new_obj: DataObject | None = None,
         allowEmptyEvent: bool = False,
         onlyForLocalType: str | None = None,
+        renderAllJinjaAttributes: bool = False,
     ) -> list[Event | None]:
         """Convert specified remote event to local ones.
         If new_obj is provided, it must contains all the new remote object values,
@@ -543,66 +544,79 @@ class Datamodel:
                 else:
                     loopsrc = src
 
+                # Process all local attributes rendered with Jinja
+                if renderAllJinjaAttributes:
+                    localAttrsWithJinja: set[str] = set(
+                        [
+                            k
+                            for k, v in self._datamodel[objtype]["attrsmapping"].items()
+                            if isinstance(v, Template)
+                        ]
+                    )
+                else:
+                    localAttrsWithJinja: set[str] = set()
+
                 for k, v in loopsrc.items():
                     if k in self._remote2local[event.objtype]:
                         for dest in self._remote2local[event.objtype][k]:
                             remoteattr = self._datamodel[objtype]["attrsmapping"][dest]
                             if isinstance(
                                 remoteattr, Template
-                            ):  # May be a compiled Jinja Template
-                                if new_obj is None:
-                                    val = remoteattr.render(src)
-                                else:
-                                    # We must provide all new object vars values to
-                                    # render a Jinja Template computed from several
-                                    # vars, in case of "modified" event changing the
-                                    # value of only one var value used by the template.
-                                    # The event objattrs won't be enough in this
-                                    # specific case.
-                                    val = remoteattr.render(new_obj.toNative())
-
-                                if type(val) is list:
-                                    val = [v for v in val if v is not None]
-
-                                if val is None or val == []:
-                                    # No value
-                                    if event.eventtype == "modified":
-                                        objattrs["removed"].update({dest: val})
-                                    elif event.eventtype == "removed":
-                                        objattrs.update({dest: val})
-                                else:
-                                    # In modified events, we have to determine if the
-                                    # attribute is added or modified
-                                    if event.eventtype == "modified":
-                                        _, cachedObj = (
-                                            self.getObjectFromCacheOrTrashbin(
-                                                self.localdata_complete,
-                                                objtype,
-                                                event.objpkey,
-                                            )
-                                        )
-
-                                        if cachedObj is not None and hasattr(
-                                            cachedObj, dest
-                                        ):
-                                            # Ensure the value has changed
-                                            previousVal = getattr(cachedObj, dest)
-                                            if DataObject.isDifferent(previousVal, val):
-                                                objattrs["modified"].update({dest: val})
-                                                hasContent = True
-                                        else:
-                                            # Attr is added
-                                            objattrs["added"].update({dest: val})
-                                            hasContent = True
-                                    else:
-                                        objattrs.update({dest: val})
-                                        hasContent = True
+                            ):  # Jinja templates will be process later
+                                localAttrsWithJinja.add(dest)
                             else:
                                 if source is None:
                                     objattrs.update({dest: v})
                                 else:
                                     objattrs[source].update({dest: v})
                                 hasContent = True
+
+                # Process local attributes rendered with Jinja
+                for dest in localAttrsWithJinja:
+                    remoteattr = self._datamodel[objtype]["attrsmapping"][dest]
+                    if new_obj is None:
+                        val = remoteattr.render(src)
+                    else:
+                        # We must provide all new object vars values to
+                        # render a Jinja Template computed from several
+                        # vars, in case of "modified" event changing the
+                        # value of only one var value used by the template.
+                        # The event objattrs won't be enough in this
+                        # specific case.
+                        val = remoteattr.render(new_obj.toNative())
+
+                    if type(val) is list:
+                        val = [v for v in val if v is not None]
+
+                    if val is None or val == []:
+                        # No value
+                        if event.eventtype == "modified":
+                            objattrs["removed"].update({dest: val})
+                        elif event.eventtype == "removed":
+                            objattrs.update({dest: val})
+                    else:
+                        # In modified events, we have to determine if the
+                        # attribute is added or modified
+                        if event.eventtype == "modified":
+                            _, cachedObj = self.getObjectFromCacheOrTrashbin(
+                                self.localdata_complete,
+                                objtype,
+                                event.objpkey,
+                            )
+
+                            if cachedObj is not None and hasattr(cachedObj, dest):
+                                # Ensure the value has changed
+                                previousVal = getattr(cachedObj, dest)
+                                if DataObject.isDifferent(previousVal, val):
+                                    objattrs["modified"].update({dest: val})
+                                    hasContent = True
+                            else:
+                                # Attr is added
+                                objattrs["added"].update({dest: val})
+                                hasContent = True
+                        else:
+                            objattrs.update({dest: val})
+                            hasContent = True
 
             resev = None
             if hasContent or allowEmptyEvent or event.eventtype == "removed":
@@ -665,6 +679,7 @@ class Datamodel:
         tmpEvent = self.convertEventToLocal(
             Event("conversion", "added", obj, obj.toNative()),
             onlyForLocalType=expectedLocalObjtype,
+            renderAllJinjaAttributes=True,
         )[0]
         return self.local_schema.objectTypes[expectedLocalObjtype](
             from_json_dict=tmpEvent.objattrs
