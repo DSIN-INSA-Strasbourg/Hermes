@@ -45,6 +45,7 @@ HERMES_VERSIONS = [
     "1.0.11",
     "1.0.12",
     "1.0.13",
+    "1.0.14",
     "1.0.15",
 ]
 """History of app versions, from oldest to newest"""
